@@ -33,8 +33,10 @@ function profile() {
   const markDirty = () => { const b = document.getElementById('pfSave'); if (b) { b.disabled = !dirty(); b.textContent = dirty() ? 'Save profile' : 'Saved'; } };
   const set = k => e => { p[k] = e.target.value; markDirty(); };
   const back = state.pback || 'home';
-  const leave = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pback = null; go(back); };
-  const commit = () => { const prevName = (saved.name || '').trim(); state.profile = JSON.parse(JSON.stringify(p)); if ((state.profile.name || '').trim()) state.onboarded = true; state.pdraft = null; save(); toast('Profile saved'); C.render(); };
+  const editing = !!state.pedit || !(saved.name || '').trim() || !!state.focusBooking;
+  const leave = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pback = null; state.pedit = false; go(back); };
+  const cancelEdit = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pedit = false; C.render(); };
+  const commit = () => { const prevName = (saved.name || '').trim(); state.profile = JSON.parse(JSON.stringify(p)); if ((state.profile.name || '').trim()) state.onboarded = true; state.pdraft = null; state.pedit = false; save(); toast('Profile saved'); C.render(); };
   const field = (k, label, ph, type = 'text') => h('label', { class: 'fld' }, h('span', {}, label), h('input', { id: 'pf-' + k, type, inputmode: type === 'tel' ? 'numeric' : type === 'url' ? 'url' : undefined, autocapitalize: type === 'url' ? 'off' : undefined, placeholder: ph, value: p[k] || '', oninput: set(k) }));
   const name = (saved.name || '').trim();
   const hist = name ? state.history.filter(r => r.players.some(x => x.name === name)) : [];
@@ -46,16 +48,22 @@ function profile() {
   if (state.focusBooking) { state.focusBooking = false; setTimeout(() => { const el = document.getElementById('pf-booking'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 50); }
   return h('div', {}, topbar('Profile', dirty() ? 'Unsaved changes' : 'Stays on this phone', leave),
     h('div', { class: 'page' },
-      h('div', { class: 'card', style: 'align-items:center;text-align:center' },
+      !editing ? h('div', { class: 'card pview' },
+        h('div', { class: 'avatar xl' }, saved.photo ? h('img', { src: saved.photo, alt: '' }) : icon('people', 'xl')),
+        h('h2', {}, name), (saved.club || '').trim() ? h('div', { class: 'muted' }, saved.club) : null,
+        h('dl', { class: 'pinfo' }, ...[['Bows I shoot', myBows(saved).map(b => BOWS.find(x => x[0] === b)?.[1]).filter(Boolean).join(', ')], ['Archery Ireland no.', saved.ai], ['Club', saved.club], ['Club number', saved.clubNo], ['Booking link', saved.booking]]
+          .map(([k, v], i) => h('div', { class: i === 0 || i === 4 ? 'wide' : '' }, h('dt', {}, k), h('dd', { class: (v || '').toString().trim() ? '' : 'empty' }, (v || '').toString().trim() || 'Not set')))),
+        h('button', { id: 'pfEdit', onclick: () => { state.pedit = true; C.render(); } }, 'Edit details')) : null,
+      editing ? h('div', { class: 'card', style: 'align-items:center;text-align:center' },
         h('div', { class: 'avatar xl', onclick: () => photoIn.click() }, p.photo ? h('img', { src: p.photo, alt: '' }) : icon('people', 'xl')), photoIn,
-        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { delete p.photo; C.render(); } }, 'Remove') : null)),
-      h('div', { class: 'card' }, h('h3', {}, 'Archer'),
+        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { delete p.photo; C.render(); } }, 'Remove') : null)) : null,
+      editing ? h('div', { class: 'card' }, h('h3', {}, 'Archer'),
         field('name', 'Name', 'Your name'),
         h('div', { class: 'fld', role: 'group', 'aria-label': 'Bows I shoot' }, h('span', {}, 'Bows I shoot'),
           h('div', { class: 'bowgrid' }, ...BOWS.map(([k, n]) => { const on = myBows(p).includes(k); return h('button', { class: 'bowchip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => { const cur = myBows(p); p.bows = on ? cur.filter(x => x !== k) : [...cur, k]; delete p.bow; C.render(); } }, h('span', { class: 'chk' }, on ? icon('check') : null), h('span', { class: 'bowlbl' }, n)); })),
           h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, myBows(p).length > 1 ? `Rounds start with the bow you shot last (${BOWS.find(b => b[0] === defaultBow(p))[1]}); change it per round in setup.` : 'Tick every bow you shoot. You can change it per round in setup.')),
         field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'), field('clubNo', 'Club number', 'Membership no.', 'tel'), field('booking', 'Club booking link', 'https://…', 'url'),
-        h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically. Your club shows at the top of the home screen, and the booking link opens from the Booking tile. Nothing here leaves your phone.')),
+        h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically. Your club shows at the top of the home screen, and the booking link opens from the Booking tile. Nothing here leaves your phone.')) : null,
       name ? h('div', { class: 'card' }, h('h3', {}, 'Track record'),
         h('div', { class: 'stats' }, h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')), h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrows)), h('div', { class: 'k' }, 'Arrows')), h('div', { class: 'stat' }, h('div', { class: 'v' }, `${byKind['3d']}/${byKind.indoor}/${byKind.field}`), h('div', { class: 'k' }, '3D/In/Field'))),
         my.length || best3d ? h('h3', { style: 'margin-top:6px' }, 'Personal bests') : h('div', { class: 'muted', style: 'font-size:13px' }, 'Finish a round and your personal bests show here.'),
@@ -67,7 +75,7 @@ function profile() {
         h('div', { class: 'row' },
           h('button', { class: 'primary', id: 'xlBtn', onclick: async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Building…'; try { const x = await buildWorkbook(state, C.lib()); const a = document.createElement('a'); a.href = URL.createObjectURL(x.blob); a.download = x.name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); toast(`Exported ${x.counts.rounds} rounds`); } catch (err) { toast('Export failed: ' + err.message); } b.disabled = false; b.textContent = 'Export to Excel'; } }, 'Export to Excel'),
           navigator.canShare ? h('button', { onclick: async e => { const b = e.currentTarget; b.disabled = true; try { const x = await buildWorkbook(state, C.lib()); const f = new File([x.blob], x.name, { type: x.blob.type }); if (navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: 'My archery data' }); else toast('Sharing files isn’t supported here — use Export'); } catch (err) { if (err.name !== 'AbortError') toast('Share failed'); } b.disabled = false; } }, 'Share…') : null))),
-    h('div', { class: 'bottombar' }, h('button', { id: 'pfSave', class: 'primary', disabled: !dirty(), onclick: commit }, dirty() ? 'Save profile' : 'Saved')));
+    editing ? h('div', { class: 'bottombar' }, (saved.name || '').trim() ? h('button', { style: 'flex:0 0 auto;padding:0 18px', onclick: cancelEdit }, 'Cancel') : null, h('button', { id: 'pfSave', class: 'primary', disabled: !dirty(), onclick: commit }, dirty() ? 'Save profile' : 'Saved')) : null);
 }
 
 // ---------- setup ----------

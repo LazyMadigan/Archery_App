@@ -45,6 +45,7 @@ A tiny `h(tag, attrs, ...children)` helper builds DOM nodes. `render()` rebuilds
 | `wa.sdraft` | Sight marks session in progress. |
 | `wa.ach` | Achievement ids already announced. |
 | `wa.rulesOff` | Game keys whose rules pop-up is turned off. |
+| `wa.news` | Cached archery.ie headlines `{ at, items[{ title, link, date }] }` (refreshed every 3 h when reachable). |
 | `wa.theme` | `'system' | 'light' | 'dark'`. |
 | `wa.onboarded` | First-run welcome seen. |
 | `wa.zones.local` | Rings traced on this phone with the tracing tool (override the shipped ones). |

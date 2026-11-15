@@ -47,6 +47,51 @@ const h = (tag, attrs = {}, ...kids) => {
   return el;
 };
 function toast(msg, ms = 1800) { let t = $('.toast'); if (!t) { t = h('div', { class: 'toast' }); document.body.append(t); } t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms); }
+// ---------- home carousel ----------
+function heroCarousel(slides) {
+  const track = h('div', { class: 'heroes', 'aria-roledescription': 'carousel' }, ...slides.map((s, i) => { s.classList.add('slide'); s.setAttribute('aria-label', `${i + 1} of ${slides.length}`); return s; }));
+  const dots = slides.map((_, i) => h('button', { class: 'dot' + (i === (state.heroIdx || 0) ? ' on' : ''), 'aria-label': `Show slide ${i + 1}`, onclick: () => track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' }) }));
+  let t; track.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => { const i = Math.round(track.scrollLeft / (track.clientWidth || 1)); state.heroIdx = i; dots.forEach((d, k) => d.classList.toggle('on', k === i)); }, 60); }, { passive: true });
+  setTimeout(() => { if (state.heroIdx) track.scrollLeft = state.heroIdx * track.clientWidth; }, 0);
+  return h('div', { class: 'carousel' }, track, h('div', { class: 'dots' }, ...dots));
+}
+function bestSlide(me, rings) {
+  const rows = [];
+  if (me) {
+    T.pbs(me).slice().sort((a, b) => b.total / b.max - a.total / a.max).slice(0, 2).forEach(b => rows.push([b.label, `${b.total}`, `/${b.max}`]));
+    const b3 = state.history.filter(r => !isTarget(r)).reduce((m, r) => { const pl = r.players.find(x => x.name === me); const t = pl && r.final?.totals?.[pl.id]; return t && t.gross > (m?.g ?? -1) ? { g: t.gross, r } : m; }, null);
+    if (b3) rows.push([`3D · ${b3.r.courseName || `${b3.r.targets.length} targets`}`, String(b3.g), '']);
+  }
+  const last = achList().filter(a => a.done).sort((a, b) => b.date - a.date)[0];
+  return h('div', { class: 'hero alt', onclick: () => go('progress') }, rings(),
+    h('small', { class: 'kicker' }, 'High scores'), h('h1', {}, me ? 'Your best' : 'Best scores'),
+    rows.length ? h('div', { class: 'hs' }, ...rows.slice(0, 3).map(([k, v, of]) => h('div', { class: 'hsrow' }, h('span', {}, k), h('b', {}, v, of ? h('small', {}, of) : null))))
+      : h('p', {}, me ? 'Finish a round and your best scores land here.' : 'Add your name in your profile and your best scores land here.'),
+    last ? h('div', { class: 'hslast' }, icon('trophy'), h('span', {}, `Latest: ${last.t}`)) : null);
+}
+const NEWS_URL = 'https://archery.ie/', NEWS_FEED = 'https://archery.ie/feed/';
+function newsSlide(rings) {
+  const c = LS.get('wa.news', null); const items = (c?.items || []).slice(0, 3);
+  if (!c || Date.now() - c.at > 3 * 3600e3) loadNews();
+  return h('div', { class: 'hero news' }, rings(),
+    h('small', { class: 'kicker' }, 'Archery Ireland'), h('h1', {}, 'News'),
+    items.length ? h('div', { class: 'newslist' }, ...items.map(it => h('a', { href: it.link, target: '_blank', rel: 'noopener', class: 'newsitem' }, h('b', {}, it.title), it.date ? h('small', {}, new Date(it.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })) : null)))
+      : h('p', {}, 'Competitions, results, rule changes and club news from the governing body.'),
+    h('a', { class: 'button newsbtn', href: NEWS_URL, target: '_blank', rel: 'noopener' }, items.length ? 'More on archery.ie' : 'Open archery.ie'));
+}
+let newsBusy = false;
+async function loadNews() { // best effort: works only if the site allows it and the phone is online; otherwise the slide links out
+  if (newsBusy || !navigator.onLine) return; newsBusy = true;
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 6000);
+    const txt = await (await fetch(NEWS_FEED, { signal: ctl.signal })).text();
+    const doc = new DOMParser().parseFromString(txt, 'text/xml');
+    const items = [...doc.querySelectorAll('item')].slice(0, 3).map(i => ({ title: i.querySelector('title')?.textContent?.trim(), link: i.querySelector('link')?.textContent?.trim(), date: Date.parse(i.querySelector('pubDate')?.textContent || '') || null })).filter(i => i.title && /^https:\/\//.test(i.link || ''));
+    LS.set('wa.news', { at: Date.now(), items }); if (items.length && state.view === 'home') render();
+  } catch { LS.set('wa.news', { at: Date.now(), items: LS.get('wa.news', null)?.items || [] }); }
+  newsBusy = false;
+}
+
 // ---------- game rules pop-up ----------
 const RULES = {
   '3d_king': ['King of the Castle', 'crown', ['On each target, the best single arrow wins it.', 'Win a target and you take the crown. Keep winning targets to stay King.', 'If the King ties for best, the King keeps the crown. If challengers tie, nobody takes it.', 'Whoever holds the crown after the last target wins.']],
@@ -138,11 +183,13 @@ function home() {
   return h('div', {},
     topbar((state.profile?.club || '').trim() || '3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => { state.pback = 'home'; go('profile'); }))),
     h('div', { class: 'page' },
-      h('div', { class: 'hero' }, rings(),
-        h('div', { class: 'pegs' }, h('i', { class: 'r' }), h('i', { class: 'b' }), h('i', { class: 'w' }), h('i', { class: 'y' })),
-        h('h1', { style: 'margin-top:10px' }, me ? `Shoot well, ${me.split(' ')[0]}.` : 'Shoot well. Keep the craic.'),
-        h('p', {}, '3D courses, indoor and field. Games with your mates and a record of every arrow.'),
-        h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
+      heroCarousel([
+        h('div', { class: 'hero' }, rings(),
+          h('div', { class: 'pegs' }, h('i', { class: 'r' }), h('i', { class: 'b' }), h('i', { class: 'w' }), h('i', { class: 'y' })),
+          h('h1', { style: 'margin-top:10px' }, me ? `Shoot well, ${me.split(' ')[0]}.` : 'Shoot well. Keep the craic.'),
+          h('p', {}, '3D courses, indoor and field. Games with your mates and a record of every arrow.'),
+          h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
+        bestSlide(me, rings), newsSlide(rings)]),
       live3d, T.liveCard(),
       h('h3', { class: 'homehead' }, 'Shoot now'),
       h('div', { class: 'list' },

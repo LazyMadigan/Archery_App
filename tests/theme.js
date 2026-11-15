@@ -15,7 +15,7 @@ const { chromium, devices } = require('playwright');
   console.log('save btn initially:', await p.locator('#pfSave').innerText(), await p.locator('#pfSave').isDisabled());
   await p.locator('#pf-name').fill('Cian'); await p.waitForTimeout(100); console.log('after typing:', await p.locator('#pfSave').innerText(), await p.locator('#pfSave').isDisabled());
   await p.locator('.topbar button').first().click(); await p.waitForTimeout(200); console.log('back with unsaved -> dialog:', dlg, '| still on:', await p.locator('.topbar .tt').innerText());
-  await p.locator('#pfSave').click(); await p.waitForTimeout(200); console.log('after save:', await p.locator('#pfSave').innerText());
+  await p.locator('#pfSave').click(); await p.waitForTimeout(200); console.log('after save, read-only view:', await p.locator('#pfEdit').innerText());
   await p.locator('.topbar button').first().click(); await p.waitForTimeout(200); console.log('back goes to:', await p.locator('.topbar .tt').innerText(), '| card shows:', await p.locator('.setprof b').innerText());
   if (await p.evaluate(() => document.documentElement.scrollWidth > screen.width || innerWidth > screen.width)) errs.push('OVERFLOW');
   console.log(errs.length ? errs : 'no errors'); await b.close(); })();
