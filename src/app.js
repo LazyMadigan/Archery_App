@@ -67,13 +67,19 @@ function home() {
         h('h1', { style: 'margin-top:10px' }, 'Walk the course. Keep the craic.'),
         h('p', {}, 'Score a 3D round with your mates: points, King of the Castle, skins, guess the distance.'),
         h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
-      r ? h('div', { class: 'card', style: 'border-color:var(--brand);border-width:2px' },
-        h('div', { class: 'row' }, icon('arrow', 'lg'), h('div', { style: 'flex:1' }, h('b', { style: 'font-family:var(--display);font-size:19px' }, r.mode === 'laser' ? 'Practice in progress' : 'Round in progress'), h('div', { class: 'muted', style: 'font-size:13px' }, `${r.players.map(p => p.name).join(', ')} · ${Object.keys(r.scores).length} target${Object.keys(r.scores).length === 1 ? '' : 's'} scored · started ${new Date(r.started).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`))),
-        h('div', { class: 'grid c2' },
-          h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'),
-          h('button', { onclick: () => go('board') }, 'Scoreboard'),
-          h('button', { onclick: () => { if (confirmBox('Stop here and save the round?')) finishRound(); } }, 'Stop & save'),
-          h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete')))
+      r ? (() => { const done = Object.keys(r.scores).filter(k => Object.values(r.scores[k]).some(a => a.some(Boolean))).length; const total = Math.max(r.targets.length, done); const sysName = SYSTEMS[r.systemKey]?.name.replace(/ \(.*\)/, '');
+        return h('div', { class: 'live' },
+          h('div', { class: 'live-head' }, h('span', { class: 'live-badge' }, icon('target', 'lg')),
+            h('div', { style: 'flex:1;min-width:0' }, h('div', { class: 'live-title' }, r.mode === 'laser' ? 'Practice in progress' : 'Round in progress'),
+              h('div', { class: 'live-sub' }, `${sysName} · started ${new Date(r.started).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`)),
+            h('span', { class: 'live-dot' })),
+          h('div', { class: 'live-players' }, ...r.players.map(p => h('span', { class: 'pill' }, p.name))),
+          h('div', { class: 'live-prog' }, h('div', { class: 'bar' }, h('i', { style: `width:${total ? Math.round(done / total * 100) : 0}%` })), h('span', {}, `${done}${r.targets.length ? ' of ' + r.targets.length : ''} target${done === 1 ? '' : 's'} scored`)),
+          h('div', { class: 'grid c2' },
+            h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'),
+            h('button', { onclick: () => go('board') }, 'Scoreboard'),
+            h('button', { onclick: () => { if (confirmBox('Stop here and save the round?')) finishRound(); } }, 'Stop & save'),
+            h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })()
         : h('button', { class: 'cta', onclick: startSetup }, icon('bow', 'xl'), h('div', {}, h('b', {}, 'Shoot a round'), h('small', {}, 'Pick your archers, your game and go'))),
       hist.length ? h('div', { class: 'stats' },
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')),
@@ -99,7 +105,7 @@ function setup() {
   const d = state.draft; const sys = SYSTEMS[d.systemKey];
   d.arrows = maxArrows(sys, d.arrows);
   const playerRow = (p, i) => h('div', { class: 'row' },
-    h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; if (d.useHandicap) { const s = suggestHandicap(state.history, p.name, d.systemKey); if (s != null) p.handicap = s; } } }),
+    h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; if (d.useHandicap) { const s = suggestHandicap(state.history, p.name, d.systemKey); if (s != null) p.handicap = s; } const sb = $('#startBtn'); if (sb) sb.disabled = !d.players.some(x => x.name.trim()); } }),
     d.useHandicap ? h('input', { type: 'number', step: '0.5', style: 'flex:0 0 90px', value: p.handicap, title: 'Handicap: points per target added', oninput: e => p.handicap = parseFloat(e.target.value) || 0 }) : null,
     h('button', { class: 'ghost', style: 'flex:0 0 44px', onclick: () => { d.players.splice(i, 1); render(); } }, '✕'));
   return h('div', {},
@@ -134,7 +140,7 @@ function setup() {
           h('select', { onchange: e => { const c = state.courses.find(c => c.name === e.target.value); d.targets = c ? structuredClone(c.targets) : []; d.courseName = c?.name || ''; render(); } },
             h('option', { value: '' }, d.targets.length ? `${d.targets.length} targets chosen` : 'Pick as we go'), ...state.courses.map(c => h('option', { value: c.name, selected: c.name === d.courseName }, `${c.name} (${c.targets.length})`))),
           h('button', { style: 'flex:0 0 auto', onclick: () => go('course') }, d.targets.length ? 'Edit' : 'Build')))),
-    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: startRound, disabled: !d.players.some(p => p.name.trim()) }, d.mode === 'laser' ? 'Start practice' : 'Start shooting')));
+    h('div', { class: 'bottombar' }, h('button', { id: 'startBtn', class: 'primary', onclick: startRound, disabled: !d.players.some(p => p.name.trim()) }, d.mode === 'laser' ? 'Start practice' : 'Start shooting')));
 }
 function startRound() {
   const d = state.draft;
