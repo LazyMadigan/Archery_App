@@ -169,7 +169,7 @@ td.num,th.num{text-align:right}
 .avatar{width:40px;height:40px;border-radius:50%!important;padding:0!important;overflow:hidden;background:rgba(255,255,255,.18)!important;color:#fff;font-weight:800;font-family:var(--display);display:inline-flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.6)!important}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .avatar.xl{width:112px;height:112px;border:3px solid var(--brand)!important;background:var(--bg2)!important;color:var(--brand);cursor:pointer}
-.fld{display:flex;flex-direction:column;gap:4px}.fld span{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.fld{display:flex;flex-direction:column;gap:4px}.fld>span{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .pb{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .pb b{display:block;font-size:14px}.pb small{color:var(--muted);font-size:12px}
 .pbk{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--brand) 12%,var(--panel));color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
@@ -224,3 +224,11 @@ td.num,th.num{text-align:right}
 .seg button{min-width:0}
 .player .arrows span{flex:none}
 @media (max-width:360px){.player .arrows span{width:26px;height:26px;font-size:11px}.bowsel{flex-basis:96px;width:96px}}
+
+.bowgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.bowchip{display:flex;align-items:center;gap:8px;justify-content:flex-start;min-height:52px;min-width:0;padding:0 10px;border:2px solid var(--line);border-radius:14px;font-weight:700;text-transform:none;letter-spacing:0;font-size:15px;color:var(--fg)}
+.bowchip .chk{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
+.bowchip.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--panel))}
+.bowchip.on .chk{background:var(--brand);border-color:var(--brand);color:#fff}.bowchip.on .chk .ic{width:15px;height:15px;color:#fff}
+.bowlbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:360px){.bowchip{font-size:14px;gap:6px;padding:0 8px}.bowchip .chk{width:20px;height:20px}}

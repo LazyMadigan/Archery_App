@@ -8,6 +8,8 @@ export const isTarget = r => r && (r.kind === 'indoor' || r.kind === 'field');
 const KIND = { indoor: { title: 'Indoor', rounds: INDOOR_ROUNDS, dists: INDOOR_DISTS, faces: INDOOR_FACES, icon: 'rings' }, field: { title: 'Field', rounds: FIELD_ROUNDS, dists: FIELD_DISTS, faces: FIELD_FACES, icon: 'peg' } };
 
 // ---------- profile ----------
+export const myBows = p => { const b = Array.isArray(p?.bows) ? p.bows.filter(Boolean) : p?.bow ? [p.bow] : []; return b.length ? b : []; };
+export const defaultBow = p => { const b = myBows(p); return b.includes(p?.lastBow) ? p.lastBow : b[0] || 'recurve'; };
 export function profileBadge(onclick) {
   const { h, icon, state } = C; const p = state.profile || {};
   const inner = p.photo ? h('img', { src: p.photo, alt: '' }) : p.name ? h('span', {}, p.name.trim().split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase()) : icon('people');
@@ -40,7 +42,9 @@ function profile() {
         h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { delete p.photo; save(); C.render(); } }, 'Remove') : null)),
       h('div', { class: 'card' }, h('h3', {}, 'Archer'),
         field('name', 'Name', 'Your name'),
-        h('div', { class: 'fld', role: 'group', 'aria-label': 'Bow' }, h('span', {}, 'Bow'), h('div', { class: 'seg wrap' }, ...BOWS.map(([k, n]) => h('button', { class: (p.bow || 'recurve') === k ? 'on' : '', onclick: () => { p.bow = k; save(); C.render(); } }, n)))),
+        h('div', { class: 'fld', role: 'group', 'aria-label': 'Bows I shoot' }, h('span', {}, 'Bows I shoot'),
+          h('div', { class: 'bowgrid' }, ...BOWS.map(([k, n]) => { const on = myBows(p).includes(k); return h('button', { class: 'bowchip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => { const cur = myBows(p); p.bows = on ? cur.filter(x => x !== k) : [...cur, k]; delete p.bow; save(); C.render(); } }, h('span', { class: 'chk' }, on ? icon('check') : null), h('span', { class: 'bowlbl' }, n)); })),
+          h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, myBows(p).length > 1 ? `Rounds start with the bow you shot last (${BOWS.find(b => b[0] === defaultBow(p))[1]}); change it per round in setup.` : 'Tick every bow you shoot. You can change it per round in setup.')),
         field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'), field('clubNo', 'Club number', 'Membership no.', 'tel'),
         h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically when you start a round. Nothing here leaves your phone.')),
       name ? h('div', { class: 'card' }, h('h3', {}, 'Track record'),
@@ -54,7 +58,7 @@ function profile() {
 // ---------- setup ----------
 export function startTarget(kind) {
   const { state, uid, go } = C; const R = KIND[kind].rounds[0]; const me = (state.profile?.name || '').trim();
-  state.tdraft = { kind, roundKey: R.key, name: R.name, face: R.face, scheme: R.scheme, dist: R.dist, ends: R.ends, arrows: R.arrows, games: { total: true }, players: [{ id: uid(), name: me, bow: state.profile?.bow || 'recurve' }] };
+  state.tdraft = { kind, roundKey: R.key, name: R.name, face: R.face, scheme: R.scheme, dist: R.dist, ends: R.ends, arrows: R.arrows, games: { total: true }, players: [{ id: uid(), name: me, bow: defaultBow(state.profile) }] };
   go('tsetup');
 }
 function tsetup() {
@@ -62,7 +66,7 @@ function tsetup() {
   const applyRound = r => Object.assign(d, { roundKey: r.key, name: r.name, face: r.face, scheme: r.scheme, dist: r.dist, ends: r.ends, arrows: r.arrows });
   const seg = (opts, cur, set, fmt = x => x) => h('div', { class: 'seg wrap' }, ...opts.map(o => h('button', { class: o === cur ? 'on' : '', onclick: () => { set(o); C.render(); } }, fmt(o))));
   const playerRow = (p, i) => h('div', { class: 'row' }, h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; const b = $('#tStart'); if (b) b.disabled = !d.players.some(x => x.name.trim()); } }),
-    h('select', { class: 'bowsel', 'aria-label': 'Bow', onchange: e => { p.bow = e.target.value; C.render(); } }, ...BOWS.map(([k, n]) => h('option', { value: k, selected: (p.bow || 'recurve') === k }, n))),
+    h('select', { class: 'bowsel', 'aria-label': 'Bow', onchange: e => { p.bow = e.target.value; C.render(); } }, ...(() => { const mineFirst = p.name.trim() && p.name.trim() === (state.profile?.name || '').trim() ? [...BOWS.filter(b => myBows(state.profile).includes(b[0])), ...BOWS.filter(b => !myBows(state.profile).includes(b[0]))] : BOWS; return mineFirst.map(([k, n]) => h('option', { value: k, selected: (p.bow || 'recurve') === k }, n)); })()),
     h('button', { class: 'ghost', style: 'flex:0 0 44px', onclick: () => { d.players.splice(i, 1); C.render(); } }, '✕'));
   const sch = schemeForFace(d.kind, d.face, d.scheme);
   return h('div', {}, topbar(K.title, 'Set up', () => go('home')),
@@ -89,6 +93,7 @@ function startT() {
   const { state, save, go, uid } = C; const d = state.tdraft;
   const players = d.players.filter(p => p.name.trim()).map(p => ({ ...p, name: p.name.trim(), bow: p.bow || 'recurve' }));
   players.forEach(p => { if (!state.names.includes(p.name)) state.names.unshift(p.name); }); state.names = state.names.slice(0, 24);
+  const meName = (state.profile?.name || '').trim(); const mine = players.find(p => p.name === meName); if (mine && state.profile) state.profile.lastBow = mine.bow;
   const scheme = schemeForFace(d.kind, d.face, d.scheme);
   state.tround = { id: uid(), kind: d.kind, started: Date.now(), roundKey: d.roundKey, name: d.name, face: d.face, scheme, dist: d.dist, ends: d.ends, arrows: d.arrows, games: d.games, players, scores: Object.fromEntries(players.map(p => [p.id, []])), end: 0 };
   state.tsel = null; save(); go('tplay');
