@@ -175,8 +175,9 @@ function course() {
         h('input', { type: 'number', inputmode: 'decimal', placeholder: '±%', value: pg[k]?.s ?? '', onchange: e => { t.pegs = pegsOf(t); const v = e.target.value === '' ? null : parseFloat(e.target.value); t.pegs[k] = { ...(t.pegs[k] || {}), s: v }; delete t.distanceActual; delete t.slope; } }))),
       h('button', { class: 'primary', style: 'min-height:40px', onclick: () => { state.openPeg = null; render(); } }, 'Done')) : null;
     return h('div', { class: 'item', style: 'flex-wrap:wrap' },
-      F?.photo ? h('img', { src: F.photo, style: 'height:40px;width:48px;object-fit:contain;flex:none' }) : h('span', { style: 'width:48px;flex:none' }),
-      h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, F?.label || ''), summary),
+      h('div', { class: 'rowtap', onclick: () => { state.openPeg = open ? null : i; render(); } },
+        F?.photo ? h('img', { src: F.photo, style: 'height:40px;width:48px;object-fit:contain;flex:none' }) : h('span', { style: 'width:48px;flex:none' }),
+        h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, F?.label || ''), summary || h('div', { class: 'pegsum' }, h('span', { style: 'color:var(--brand);font-weight:600' }, 'Tap to add distances')))),
       h('div', { class: 'rowbtns' },
         h('button', { class: 'ghost' + (open ? ' on' : ''), title: 'Distances & slope', style: 'width:auto;padding:0 8px;font-size:13px;font-weight:700', onclick: () => { state.openPeg = open ? null : i; render(); } }, has.length ? 'm ✓' : '+ m'),
         h('button', { class: 'ghost', disabled: i === 0, onclick: () => { [d.targets[i - 1], d.targets[i]] = [d.targets[i], d.targets[i - 1]]; state.openPeg = null; render(); } }, '↑'),
@@ -193,7 +194,7 @@ function course() {
         h('div', { class: 'row' }, h('input', { placeholder: 'Course name, e.g. Red pegs Nov 2026', value: d.courseName || '', oninput: e => d.courseName = e.target.value }),
           d.standalone ? null : h('button', { style: 'flex:0 0 auto', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); state.courses = state.courses.filter(c => c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now() }); d.courseName = name; save(); toast('Course saved'); } }, 'Save')))),
     h('div', { class: 'bottombar' }, d.standalone
-      ? h('button', { class: 'primary', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); const prev = state.courses.find(c => c.name === name); if (prev?.builtin) { toast('Pick a new name — that one is built in'); return; } state.courses = state.courses.filter(c => c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now() }); save(); toast('Course saved'); go('courses'); } }, 'Save course')
+      ? h('button', { class: 'primary', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); const prev = state.courses.find(c => c.name === (d.editing || name)); const builtin = !!prev?.builtin; state.courses = state.courses.filter(c => c !== prev && c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now(), builtin, edited: builtin || undefined, origin: prev?.origin }); save(); toast('Course saved'); go('courses'); } }, 'Save course')
       : h('button', { class: 'primary', onclick: () => go('setup') }, 'Done')));
 }
 function coursesView() {
@@ -206,7 +207,7 @@ function coursesView() {
         h('div', { class: 't' }, h('div', { style: 'font-weight:600' }, c.name), h('small', {}, `${c.targets.length} targets${c.targets.some(t => t.distanceActual != null) ? ' · distances' : ''}${c.builtin ? ' · built in' : ' · ' + new Date(c.saved).toLocaleDateString()}`)),
         h('div', { class: 'rowbtns' },
           h('button', { class: 'primary', style: 'width:auto;padding:0 12px', onclick: () => { startSetup(); state.draft.targets = structuredClone(c.targets); state.draft.courseName = c.name; go('setup'); } }, 'Shoot'),
-          h('button', { class: 'ghost', style: 'width:auto;padding:0 10px', onclick: () => { state.draft = { ...fresh(), targets: structuredClone(c.targets), courseName: c.builtin ? c.name + ' (copy)' : c.name }; go('course'); } }, 'Edit'),
+          h('button', { class: 'ghost', style: 'width:auto;padding:0 10px', onclick: () => { state.draft = { ...fresh(), targets: structuredClone(c.targets), courseName: c.name, editing: c.name }; go('course'); } }, 'Edit'),
           c.builtin ? null : h('button', { class: 'ghost', onclick: () => { if (confirmBox(`Delete “${c.name}”?`)) { state.courses = state.courses.filter(x => x !== c); save(); render(); } } }, '✕')))))
         : h('p', { class: 'muted' }, 'No saved courses yet.')));
 }
@@ -536,7 +537,7 @@ function about() {
 // ---------- boot ----------
 fetch('targets/targets.json').then(r => r.json()).then(j => {
   LIB = j;
-  fetch('targets/courses.json').then(r => r.json()).then(cj => { state.courses = state.courses.filter(c => c.name !== 'Dargle Valley · Red pegs · 15 Nov 2026'); (cj.courses || []).forEach(c => { if (!state.courses.some(x => x.name === c.name)) state.courses.push(c); else Object.assign(state.courses.find(x => x.name === c.name), c); }); save(); render(); }).catch(() => {});
+  fetch('targets/courses.json').then(r => r.json()).then(cj => { state.courses = state.courses.filter(c => c.name !== 'Dargle Valley · Red pegs · 15 Nov 2026'); (cj.courses || []).forEach(c => { const mine = state.courses.find(x => x.name === c.name || (x.builtin && x.edited && x.origin === c.name)); if (!mine) state.courses.push({ ...c, origin: c.name }); else if (!mine.edited) Object.assign(mine, c, { origin: c.name }); }); save(); render(); }).catch(() => {});
   // zones traced on this phone with tools/trace.html override the shipped ones
   const local = LS.get('wa.zones.local', {});
   LIB.targets.forEach(t => t.faces.forEach(f => { if (local[f.id]?.some(s => s.outer?.length > 2 || s.centre)) f.sets = local[f.id]; }));

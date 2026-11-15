@@ -162,3 +162,5 @@ td.num,th.num{text-align:right}
 .pegrow .pegname{font-weight:600;font-size:14px}
 .pegrow input{min-height:42px}
 .rowbtns button.on{color:var(--brand)}
+
+.rowtap{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
