@@ -48,14 +48,15 @@ function profile() {
   const best3d = name ? state.history.filter(r => !isTarget(r)).reduce((m, r) => { const pl = r.players.find(x => x.name === name); const t = pl && r.final?.totals?.[pl.id]; return t && t.gross > (m?.gross || -1) ? { gross: t.gross, r } : m; }, null) : null;
   const photoIn = h('input', { type: 'file', accept: 'image/*', style: 'display:none', onchange: e => { const f = e.target.files[0]; if (f) resizePhoto(f, d => { p.photo = d; C.render(); }); } });
   if (state.focusBooking) { state.focusBooking = false; setTimeout(() => { const el = document.getElementById('pf-booking'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 50); }
-  return h('div', {}, topbar('Profile', dirty() ? 'Unsaved changes' : 'Stays on this phone', leave),
+  const toSettings = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pedit = false; state.clubOther = false; C.applyColours(saved.colours); go('settings'); };
+  return h('div', {}, topbar('Profile', dirty() ? 'Unsaved changes' : 'Stays on this phone', leave, h('button', { 'aria-label': 'Settings', onclick: toSettings }, icon('cog'))),
     h('div', { class: 'page' },
       !editing ? h('div', { class: 'card pview' },
         h('div', { class: 'avatar xl' }, saved.photo ? h('img', { src: saved.photo, alt: '' }) : icon('people', 'xl')),
         h('h2', {}, name), (saved.club || '').trim() ? h('div', { class: 'muted' }, saved.club) : null,
         h('dl', { class: 'pinfo' }, ...[['Bows I shoot', myBows(saved).map(b => BOWS.find(x => x[0] === b)?.[1]).filter(Boolean).join(', ')], ['Archery Ireland no.', saved.ai], ['Club', saved.club], ['Club number', saved.clubNo], ['Club colours', saved.colours ? (PRESETS.find(x => x[1] === saved.colours.c1 && x[2] === saved.colours.c2)?.[0] || 'Custom') : '']]
           .map(([k, v], i) => h('div', { class: i === 0 ? 'wide' : '' }, h('dt', {}, k), h('dd', { class: (v || '').toString().trim() ? '' : 'empty' }, k === 'Club colours' && saved.colours ? h('span', { class: 'swpair sm' }, h('i', { style: `background:${saved.colours.c1}` }), h('i', { style: `background:${saved.colours.c2}` })) : null, (v || '').toString().trim() || (k === 'Club colours' ? 'App default' : 'Not set'))))),
-        h('button', { id: 'pfEdit', onclick: () => { state.pedit = true; C.render(); } }, 'Edit details')) : null,
+        h('div', { class: 'grid c2', style: 'width:100%' }, h('button', { id: 'pfEdit', onclick: () => { state.pedit = true; C.render(); } }, 'Edit details'), h('button', { id: 'pfSettings', onclick: toSettings }, icon('cog'), ' Settings'))) : null,
       editing ? h('div', { class: 'card', style: 'align-items:center;text-align:center' },
         h('div', { class: 'avatar xl', onclick: () => photoIn.click() }, p.photo ? h('img', { src: p.photo, alt: '' }) : icon('people', 'xl')), photoIn,
         h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--danger)', onclick: () => { delete p.photo; C.render(); } }, 'Remove') : null)) : null,

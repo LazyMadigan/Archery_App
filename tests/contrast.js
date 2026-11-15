@@ -78,7 +78,7 @@ function audit() {
     await p.locator('.avatar').first().click(); await p.waitForTimeout(200); await check('profile');
     await p.locator('#pfEdit').click(); await p.waitForTimeout(150); await check('profile edit');
     await p.getByRole('button', { name: 'Cancel' }).click(); await p.waitForTimeout(100); await back();
-    await p.locator('button[aria-label=Settings]').click(); await p.waitForTimeout(200); await check('settings'); await back();
+    await p.locator('.topbar .avatar').click(); await p.waitForTimeout(150); await p.locator('button[aria-label=Settings]').click(); await p.waitForTimeout(200); await check('settings'); await back(); await back();
     await p.locator('.tile:has-text("Achievements")').click(); await p.waitForTimeout(200); await check('achievements'); await back();
     await p.locator('.tile:has-text("Sight marks")').click(); await p.waitForTimeout(200); await check('sight marks');
     await p.locator('.schart-item').first().click(); await p.waitForTimeout(200); await check('sight chart');

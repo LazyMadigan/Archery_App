@@ -347,7 +347,7 @@ a.tile.button{display:flex;text-decoration:none;color:var(--fg);background:var(-
 .pinfo .wide{grid-column:1/-1}.pinfo dt{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
 .pinfo dd{margin:0;color:var(--muted);font-size:15px;overflow-wrap:break-word;word-break:break-word}
 .pinfo dd.empty{font-style:italic}
-.pview #pfEdit{width:100%}
+.pview #pfEdit,.pview #pfSettings{width:100%}
 
 /* home carousel */
 .carousel{display:flex;flex-direction:column;gap:10px}

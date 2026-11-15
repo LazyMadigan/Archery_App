@@ -23,7 +23,7 @@ const { chromium, devices } = require('playwright');
     await p.getByText('Finish & save').click(); await p.waitForTimeout(500); await check('summary');
     await p.screenshot({ path: `/tmp/fit-summary-${dev.replace(/ /g,'')}.png`, fullPage: true });
     await p.getByText('See my progress').click(); await p.waitForTimeout(300); await check('progress');
-    await p.locator('.topbar button').first().click(); await p.waitForTimeout(200); await p.locator('button[aria-label=Settings]').click(); await p.waitForTimeout(200); await check('settings');
+    await p.locator('.topbar button').first().click(); await p.waitForTimeout(200); await p.locator('.topbar .avatar').click(); await p.waitForTimeout(150); await p.locator('button[aria-label=Settings]').click(); await p.waitForTimeout(200); await check('settings');
     await p.getByText('About, privacy').click(); await p.waitForTimeout(200); await check('about');
     await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(300); await p.getByRole('button',{name:/History/}).first().click(); await p.waitForTimeout(200); await check('history');
     await ctx.close();

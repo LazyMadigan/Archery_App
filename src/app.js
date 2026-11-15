@@ -184,7 +184,7 @@ function home() {
             h('button', { class: 'ghost', style: 'color:var(--danger)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })() : null;
   const disc = (ic, title, sub, onclick) => h('button', { class: 'disc', onclick }, h('span', { class: 'disc-ic' }, icon(ic, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, title), h('small', {}, sub)), h('span', { class: 'disc-go' }, icon('back')));
   return h('div', {},
-    topbar((state.profile?.club || '').trim() || '3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => { state.pback = 'home'; go('profile'); }))),
+    topbar((state.profile?.club || '').trim() || '3D Fun Round', null, null, T.profileBadge(() => { state.pback = 'home'; go('profile'); })),
     h('div', { class: 'page' },
       heroCarousel([
         h('div', { class: 'hero' }, rings(),
@@ -630,12 +630,8 @@ function progress() {
 function settings() {
   const key = state.settingsKey || 'ifaa_hunting'; const base = SYSTEMS[key]; const table = state.pointsOverride[key] || base.table;
   const pr = state.profile || {};
-  return h('div', {}, topbar('Settings', null, () => go('home')),
+  return h('div', {}, topbar('Settings', 'Appearance, scoring, about', () => go('profile')),
     h('div', { class: 'page' },
-      h('button', { class: 'setprof', onclick: () => { state.pback = 'settings'; go('profile'); } },
-        h('span', { class: 'avatar sm' }, pr.photo ? h('img', { src: pr.photo, alt: '' }) : (pr.name || '').trim() ? (pr.name || '').trim().split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase() : icon('people')),
-        h('div', { style: 'flex:1;min-width:0;text-align:left' }, h('b', {}, (pr.name || '').trim() || 'Set up your profile'), h('small', {}, [(pr.club || '').trim(), 'Name, bows, club, booking link'].filter(Boolean)[0])),
-        h('span', { class: 'disc-go' }, icon('back'))),
       h('div', { class: 'card' }, h('h3', {}, 'Appearance'),
         h('div', { class: 'chips c3' }, ...[['system', 'System'], ['light', 'Light'], ['dark', 'Dark']].map(([k, n]) => h('button', { class: state.theme === k ? 'on' : '', onclick: () => { state.theme = k; applyTheme(); save(); render(); } }, n))),
         h('div', { class: 'muted', style: 'font-size:13px' }, state.theme === 'system' ? 'Follows your phone’s light / dark setting.' : `Always ${state.theme}.`)),
