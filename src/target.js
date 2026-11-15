@@ -25,26 +25,33 @@ export function pbs(name) {
   return Object.values(best).sort((a, b) => b.date - a.date);
 }
 function profile() {
-  const { h, icon, state, save, go, topbar, toast } = C; const p = state.profile = state.profile || {};
-  const set = k => e => { p[k] = e.target.value; if (k === 'name' && p.name.trim()) state.onboarded = true; save(); };
+  const { h, icon, state, save, go, topbar, toast, confirmBox } = C; state.profile = state.profile || {};
+  if (!state.pdraft) state.pdraft = JSON.parse(JSON.stringify(state.profile));
+  const p = state.pdraft; const saved = state.profile;
+  const dirty = () => JSON.stringify(p) !== JSON.stringify(saved);
+  const markDirty = () => { const b = document.getElementById('pfSave'); if (b) { b.disabled = !dirty(); b.textContent = dirty() ? 'Save profile' : 'Saved'; } };
+  const set = k => e => { p[k] = e.target.value; markDirty(); };
+  const back = state.pback || 'home';
+  const leave = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pback = null; go(back); };
+  const commit = () => { const prevName = (saved.name || '').trim(); state.profile = JSON.parse(JSON.stringify(p)); if ((state.profile.name || '').trim()) state.onboarded = true; state.pdraft = null; save(); toast('Profile saved'); C.render(); };
   const field = (k, label, ph, type = 'text') => h('label', { class: 'fld' }, h('span', {}, label), h('input', { id: 'pf-' + k, type, inputmode: type === 'tel' ? 'numeric' : type === 'url' ? 'url' : undefined, autocapitalize: type === 'url' ? 'off' : undefined, placeholder: ph, value: p[k] || '', oninput: set(k) }));
-  const name = (p.name || '').trim();
+  const name = (saved.name || '').trim();
   const hist = name ? state.history.filter(r => r.players.some(x => x.name === name)) : [];
   const byKind = { '3d': 0, indoor: 0, field: 0 }; hist.forEach(r => byKind[r.kind || '3d']++);
   const arrows = hist.reduce((n, r) => { const pl = r.players.find(x => x.name === name); if (isTarget(r)) return n + (r.final?.tally?.[pl.id]?.arrows || 0); return n + Object.values(r.scores || {}).reduce((a, by) => a + (by[pl.id] || []).filter(Boolean).length, 0); }, 0);
   const my = name ? pbs(name) : [];
   const best3d = name ? state.history.filter(r => !isTarget(r)).reduce((m, r) => { const pl = r.players.find(x => x.name === name); const t = pl && r.final?.totals?.[pl.id]; return t && t.gross > (m?.gross || -1) ? { gross: t.gross, r } : m; }, null) : null;
-  const photoIn = h('input', { type: 'file', accept: 'image/*', style: 'display:none', onchange: e => { const f = e.target.files[0]; if (f) resizePhoto(f, d => { p.photo = d; save(); C.render(); }); } });
+  const photoIn = h('input', { type: 'file', accept: 'image/*', style: 'display:none', onchange: e => { const f = e.target.files[0]; if (f) resizePhoto(f, d => { p.photo = d; C.render(); }); } });
   if (state.focusBooking) { state.focusBooking = false; setTimeout(() => { const el = document.getElementById('pf-booking'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 50); }
-  return h('div', {}, topbar('Profile', 'Stays on this phone', () => go('home')),
+  return h('div', {}, topbar('Profile', dirty() ? 'Unsaved changes' : 'Stays on this phone', leave),
     h('div', { class: 'page' },
       h('div', { class: 'card', style: 'align-items:center;text-align:center' },
         h('div', { class: 'avatar xl', onclick: () => photoIn.click() }, p.photo ? h('img', { src: p.photo, alt: '' }) : icon('people', 'xl')), photoIn,
-        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { delete p.photo; save(); C.render(); } }, 'Remove') : null)),
+        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { delete p.photo; C.render(); } }, 'Remove') : null)),
       h('div', { class: 'card' }, h('h3', {}, 'Archer'),
         field('name', 'Name', 'Your name'),
         h('div', { class: 'fld', role: 'group', 'aria-label': 'Bows I shoot' }, h('span', {}, 'Bows I shoot'),
-          h('div', { class: 'bowgrid' }, ...BOWS.map(([k, n]) => { const on = myBows(p).includes(k); return h('button', { class: 'bowchip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => { const cur = myBows(p); p.bows = on ? cur.filter(x => x !== k) : [...cur, k]; delete p.bow; save(); C.render(); } }, h('span', { class: 'chk' }, on ? icon('check') : null), h('span', { class: 'bowlbl' }, n)); })),
+          h('div', { class: 'bowgrid' }, ...BOWS.map(([k, n]) => { const on = myBows(p).includes(k); return h('button', { class: 'bowchip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => { const cur = myBows(p); p.bows = on ? cur.filter(x => x !== k) : [...cur, k]; delete p.bow; C.render(); } }, h('span', { class: 'chk' }, on ? icon('check') : null), h('span', { class: 'bowlbl' }, n)); })),
           h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, myBows(p).length > 1 ? `Rounds start with the bow you shot last (${BOWS.find(b => b[0] === defaultBow(p))[1]}); change it per round in setup.` : 'Tick every bow you shoot. You can change it per round in setup.')),
         field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'), field('clubNo', 'Club number', 'Membership no.', 'tel'), field('booking', 'Club booking link', 'https://…', 'url'),
         h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically. Your club shows at the top of the home screen, and the booking link opens from the Booking tile. Nothing here leaves your phone.')),
@@ -53,7 +60,8 @@ function profile() {
         my.length || best3d ? h('h3', { style: 'margin-top:6px' }, 'Personal bests') : h('div', { class: 'muted', style: 'font-size:13px' }, 'Finish a round and your personal bests show here.'),
         ...my.map(b => h('div', { class: 'pb' }, h('span', { class: 'pbk' }, icon(KIND[b.kind].icon)), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, b.label), h('small', {}, new Date(b.date).toLocaleDateString())), h('div', { class: 'pbv' }, String(b.total), h('small', {}, `/${b.max}${b.xs ? ` · ${b.xs}X` : ''}`)))),
         best3d ? h('div', { class: 'pb' }, h('span', { class: 'pbk' }, icon('bow')), h('div', { style: 'flex:1' }, h('b', {}, '3D best round'), h('small', {}, `${best3d.r.targets.length} targets · ${new Date(best3d.r.started).toLocaleDateString()}`)), h('div', { class: 'pbv' }, String(best3d.gross))) : null,
-        h('button', { onclick: () => { state.progName = name; go('progress'); } }, 'See progress')) : null));
+        h('button', { onclick: () => { state.progName = name; state.pdraft = null; go('progress'); } }, 'See progress')) : null),
+    h('div', { class: 'bottombar' }, h('button', { id: 'pfSave', class: 'primary', disabled: !dirty(), onclick: commit }, dirty() ? 'Save profile' : 'Saved')));
 }
 
 // ---------- setup ----------

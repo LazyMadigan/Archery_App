@@ -5,9 +5,12 @@ Open the link on your phone. Add it to your home screen (Share → Add to Home S
 ## Your profile
 The first time you open the app it asks you to set up your profile (you can skip). Everything you enter is stored only on your phone: there's no account and no server, so the app's developer can't see it.
 
-Tap the round picture top-right on the home screen. Add your name, bow (recurve, compound, barebow, traditional), Archery Ireland number, club and club number, and a photo if you like. Your name and bow fill in Player 1 automatically on every round. Your **club** name shows at the top of the home screen, and if you paste your club's **booking link** (e.g. a Google Form), the **Booking** tile on the home screen opens it. It all stays on your phone.
+Tap the round picture top-right on the home screen, or open **Settings → your profile card**. Make your changes and press **Save profile**; if you leave without saving, it asks before discarding. Add your name, bow (recurve, compound, barebow, traditional), Archery Ireland number, club and club number, and a photo if you like. Your name and bow fill in Player 1 automatically on every round. Your **club** name shows at the top of the home screen, and if you paste your club's **booking link** (e.g. a Google Form), the **Booking** tile on the home screen opens it. It all stays on your phone.
 
 Your profile also shows your **track record**: rounds and arrows shot, and **personal bests** for every round you've shot (kept separately per round, distance, face and bow).
+
+## Appearance
+Settings → **Appearance**: System (follows your phone), Light or Dark.
 
 ## Three disciplines
 The home screen has **3D Course**, **Indoor** and **Field**.

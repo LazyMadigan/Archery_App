@@ -22,8 +22,11 @@ let state = {
   tround: LS.get('wa.tround', null),     // active indoor/field round
   profile: LS.get('wa.profile', {}),
   onboarded: LS.get('wa.onboarded', false),
+  theme: LS.get('wa.theme', 'system'),
 };
-const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); LS.set('wa.onboarded', state.onboarded); };
+function applyTheme() { const r = document.documentElement; if (state.theme === 'light' || state.theme === 'dark') r.dataset.theme = state.theme; else delete r.dataset.theme; }
+applyTheme();
+const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); LS.set('wa.onboarded', state.onboarded); LS.set('wa.theme', state.theme); };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const $ = sel => document.querySelector(sel);
 const h = (tag, attrs = {}, ...kids) => {
@@ -82,7 +85,7 @@ function home() {
             h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })() : null;
   const disc = (ic, title, sub, onclick) => h('button', { class: 'disc', onclick }, h('span', { class: 'disc-ic' }, icon(ic, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, title), h('small', {}, sub)), h('span', { class: 'disc-go' }, icon('back')));
   return h('div', {},
-    topbar((state.profile?.club || '').trim() || '3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => go('profile')))),
+    topbar((state.profile?.club || '').trim() || '3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => { state.pback = 'home'; go('profile'); }))),
     h('div', { class: 'page' },
       h('div', { class: 'hero' }, rings(),
         h('div', { class: 'pegs' }, h('i', { class: 'r' }), h('i', { class: 'b' }), h('i', { class: 'w' }), h('i', { class: 'y' })),
@@ -530,9 +533,17 @@ function progress() {
 // ---------- SETTINGS ----------
 function settings() {
   const key = state.settingsKey || 'ifaa_hunting'; const base = SYSTEMS[key]; const table = state.pointsOverride[key] || base.table;
-  return h('div', {}, topbar('Settings', 'Points per zone', () => go('home')),
+  const pr = state.profile || {};
+  return h('div', {}, topbar('Settings', null, () => go('home')),
     h('div', { class: 'page' },
-      h('div', { class: 'card' }, h('h3', {}, 'Scoring system'),
+      h('button', { class: 'setprof', onclick: () => { state.pback = 'settings'; go('profile'); } },
+        h('span', { class: 'avatar sm' }, pr.photo ? h('img', { src: pr.photo, alt: '' }) : (pr.name || '').trim() ? (pr.name || '').trim().split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase() : icon('people')),
+        h('div', { style: 'flex:1;min-width:0;text-align:left' }, h('b', {}, (pr.name || '').trim() || 'Set up your profile'), h('small', {}, [(pr.club || '').trim(), 'Name, bows, club, booking link'].filter(Boolean)[0])),
+        h('span', { class: 'disc-go' }, icon('back'))),
+      h('div', { class: 'card' }, h('h3', {}, 'Appearance'),
+        h('div', { class: 'chips c3' }, ...[['system', 'System'], ['light', 'Light'], ['dark', 'Dark']].map(([k, n]) => h('button', { class: state.theme === k ? 'on' : '', onclick: () => { state.theme = k; applyTheme(); save(); render(); } }, n))),
+        h('div', { class: 'muted', style: 'font-size:13px' }, state.theme === 'system' ? 'Follows your phone’s light / dark setting.' : `Always ${state.theme}.`)),
+      h('div', { class: 'card' }, h('h3', {}, '3D points per zone'),
         h('select', { onchange: e => { state.settingsKey = e.target.value; render(); } }, ...Object.entries(SYSTEMS).map(([k, s]) => h('option', { value: k, selected: k === key }, s.name))),
         h('div', { class: 'muted', style: 'font-size:13px' }, base.desc + ' Edit below if your club scores differently.'),
         h('table', { class: 'pts' }, h('tr', {}, h('th', {}, 'Zone'), ...table.map((_, i) => h('th', { class: 'num' }, table.length > 1 ? `Arrow ${i + 1}` : 'Points'))),
