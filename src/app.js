@@ -21,8 +21,9 @@ let state = {
   pointsOverride: LS.get('wa.points', {}),
   tround: LS.get('wa.tround', null),     // active indoor/field round
   profile: LS.get('wa.profile', {}),
+  onboarded: LS.get('wa.onboarded', false),
 };
-const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); };
+const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); LS.set('wa.onboarded', state.onboarded); };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const $ = sel => document.querySelector(sel);
 const h = (tag, attrs = {}, ...kids) => {
@@ -46,7 +47,8 @@ const findFace = (t, fid) => t?.faces.find(f => f.id === fid) || t?.faces[0];
 function render() {
   const y = window.scrollY;
   const app = $('#app'); app.innerHTML = '';
-  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about, tsetup: T.tsetup, tplay: T.tplay, tboard: T.tboard, tsummary: T.tsummary, profile: T.profile };
+  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about, tsetup: T.tsetup, tplay: T.tplay, tboard: T.tboard, tsummary: T.tsummary, profile: T.profile, welcome };
+  if (state.view === 'home' && !state.onboarded && !(state.profile?.name || '').trim() && !state.round && !state.tround && !state.history.length) state.view = 'welcome';
   app.append((views[state.view] || home)());
   if (state._lastView !== state.view) window.scrollTo(0, 0); else window.scrollTo(0, y);
   state._lastView = state.view;
@@ -107,6 +109,18 @@ function home() {
       h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.')));
 }
 T = initTarget({ h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, sparkline: (...x) => sparkline(...x) });
+function welcome() {
+  const done = v => { state.onboarded = true; save(); go(v); };
+  return h('div', { class: 'welcome' },
+    h('div', { class: 'welcome-card' },
+      h('div', { class: 'welcome-mark' }, icon('target', 'xl')),
+      h('h1', {}, 'Welcome'),
+      h('p', {}, 'Score 3D, indoor and field rounds with your mates, and keep a record of every arrow.'),
+      h('p', {}, 'Start by adding your details: your name, the bows you shoot, your club and Archery Ireland number. Your name fills in Player 1 automatically and your club shows at the top of the app.'),
+      h('div', { class: 'welcome-priv' }, icon('check'), h('div', {}, h('b', {}, 'Stored only on this phone.'), ' Your details and scores never leave your device. There’s no account and no server, so the app’s developer can’t see them.')),
+      h('button', { class: 'primary', onclick: () => done('profile') }, 'Set up my profile'),
+      h('button', { class: 'ghost', onclick: () => done('home') }, 'Skip for now')));
+}
 function confirmBox(msg) { return window.confirm ? window.confirm(msg) : true; }
 function go(v) { state.view = v; render(); }
 

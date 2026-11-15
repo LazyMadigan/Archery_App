@@ -26,7 +26,7 @@ export function pbs(name) {
 }
 function profile() {
   const { h, icon, state, save, go, topbar, toast } = C; const p = state.profile = state.profile || {};
-  const set = k => e => { p[k] = e.target.value; save(); };
+  const set = k => e => { p[k] = e.target.value; if (k === 'name' && p.name.trim()) state.onboarded = true; save(); };
   const field = (k, label, ph, type = 'text') => h('label', { class: 'fld' }, h('span', {}, label), h('input', { id: 'pf-' + k, type, inputmode: type === 'tel' ? 'numeric' : type === 'url' ? 'url' : undefined, autocapitalize: type === 'url' ? 'off' : undefined, placeholder: ph, value: p[k] || '', oninput: set(k) }));
   const name = (p.name || '').trim();
   const hist = name ? state.history.filter(r => r.players.some(x => x.name === name)) : [];
