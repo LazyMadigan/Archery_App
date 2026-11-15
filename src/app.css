@@ -91,7 +91,7 @@ h3{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;le
 .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;padding:8px 10px;border-top:1px solid var(--line);background:#f6f8fc;font-size:12px;font-weight:600;color:#222}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid #444}
 .notrace{padding:6px 10px;font-size:12px;color:#555;background:#f6f8fc;text-align:center}
-.zones{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.zones{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .zones button{min-height:66px;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:6px 2px;font-family:var(--display);color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .zones button b{font-size:26px;line-height:1;font-weight:800}
 .zones button small{font-weight:600;font-size:11px;opacity:.95;font-family:var(--body-font);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
@@ -164,3 +164,63 @@ td.num,th.num{text-align:right}
 .rowbtns button.on{color:var(--brand)}
 
 .rowtap{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+
+/* profile */
+.avatar{width:40px;height:40px;border-radius:50%!important;padding:0!important;overflow:hidden;background:rgba(255,255,255,.18)!important;color:#fff;font-weight:800;font-family:var(--display);display:inline-flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.6)!important}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar.xl{width:112px;height:112px;border:3px solid var(--brand)!important;background:var(--bg2)!important;color:var(--brand);cursor:pointer}
+.fld{display:flex;flex-direction:column;gap:4px}.fld span{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.pb{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.pb b{display:block;font-size:14px}.pb small{color:var(--muted);font-size:12px}
+.pbk{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--brand) 12%,var(--panel));color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+.pbv{font-family:var(--display);font-weight:800;font-size:22px;text-align:right;flex:none}.pbv small{display:block;font-family:var(--body-font);font-weight:500}
+/* discipline cards */
+.disc{display:flex;align-items:center;gap:14px;text-align:left;padding:14px;border-radius:18px;min-height:76px;box-shadow:var(--shadow)}
+.disc b{display:block;font-family:var(--display);font-size:20px;font-weight:800}.disc small{color:var(--muted);font-weight:500;font-size:13px}
+.disc-ic{width:48px;height:48px;border-radius:14px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}.disc-ic .ic{color:#fff}
+.disc-go{color:var(--muted);transform:scaleX(-1);flex:none}
+/* target faces */
+.face{display:block;max-width:100%;height:auto;touch-action:manipulation;user-select:none}
+.facewrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.facewrap .face{width:min(100%,360px)}
+.facepreview{display:flex;align-items:center;gap:14px}
+.tset{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center}
+.tset>span{font-size:13px;font-weight:600;color:var(--muted)}
+.seg.wrap{flex-wrap:wrap}.seg.wrap button{min-width:56px;padding:0 8px}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;width:max-content}
+.stepper button{border:0;border-radius:0;width:48px;font-size:22px}.stepper b{min-width:44px;text-align:center;font-family:var(--display);font-size:20px}
+.vbtns{display:grid;gap:6px;grid-template-columns:repeat(6,minmax(0,1fr))}
+.vbtns.n5{grid-template-columns:repeat(5,minmax(0,1fr))}.vbtns.n6{grid-template-columns:repeat(6,minmax(0,1fr))}.vbtns.n7{grid-template-columns:repeat(7,minmax(0,1fr))}.vbtns.n8{grid-template-columns:repeat(4,minmax(0,1fr))}.vbtns.n11{grid-template-columns:repeat(6,minmax(0,1fr))}
+.vbtn{min-height:52px;min-width:0;padding:0;border:0;font-family:var(--display);font-size:20px;font-weight:800;color:#111;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.vbtn:active{transform:translateY(2px);box-shadow:none}
+.vx,.v10,.v9{background:#f6d23c}.v8,.v7{background:#e2483d;color:#fff}.v6,.v5{background:#3aa3e8;color:#fff}.v4,.v3{background:#22252b;color:#fff}.v2,.v1{background:#fff;border:1px solid #bbb}.vm{background:#6b7280;color:#fff}
+.player .arrows span.vc{border:0}
+.endgrid{display:grid;gap:4px 8px;font-variant-numeric:tabular-nums;font-size:14px;text-align:center}
+.endgrid span{padding:4px 0;border-radius:6px;cursor:pointer}.endgrid span:not(.muted):hover{background:var(--bg2)}
+
+.sch-spot .v6{background:#3aa3e8;color:#fff}
+.sch-wafield .vx,.sch-wafield .v6,.sch-wafield .v5{background:#f6d23c;color:#111}
+.sch-wafield .v4,.sch-wafield .v3,.sch-wafield .v2,.sch-wafield .v1{background:#22252b;color:#fff;border:0}
+.sch-ifaa .vx{background:#fff;color:#111;border:1px solid #bbb}.sch-ifaa .v5,.sch-ifaa .v3{background:#22252b;color:#fff}.sch-ifaa .v4{background:#fff;color:#111;border:1px solid #bbb}
+
+.bowsel{flex:0 0 120px;width:120px;padding:0 8px;font-size:14px}
+.bowtag{display:inline-block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-left:6px}
+.player .name .bowtag{display:block;margin-left:0}
+.sch-wa10c .v10,.sch-spotc .v10{background:#f6d23c;color:#111}
+
+/* coloured arrow chips on the indoor/field score rows */
+.player .arrows span.vc.vx,.player .arrows span.vc.v10,.player .arrows span.vc.v9{background:#f6d23c;color:#111}
+.player .arrows span.vc.v8,.player .arrows span.vc.v7{background:#e2483d;color:#fff}
+.player .arrows span.vc.v6,.player .arrows span.vc.v5{background:#3aa3e8;color:#fff}
+.player .arrows span.vc.v4,.player .arrows span.vc.v3{background:#22252b;color:#fff}
+.player .arrows span.vc.v2,.player .arrows span.vc.v1{background:#fff;color:#111;box-shadow:inset 0 0 0 1px #bbb}
+.player .arrows span.vc.vm{background:#6b7280;color:#fff}
+.sch-wafield .player .arrows span.vc.v6,.sch-wafield .player .arrows span.vc.v5{background:#f6d23c;color:#111}
+.sch-wafield .player .arrows span.vc.v4,.sch-wafield .player .arrows span.vc.v3,.sch-wafield .player .arrows span.vc.v2,.sch-wafield .player .arrows span.vc.v1{background:#22252b;color:#fff;box-shadow:none}
+.sch-ifaa .player .arrows span.vc.v5,.sch-ifaa .player .arrows span.vc.v3{background:#22252b;color:#fff}.sch-ifaa .player .arrows span.vc.vx,.sch-ifaa .player .arrows span.vc.v4{background:#fff;color:#111;box-shadow:inset 0 0 0 1px #bbb}
+.sch-spot .player .arrows span.vc.v6{background:#3aa3e8;color:#fff}
+
+.zones button{min-width:0}
+.seg button{min-width:0}
+.player .arrows span{flex:none}
+@media (max-width:360px){.player .arrows span{width:26px;height:26px;font-size:11px}.bowsel{flex-basis:96px;width:96px}}

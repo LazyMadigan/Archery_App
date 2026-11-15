@@ -1,6 +1,7 @@
 import { SYSTEMS, ZONES, ZONE_LABEL, scoreTarget, maxArrows } from './scoring.js';
 import { totals, kingOfTheCastle, skins, guessTotals, suggestHandicap, distancePoints } from './games.js';
 import { icon } from './icons.js';
+import { init as initTarget, isTarget } from './target.js';
 
 // ---------- state ----------
 const LS = {
@@ -18,8 +19,10 @@ let state = {
   pick: null,                           // target picker ctx {cat, targetId, onDone}
   ti: 0,                                // current target index in round
   pointsOverride: LS.get('wa.points', {}),
+  tround: LS.get('wa.tround', null),     // active indoor/field round
+  profile: LS.get('wa.profile', {}),
 };
-const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); };
+const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const $ = sel => document.querySelector(sel);
 const h = (tag, attrs = {}, ...kids) => {
@@ -35,6 +38,7 @@ const h = (tag, attrs = {}, ...kids) => {
 };
 function toast(msg) { let t = $('.toast'); if (!t) { t = h('div', { class: 'toast' }); document.body.append(t); } t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
 function system() { const s = structuredClone(SYSTEMS[state.round?.systemKey || state.draft?.systemKey || 'ifaa_hunting']); const o = state.pointsOverride[state.round?.systemKey]; if (o) s.table = o; return s; }
+let T; // indoor/field module, initialised after helpers
 const findTarget = id => LIB.targets.find(t => t.id === id);
 const findFace = (t, fid) => t?.faces.find(f => f.id === fid) || t?.faces[0];
 
@@ -42,7 +46,7 @@ const findFace = (t, fid) => t?.faces.find(f => f.id === fid) || t?.faces[0];
 function render() {
   const y = window.scrollY;
   const app = $('#app'); app.innerHTML = '';
-  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about };
+  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about, tsetup: T.tsetup, tplay: T.tplay, tboard: T.tboard, tsummary: T.tsummary, profile: T.profile };
   app.append((views[state.view] || home)());
   if (state._lastView !== state.view) window.scrollTo(0, 0); else window.scrollTo(0, y);
   state._lastView = state.view;
@@ -57,22 +61,14 @@ function topbar(title, sub, back, right) {
 // ---------- HOME ----------
 function home() {
   const r = state.round; const hist = state.history;
-  const best = hist.reduce((m, x) => Math.max(m, ...Object.values(x.final?.totals || {}).map(t => t.gross)), 0);
-  const arrowsShot = hist.reduce((n, x) => n + Object.values(x.scores).reduce((a, by) => a + Object.values(by).reduce((b, arr) => b + arr.filter(Boolean).length, 0), 0), 0);
+  const arrowsShot = hist.reduce((n, x) => isTarget(x) ? n + Object.values(x.final?.tally || {}).reduce((a, t) => a + t.arrows, 0) : n + Object.values(x.scores || {}).reduce((a, by) => a + Object.values(by).reduce((b, arr) => b + arr.filter(Boolean).length, 0), 0), 0);
+  const me = (state.profile?.name || '').trim(); const myPbs = me ? T.pbs(me).length : 0;
   const animals = LIB.targets.filter(t => t.faces[0]?.photo).slice(0, 12);
   const rings = () => { const ns = 'http://www.w3.org/2000/svg'; const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('class', 'rings'); [46, 34, 22, 10].forEach(rr => { const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', 50); c.setAttribute('cy', 50); c.setAttribute('r', rr); svg.append(c); }); return svg; };
-  return h('div', {},
-    topbar('3D Fun Round', null, null, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog'))),
-    h('div', { class: 'page' },
-      h('div', { class: 'hero' }, rings(),
-        h('div', { class: 'pegs' }, h('i', { class: 'r' }), h('i', { class: 'b' }), h('i', { class: 'w' }), h('i', { class: 'y' })),
-        h('h1', { style: 'margin-top:10px' }, 'Walk the course. Keep the craic.'),
-        h('p', {}, 'Score a 3D round with your mates: points, King of the Castle, skins, guess the distance.'),
-        h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
-      r ? (() => { const done = Object.keys(r.scores).filter(k => Object.values(r.scores[k]).some(a => a.some(Boolean))).length; const total = Math.max(r.targets.length, done); const sysName = SYSTEMS[r.systemKey]?.name.replace(/ \(.*\)/, '');
+  const live3d = r ? (() => { const done = Object.keys(r.scores).filter(k => Object.values(r.scores[k]).some(a => a.some(Boolean))).length; const total = Math.max(r.targets.length, done); const sysName = SYSTEMS[r.systemKey]?.name.replace(/ \(.*\)/, '');
         return h('div', { class: 'live' },
           h('div', { class: 'live-head' }, h('span', { class: 'live-badge' }, icon('target', 'lg')),
-            h('div', { style: 'flex:1;min-width:0' }, h('div', { class: 'live-title' }, r.mode === 'laser' ? 'Practice in progress' : 'Round in progress'),
+            h('div', { style: 'flex:1;min-width:0' }, h('div', { class: 'live-title' }, r.mode === 'laser' ? '3D practice in progress' : '3D round in progress'),
               h('div', { class: 'live-sub' }, `${sysName} · started ${new Date(r.started).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`)),
             h('span', { class: 'live-dot' })),
           h('div', { class: 'live-players' }, ...r.players.map(p => h('span', { class: 'pill' }, p.name))),
@@ -81,26 +77,39 @@ function home() {
             h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'),
             h('button', { onclick: () => go('board') }, 'Scoreboard'),
             h('button', { onclick: () => { if (confirmBox('Stop here and save the round?')) finishRound(); } }, 'Stop & save'),
-            h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })()
-        : h('button', { class: 'cta', onclick: startSetup }, icon('bow', 'xl'), h('div', {}, h('b', {}, 'Shoot a round'), h('small', {}, 'Pick your archers, your game and go'))),
+            h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })() : null;
+  const disc = (ic, title, sub, onclick) => h('button', { class: 'disc', onclick }, h('span', { class: 'disc-ic' }, icon(ic, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, title), h('small', {}, sub)), h('span', { class: 'disc-go' }, icon('back')));
+  return h('div', {},
+    topbar('3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => go('profile')))),
+    h('div', { class: 'page' },
+      h('div', { class: 'hero' }, rings(),
+        h('div', { class: 'pegs' }, h('i', { class: 'r' }), h('i', { class: 'b' }), h('i', { class: 'w' }), h('i', { class: 'y' })),
+        h('h1', { style: 'margin-top:10px' }, me ? `Shoot well, ${me.split(' ')[0]}.` : 'Shoot well. Keep the craic.'),
+        h('p', {}, '3D courses, indoor and field. Games with your mates and a record of every arrow.'),
+        h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
+      live3d, T.liveCard(),
+      h('div', { class: 'list' },
+        disc('bow', '3D Course', 'Animals in the woods · courses, games, laser practice', startSetup),
+        disc('rings', 'Indoor', 'WA 18, Vegas 300, Portsmouth · 18 / 15 / 10 m', () => T.startTarget('indoor')),
+        disc('peg', 'Field', 'WA & IFAA field faces · 10–70 m', () => T.startTarget('field'))),
       hist.length ? h('div', { class: 'stats' },
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')),
-        h('div', { class: 'stat' }, h('div', { class: 'v' }, String(best)), h('div', { class: 'k' }, 'Best score')),
-        h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrowsShot)), h('div', { class: 'k' }, 'Arrows shot'))) : null,
+        h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrowsShot)), h('div', { class: 'k' }, 'Arrows shot')),
+        h('div', { class: 'stat' }, h('div', { class: 'v' }, String(myPbs)), h('div', { class: 'k' }, me ? 'My PBs' : 'PBs'))) : null,
       h('div', { class: 'grid c2' },
         h('button', { class: 'tile', onclick: () => go('progress') }, icon('trend', 'lg'), 'Progress', h('small', {}, 'trends & sight chart')),
         h('button', { class: 'tile', onclick: () => go('history') }, icon('history', 'lg'), 'History', h('small', {}, `${hist.length} rounds`)),
-        h('button', { class: 'tile', onclick: () => go('courses') }, icon('course', 'lg'), 'Courses', h('small', {}, `${state.courses.length} saved`)),
-        h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), 'Targets', h('small', {}, `${LIB.targets.length} animals`))),
-      h('button', { class: 'ghost', style: 'align-self:center', onclick: () => location.href = 'tools/trace.html' }, icon('trace'), ' Trace scoring rings'),
+        h('button', { class: 'tile', onclick: () => go('courses') }, icon('course', 'lg'), '3D Courses', h('small', {}, `${state.courses.length} saved`)),
+        h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), '3D Targets', h('small', {}, `${LIB.targets.length} animals`))),
       h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.')));
 }
+T = initTarget({ h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, sparkline: (...x) => sparkline(...x) });
 function confirmBox(msg) { return window.confirm ? window.confirm(msg) : true; }
 function go(v) { state.view = v; render(); }
 
 // ---------- SETUP ----------
 function startSetup() {
-  state.draft = { players: [{ id: uid(), name: '', handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, mode: 'fun', order: 'rotate', showDist: false, useHandicap: false, targets: [], courseName: '' };
+  state.draft = { players: [{ id: uid(), name: (state.profile?.name || '').trim(), handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, mode: 'fun', order: 'rotate', showDist: false, useHandicap: false, targets: [], courseName: '' };
   go('setup');
 }
 function setup() {
@@ -111,7 +120,7 @@ function setup() {
     d.useHandicap ? h('input', { type: 'number', step: '0.5', style: 'flex:0 0 90px', value: p.handicap, title: 'Handicap: points per target added', oninput: e => p.handicap = parseFloat(e.target.value) || 0 }) : null,
     h('button', { class: 'ghost', style: 'flex:0 0 44px', onclick: () => { d.players.splice(i, 1); render(); } }, '✕'));
   return h('div', {},
-    topbar('Shoot a round', null, () => go('home')),
+    topbar('3D Course', 'Set up', () => go('home')),
     h('datalist', { id: 'names' }, state.names.map(n => h('option', { value: n }))),
     h('div', { class: 'page' },
       h('div', { class: 'card' }, h('div', { class: 'row' }, icon('people'), h('h3', {}, 'Who’s shooting')),
@@ -418,14 +427,14 @@ function drawSummary(c, r, sys, rows) {
 }
 function historyView() {
   return h('div', {}, topbar('History', null, () => go('home')),
-    h('div', { class: 'page' }, state.history.length ? h('div', { class: 'list' }, ...state.history.map(r => h('div', { class: 'item', onclick: () => { state.last = r; go('summary'); } }, h('div', { class: 't' }, r.players.map(p => `${p.name} ${r.final?.totals?.[p.id]?.gross ?? ''}`).join(' · '), h('small', {}, `${new Date(r.started).toLocaleDateString()} · ${SYSTEMS[r.systemKey]?.name} · ${r.targets.length} targets`))))) : h('p', { class: 'muted' }, 'No finished rounds yet.')));
+    h('div', { class: 'page' }, state.history.length ? h('div', { class: 'list' }, ...state.history.map(r => isTarget(r) ? T.historyItem(r) : h('div', { class: 'item', onclick: () => { state.last = r; go('summary'); } }, icon('bow'), h('div', { class: 't' }, r.players.map(p => `${p.name} ${r.final?.totals?.[p.id]?.gross ?? ''}`).join(' · '), h('small', {}, `${new Date(r.started).toLocaleDateString()} · ${SYSTEMS[r.systemKey]?.name} · ${r.targets.length} targets`))))) : h('p', { class: 'muted' }, 'No finished rounds yet.')));
 }
 
 // ---------- SIGHT CHART (from laser practice) ----------
 function sightPoints(name) {
   const pts = [];
   const all = [...state.history, ...(state.round ? [state.round] : [])];
-  all.forEach(r => { const p = r.players.find(p => p.name === name); if (!p) return; (r.targets || []).forEach(t => { if (t.distanceActual != null && t.sight?.[p.id] != null) pts.push({ d: t.distanceActual * Math.cos(Math.atan((t.slope || 0) / 100)), s: t.sight[p.id] }); }); });
+  all.filter(r => !isTarget(r)).forEach(r => { const p = r.players.find(p => p.name === name); if (!p) return; (r.targets || []).forEach(t => { if (t.distanceActual != null && t.sight?.[p.id] != null) pts.push({ d: t.distanceActual * Math.cos(Math.atan((t.slope || 0) / 100)), s: t.sight[p.id] }); }); });
   return pts;
 }
 function sightFit(pts) { // least squares quadratic s = a d^2 + b d + c (falls back to linear / none)
@@ -471,9 +480,10 @@ function sparkline(points, { w = 320, hgt = 120, label } = {}) {
   return svg;
 }
 function progress() {
-  const names = [...new Set(state.history.flatMap(r => r.players.map(p => p.name)))];
+  const me = (state.profile?.name || '').trim();
+  const names = [...new Set([...(me ? [me] : []), ...state.history.flatMap(r => r.players.map(p => p.name))])];
   const who = state.progName && names.includes(state.progName) ? state.progName : names[0];
-  const rounds = state.history.filter(r => r.players.some(p => p.name === who)).slice().reverse();
+  const rounds = state.history.filter(r => !isTarget(r) && r.players.some(p => p.name === who)).slice().reverse();
   const bySys = {};
   rounds.forEach(r => { const p = r.players.find(p => p.name === who); const t = r.final?.totals?.[p.id]; if (!t?.targets) return; (bySys[r.systemKey] = bySys[r.systemKey] || []).push({ y: t.gross / t.targets, label: new Date(r.started).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), r, gross: t.gross }); });
   // zone distribution across all arrows
@@ -484,6 +494,7 @@ function progress() {
   return h('div', {}, topbar('Progress', 'Am I getting better?', () => go('home')),
     h('div', { class: 'page' },
       names.length ? h('select', { onchange: e => { state.progName = e.target.value; render(); } }, ...names.map(nm => h('option', { value: nm, selected: nm === who }, nm))) : h('p', { class: 'muted' }, 'Shoot a round first and your trend shows up here.'),
+      rounds.length ? h('h3', { style: 'margin-top:4px' }, '3D') : null,
       ...Object.entries(bySys).map(([k, pts]) => {
         const first = pts[0].y, last = pts[pts.length - 1].y, delta = last - first;
         return h('div', { class: 'card' }, h('div', { class: 'row' }, h('h3', {}, SYSTEMS[k]?.name || k), pts.length > 1 ? h('span', { class: 'delta ' + (delta >= 0 ? 'up' : 'down'), style: 'flex:0 0 auto' }, `${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toFixed(1)} pts/target`) : null),
@@ -494,6 +505,7 @@ function progress() {
         h('div', { class: 'bars' }, ...['centre', 'inner', 'vital', 'body', 'miss'].map(z => h('i', { style: `width:${dist[z] / n * 100}%;background:var(--${z === 'miss' ? 'fg' : z})`, title: z }))),
         h('div', { class: 'row', style: 'font-size:12px' }, ...['centre', 'inner', 'vital', 'body', 'miss'].map(z => h('span', { class: 'pill' }, `${ZONE_LABEL[z]} ${Math.round(dist[z] / n * 100)}%`)))) : null,
       guess.length ? h('div', { class: 'card' }, h('h3', {}, 'Distance judging'), h('div', { class: 'row' }, h('div', { class: 'stat' }, h('div', { class: 'v' }, guess[guess.length - 1].toFixed(1) + ' m'), h('div', { class: 'k' }, 'Last avg error')), h('div', { class: 'stat' }, h('div', { class: 'v' }, Math.min(...guess).toFixed(1) + ' m'), h('div', { class: 'k' }, 'Best')))) : null,
+      ...T.progressCards(who),
       sightCard(who),
       kings ? h('div', { class: 'card' }, h('div', { class: 'row' }, icon('crown', 'lg'), h('div', {}, h('b', {}, `King of the Castle ${kings}×`), h('small', { class: 'muted' }, 'rounds finished wearing the crown')))) : null));
 }
@@ -512,10 +524,10 @@ function settings() {
         h('button', { class: 'ghost', onclick: () => { delete state.pointsOverride[key]; save(); render(); } }, 'Reset to default')),
       h('div', { class: 'card' }, h('h3', {}, 'Data'),
         h('div', { class: 'row' },
-          h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export backup'),
-          h('button', { class: 'ghost', onclick: () => { if (confirmBox('Delete all rounds and courses on this phone?')) { state.history = []; state.courses = []; state.round = null; save(); toast('Cleared'); } } }, 'Clear all'))),
+          h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ profile: state.profile, history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export backup'),
+          h('button', { class: 'ghost', onclick: () => { if (confirmBox('Delete all rounds and courses on this phone?')) { state.history = []; state.courses = []; state.round = null; state.tround = null; save(); toast('Cleared'); } } }, 'Clear all'))),
       h('button', { onclick: () => go('about') }, 'About, privacy & fair use'),
-      h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.2 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));
+      h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.3 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));
 }
 function about() {
   const P = (...k) => h('p', { style: 'margin:0' }, ...k);

@@ -2,7 +2,33 @@
 
 Open the link on your phone. Add it to your home screen (Share → Add to Home Screen on iPhone; the "Install" prompt or ⋮ → Add to Home screen on Android). After that it opens like an app and works with no signal.
 
-## Shoot a round
+## Your profile
+Tap the round picture top-right on the home screen. Add your name, bow (recurve, compound, barebow, traditional), Archery Ireland number, club and club number, and a photo if you like. Your name and bow fill in Player 1 automatically on every round. It all stays on your phone.
+
+Your profile also shows your **track record**: rounds and arrows shot, and **personal bests** for every round you've shot (kept separately per round, distance, face and bow).
+
+## Three disciplines
+The home screen has **3D Course**, **Indoor** and **Field**.
+
+### Indoor
+Pick the archers and each one's bow, then the round: **WA 18** (60 arrows), **Half WA 18**, **Vegas 300** (3-spot), **Portsmouth**, or **Custom**. Choose the distance (**18 / 15 / 10 m**), the face (**40 / 60 / 80 cm** or **3-spot**), the number of ends and arrows per end.
+
+**Compound scoring:** on the 40 cm and 3-spot faces, compound only scores 10 in the small inner ring (the X10); the rest of the 10 ring counts 9. Recurve, barebow and traditional get the full 10. The app applies this automatically from each archer's bow.
+
+### Field
+Pick **WA Field** (6–1: yellow 6–5, black 4–1) or **IFAA Field** (5-4-3), the distance (**10–70 m** in tens), the face (**20 / 40 / 60 / 80 cm**), and the number of targets. Scoring is the same for every bow; barebow normally shoots from the blue peg, recurve and compound from red.
+
+### Scoring indoor and field
+**Tap the face where each arrow landed**: it works out the score and plots the arrow. Or tap the score buttons. Only tapped arrows appear on your group plot. Tap an arrow chip to clear it. **Next end** (or **Next target** on field) when everyone's shot.
+
+### Games (indoor and field)
+- **Total points** — highest total wins.
+- **King of the Castle** — the best end takes the crown; hold it to stay King.
+- **Set play** — the Olympic match format: 2 set points for winning an end, 1 each for a tie. Head to head, first to 6 wins.
+
+The summary shows totals, X's, 10s, average per arrow, and each archer's arrow group on the face.
+
+## Shoot a 3D round
 1. **Who's shooting** — type names (they're remembered next time). Up to six. Tick **Handicap** if you want points-per-target added for weaker archers; it suggests a number from past rounds and you can change it.
 2. **Scoring** — pick the system your group uses. Arrows per target is capped at 3 and by the system (World Archery 3D is 2, IFAA Hunting is 1, NFAS is walk-down up to 3). You can edit the points for any system in Settings.
 3. **What are we doing** — *Fun round* (score against each other) or *Laser practice* (see below).
@@ -25,7 +51,7 @@ Open the link on your phone. Add it to your home screen (Share → Add to Home S
 For sighting in, alone or together. At each target: lase the distance, enter the slope if there is one (the app shows the cut distance), enter the sight setting each archer used, shoot, score as normal. Every shot adds a point to your **sight chart** (Progress → Sight chart): distance against setting with a fitted curve and a 5 m lookup table. Once you have a few points, Laser practice suggests a setting for the distance you've just lased.
 
 ## Progress
-Per archer: average points per target across rounds (per scoring system), best round, where your arrows land (centre / inner / vital / body / miss), distance-judging error, and crowns won. The trend line needs two or more rounds.
+Per archer, for every discipline. Indoor and field: each round type gets its own trend line, last score, PB, and your group over the last five rounds. 3D: average points per target across rounds (per scoring system), best round, where your arrows land (centre / inner / vital / body / miss), distance-judging error, and crowns won. The trend line needs two or more rounds.
 
 ## Trace scoring rings — please help with this
 Not every target has its rings traced yet. Until it is, you can still score with the buttons, but tapping the picture only records "body".

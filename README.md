@@ -15,6 +15,9 @@ Free for any club or archer, MIT licensed. See [FAIR-USE.md](FAIR-USE.md). Manua
 Most targets don't have their scoring rings traced yet. Open the app → **Trace scoring rings**, tap around the lines, Save, Copy JSON, and paste it into an issue. A minute each, and it makes the tap-to-score work for everyone.
 
 ## What it does
+- **Three disciplines:** 3D Course, Indoor (WA 18, Vegas 300, Portsmouth; 18 / 15 / 10 m) and Field (WA 6–1 or IFAA 5-4-3; 10–70 m).
+- **Profile** with name, bow, Archery Ireland number, club; personal bests and track record. Compound inner-10 rule applied automatically indoors.
+- **Tap-the-face scoring** for indoor and field with arrow group plots; games: Total, King of the Castle, Set play.
 - Set up a round: players (up to 6), scoring system, arrows per target (max 3), games to play.
 - Scoring systems: IFAA 3D Hunting, IFAA 3D Standard, World Archery 3D, NFAS Big Game (walk-down), ASA, IBO. Points per zone are editable in Settings if your club scores differently.
 - Games: Total points · King of the Castle (best arrow takes the target, hold it to stay King) · Skins (ties roll over) · Guess the distance (call it, shoot, lase it) · Handicap (suggested from past rounds, editable).
