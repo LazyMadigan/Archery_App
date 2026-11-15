@@ -6,37 +6,62 @@ Live app: https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
 
 ---
 
+## v0.4.x — 15 Nov 2026 (night): practice, sight marks, achievements, club colours, privacy
+
+### Profile: privacy & contact, colours in a pop-up — `2bb92d4`
+- **Privacy & contact** card at the bottom of the profile: your data stays on this phone; GDPR (nothing is collected, so you export or delete it yourself); what does go online (GitHub Pages to load the app, Google Fonts for the lettering, archery.ie for news headlines); **Contact us** (GitHub issues) and **About**.
+- **Delete all my data** erases everything the app stores on this phone (profile, photo, rounds, courses, sight marks, settings) after two confirmations. Settings → Clear all still removes only rounds and courses.
+- "Stays on this phone" moved from the top bar to a line under your details.
+- Club colours is a single tile showing your colours; tapping it opens the picker in a pop-up (**Done** keeps, **Cancel** reverts the preview).
+
+### Settings live in your profile — `1441e18`
+- The cog is gone from the home screen. Tap your profile picture, then **Settings** (button under your details, or the cog in the top bar). Back from Settings returns to your profile. The profile card at the top of Settings was removed.
+
+### Profile: booking link hidden in the read-only view — `458559e`
+- The booking link only shows under **Edit details**; the Booking tile still uses it.
+
+### Indoor & Field: "Competition" — `2c16de8`
+- In Indoor and Field setup, *Fun round* is now called **Competition**. (3D still says Fun round.)
+
+### Sight marks: easy editing, grouped by bow type, extra arrow — `568d5ac`
+- Charts are grouped by bow type (all compounds together). Each tile shows the bow name and the date you sighted it in.
+- Tap any row of a chart to change that setting, delete the mark, or save a curve value as a real mark. Marks also have clear **Edit** / **Delete** buttons.
+- **Edit** in the chart's top bar renames the bow, changes its type or note, or deletes the chart.
+- **+ Extra arrow** while sighting adds another arrow at that distance. Once every arrow is called, more taps ask you to add an arrow or reset instead of silently starting over.
+
+### Club picker — `568d5ac`
+- Profile → Club is a dropdown of Irish archery clubs grouped by province, with **Other** to type any club not listed. The list (`src/clubs.js`, about 40 clubs) was compiled from public sources and is easy to extend; archery.ie's own list couldn't be read automatically.
+
+### Readable text whatever the club colours — `568d5ac`
+- The brand colour is split into a fill colour (carries white text) and a text colour (sits on cards), each held to WCAG AA 4.5:1 in light and dark mode. Faded captions, hero text, red Delete links, the blue 5/6 score buttons and the target-face ring numbers were fixed too, including on the default blue.
+- New audit `tests/contrast.js` measures every visible piece of text on the main screens for 37 colour choices.
+
+### Club colours recolour the whole app — `d94ca57`
+- Profile → Edit details → **Club colours**: 12 ready-made pairs, your own main and second colour, or the app default. The app previews it live; **Save profile** keeps it.
+- Buttons, top bar, cards, home slides, the phone's status bar colour and share images all follow it. A white or yellow main colour swaps with the second; a black or navy main lets the second colour lead in dark mode.
+
+### Home: swipeable top card; profile details read-only — `bc52160`
+- The top card is a carousel with three dots: **Shoot well** first, then **Your best** (top personal bests, best 3D round, latest achievement; tap for Progress), then **Archery Ireland news** (headlines from archery.ie when the site allows it, otherwise a button that opens it).
+- Profile details show greyed out under your photo; **Edit details** unlocks them, **Save profile** or **Cancel** locks them again. A new profile still opens straight into the form.
+
+### Sight marks, Achievements, game rules, home sections — `d320986`
+- **Sight marks** (home tile): name the bow (e.g. "30lb Hoyt"), tick the distances you have targets at, call each arrow High / On / Low, enter the setting. Builds a sight mark chart with a fitted curve and a setting every 5 m; save or share it as an image card or Excel file; **Export all charts** makes one workbook with a sheet per bow.
+- **Achievements**: 60 badges (arrows, rounds, firsts, habits and streaks, variety, indoor & field scores, personal bests, 3D scores, games, sight marks) with progress bars; a pop-up announces new ones when a round is saved.
+- **Game rules pop-up** when picking King of the Castle, Skins, Guess the distance or Set play: **Skip**, **Got it**, **Don't show this again**.
+- Home: the disciplines sit under **Shoot now**, everything else under **Off the line**. Pop-up messages no longer block taps underneath them.
+
+### Home: Indoor tile on one line — `9970768`
+- Indoor subtitle shortened to "WA 18, Vegas · 10–18 m" so the three discipline tiles are the same height. Portsmouth is still in the round list.
+
+### Indoor & Field: Practice with a goal — `a78dfbb`
+- **What are we doing**: Competition or **Practice**. Practice won't start until you write a goal for the session; the goal stays on screen while you shoot and on the scoreboard, and is saved with the round. The summary adds a **How did it go?** note. History shows practice rounds and their goal.
+
 ## v0.3.x — 15 Nov 2026 (evening): disciplines, profile, polish
 
-### Sight marks — a sight mark chart for every bow
-- New home tile **Sight marks**. Name the bow (e.g. "30lb Hoyt"), pick its type, tick the distances you have targets at (or add your own), choose arrows per distance.
-- At each distance: call each arrow **High / On / Low** (the app says which way to move the sight), enter the setting the group was on with. After the first marks it suggests a setting from the curve.
-- Builds a **sight mark chart**: fitted curve, a row every 5 m across your range (bold = shot, others from the curve). Edit, add or remove marks by hand.
-- Save or share the chart as an **image card** or an **Excel file**; **Export all charts** makes one workbook with a sheet per bow. Charts are kept per bow; reshooting a distance replaces that mark. Marks also appear in Profile → Export my data.
-
-### Achievements — 60 to earn
-- New **Achievements** page (home tile and Profile): arrows shot (100 → 10,000), rounds, firsts, habits (twice in a week, 3/6/12/26-week streaks, back-to-back days, weekend warrior, early bird, night owl), variety, indoor & field scores (first X, perfect ends, WA 18 450–570, Vegas 250/280, % of max), personal bests, 3D scores (centres, clean rounds, % of max), games won, sight marks.
-- Earned from the profile owner's saved rounds; progress bars on count-based ones; a pop-up announces new ones when a round is saved.
-
-### Game rules pop-up
-- Picking King of the Castle, Skins, Guess the distance (3D) or King of the Castle, Set play (indoor/field) shows how to play. **Skip** or **Got it**, and **Don't show this again** per game.
-
-### Home: "Shoot now" and "Off the line"
-- The three disciplines sit under **Shoot now**; everything else under **Off the line**. Achievements spans the full width.
-- Pop-up messages no longer block taps underneath them.
-
-### Home: Indoor tile on one line
-- Indoor subtitle shortened to "WA 18, Vegas · 10–18 m" so the tile is the same height as 3D Course and Field. (Portsmouth is still in the round list.)
-
-### Indoor & Field: Practice with a goal
-- Indoor and Field setup now have **What are we doing**: *Fun round* or *Practice*.
-- Practice won't start until you write a **goal for the session**. The goal stays on screen while you shoot and on the scoreboard, and is saved with the round.
-- The summary adds a **How did it go?** note to review against the goal. History shows practice rounds and their goal.
-
-### Export to Excel
+### Export to Excel — `90685b6`
 - Profile → **Export my data**: one .xlsx with sheets *Read me* (explains every column and the scoring rules, with a suggested AI prompt), *Profile*, *Rounds*, *Arrows*, *3D targets*, *Courses*, *Sight marks*. **Share…** on phones that support it. Built on the device with SheetJS (bundled in `vendor/`, works offline). Photo excluded.
 
-### Next end / next target returns to the target face
+### Next end / next target returns to the target face — `0773579`
 - On small phones, moving to the next end, target or 3D target now scrolls back to the top so the face is in view. (Setup screens still keep your place when you tap an option.)
 
 ### Settings: profile card, Appearance, Save button — `f7cedef`
