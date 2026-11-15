@@ -19,5 +19,13 @@ const { chromium, devices } = require('playwright');
   if (await p.locator('#pf-name').count()) errs.push('still editing after save');
   if (!/42/.test(await p.locator('.pinfo').textContent())) errs.push('saved value not shown');
   await p.screenshot({ path: '/tmp/prof-saved.png', fullPage: true });
+  // privacy & contact card, stays-on-phone line, no subtitle in top bar
+  if (await p.locator('.topbar .sub').count()) errs.push('top bar still has a subtitle');
+  if (!/Stored only on this phone/.test(await p.locator('.pview').innerText())) errs.push('stays-on-phone line missing');
+  const priv = await p.locator('#privacy').innerText(); if (!/GDPR/.test(priv) || !/Contact us/.test(priv) || !/Delete all my data/.test(priv)) errs.push('privacy card incomplete');
+  if (!(await p.locator('#privacy a[href*="github.com"]').count())) errs.push('contact link');
+  await p.locator('#privacy').scrollIntoViewIfNeeded(); await p.screenshot({ path: '/tmp/prof-privacy.png' });
+  await p.locator('#pfWipe').click(); await p.waitForTimeout(600);
+  const left = await p.evaluate(() => ({ name: (JSON.parse(localStorage.getItem('wa.profile') || '{}').name || ''), sight: (JSON.parse(localStorage.getItem('wa.sight') || '[]')).length, hist: (JSON.parse(localStorage.getItem('wa.history') || '[]')).length })); if (left.name || left.sight || left.hist) errs.push('wipe left data ' + JSON.stringify(left));
   console.log(errs.length ? 'FAIL\n' + errs.join('\n') : 'PASS profile'); await b.close(); process.exit(errs.length ? 1 : 0);
 })();

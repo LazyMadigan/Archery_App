@@ -388,3 +388,9 @@ a.tile.button{display:flex;text-decoration:none;color:var(--fg);background:var(-
 .topbar .tb-text{flex:0 0 auto;padding:0 16px;background:rgba(0,0,0,.2);color:#fff;border:0;font-weight:700}
 .ghost.danger{color:var(--danger)}
 .sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.coltile{display:flex;align-items:center;gap:10px;padding:0 14px;min-height:var(--tap);border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);font-weight:600;text-transform:none;letter-spacing:0;font-size:15px}
+.coltile small{font-size:13px}
+.colbody{display:flex;flex-direction:column;gap:12px}
+.pview .pstay{font-size:12px;margin-top:-2px}
+a.button.tile-link{display:flex;align-items:center;justify-content:center;min-height:var(--tap);border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font-weight:700;text-decoration:none}

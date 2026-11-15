@@ -49,13 +49,14 @@ function profile() {
   const photoIn = h('input', { type: 'file', accept: 'image/*', style: 'display:none', onchange: e => { const f = e.target.files[0]; if (f) resizePhoto(f, d => { p.photo = d; C.render(); }); } });
   if (state.focusBooking) { state.focusBooking = false; setTimeout(() => { const el = document.getElementById('pf-booking'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 50); }
   const toSettings = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pedit = false; state.clubOther = false; C.applyColours(saved.colours); go('settings'); };
-  return h('div', {}, topbar('Profile', dirty() ? 'Unsaved changes' : 'Stays on this phone', leave, h('button', { 'aria-label': 'Settings', onclick: toSettings }, icon('cog'))),
+  return h('div', {}, topbar('Profile', dirty() ? 'Unsaved changes' : null, leave, h('button', { 'aria-label': 'Settings', onclick: toSettings }, icon('cog'))),
     h('div', { class: 'page' },
       !editing ? h('div', { class: 'card pview' },
         h('div', { class: 'avatar xl' }, saved.photo ? h('img', { src: saved.photo, alt: '' }) : icon('people', 'xl')),
         h('h2', {}, name), (saved.club || '').trim() ? h('div', { class: 'muted' }, saved.club) : null,
         h('dl', { class: 'pinfo' }, ...[['Bows I shoot', myBows(saved).map(b => BOWS.find(x => x[0] === b)?.[1]).filter(Boolean).join(', ')], ['Archery Ireland no.', saved.ai], ['Club', saved.club], ['Club number', saved.clubNo], ['Club colours', saved.colours ? (PRESETS.find(x => x[1] === saved.colours.c1 && x[2] === saved.colours.c2)?.[0] || 'Custom') : '']]
           .map(([k, v], i) => h('div', { class: i === 0 ? 'wide' : '' }, h('dt', {}, k), h('dd', { class: (v || '').toString().trim() ? '' : 'empty' }, k === 'Club colours' && saved.colours ? h('span', { class: 'swpair sm' }, h('i', { style: `background:${saved.colours.c1}` }), h('i', { style: `background:${saved.colours.c2}` })) : null, (v || '').toString().trim() || (k === 'Club colours' ? 'App default' : 'Not set'))))),
+        h('small', { class: 'muted pstay' }, 'Stored only on this phone. Nothing is sent to us.'),
         h('div', { class: 'grid c2', style: 'width:100%' }, h('button', { id: 'pfEdit', onclick: () => { state.pedit = true; C.render(); } }, 'Edit details'), h('button', { id: 'pfSettings', onclick: toSettings }, icon('cog'), ' Settings'))) : null,
       editing ? h('div', { class: 'card', style: 'align-items:center;text-align:center' },
         h('div', { class: 'avatar xl', onclick: () => photoIn.click() }, p.photo ? h('img', { src: p.photo, alt: '' }) : icon('people', 'xl')), photoIn,
@@ -74,17 +75,11 @@ function profile() {
               ...PROVINCES.map(pr => h('optgroup', { label: pr }, ...CLUBS.filter(c => c[2] === pr).map(([n, co]) => h('option', { value: n, selected: cur === n }, co ? `${n} (${co})` : n)))),
               h('option', { value: '__other', selected: cur === '__other' }, 'Other (type your club)')),
             other ? h('input', { id: 'pf-club', placeholder: 'Your club’s name', value: p.club || '', oninput: e => { p.club = e.target.value; markDirty(); } }) : null); })(),
-        (() => { const cur = p.colours; const setC = c => { if (c) p.colours = c; else delete p.colours; C.applyColours(p.colours); markDirty(); C.render(); };
-          const t = cur ? colourTokens(cur) : null; const adjusted = t && (t.light.brand.toLowerCase() !== t.main.toLowerCase());
-          return h('div', { class: 'fld', role: 'group', 'aria-label': 'Club colours' }, h('span', {}, 'Club colours'),
-            h('div', { class: 'swgrid' },
-              h('button', { class: 'sw' + (!cur ? ' on' : ''), 'aria-pressed': !cur ? 'true' : 'false', onclick: () => setC(null) }, h('span', { class: 'swpair' }, h('i', { style: 'background:#1d4fd8' }), h('i', { style: 'background:#bcd4ff' })), h('span', {}, 'App default')),
-              ...PRESETS.map(([n, a, b]) => { const on = cur && cur.c1 === a && cur.c2 === b; return h('button', { class: 'sw' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => setC({ c1: a, c2: b }) }, h('span', { class: 'swpair' }, h('i', { style: `background:${a}` }), h('i', { style: `background:${b}` })), h('span', {}, n)); })),
-            h('div', { class: 'row swcustom' },
-              h('label', {}, h('input', { type: 'color', 'aria-label': 'Main colour', value: cur?.c1 || '#1d4fd8', onchange: e => setC({ c1: e.target.value, c2: cur?.c2 || '#ffffff' }) }), h('small', {}, 'Main')),
-              h('label', {}, h('input', { type: 'color', 'aria-label': 'Second colour', value: cur?.c2 || '#ffffff', onchange: e => setC({ c1: cur?.c1 || '#1d4fd8', c2: e.target.value }) }), h('small', {}, 'Second')),
-              h('small', { class: 'muted', style: 'flex:1;font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, 'Or pick your own. The whole app previews it now; Save profile keeps it.')),
-            adjusted ? h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, 'Shade adjusted slightly so text on buttons stays readable.') : null); })(),
+        (() => { const cur = p.colours; const name = cur ? (PRESETS.find(x => x[1] === cur.c1 && x[2] === cur.c2)?.[0] || 'Custom') : 'App default';
+          return h('div', { class: 'fld' }, h('span', {}, 'Club colours'),
+            h('button', { id: 'pfColours', class: 'coltile', onclick: () => coloursSheet(p, () => { markDirty(); C.render(); }) },
+              h('span', { class: 'swpair' }, h('i', { style: `background:${cur?.c1 || '#1d4fd8'}` }), h('i', { style: `background:${cur?.c2 || '#bcd4ff'}` })),
+              h('span', { style: 'flex:1;text-align:left' }, name), h('small', { class: 'muted' }, 'Change'))); })(),
         field('clubNo', 'Club number', 'Membership no.', 'tel'), field('booking', 'Club booking link', 'https://…', 'url'),
         h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically. Your club shows at the top of the home screen, and the booking link opens from the Booking tile. Nothing here leaves your phone.')) : null,
       name ? h('div', { class: 'card' }, h('h3', {}, 'Track record'),
@@ -98,7 +93,44 @@ function profile() {
         h('div', { class: 'row' },
           h('button', { class: 'primary', id: 'xlBtn', onclick: async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Building…'; try { const x = await buildWorkbook(state, C.lib()); const a = document.createElement('a'); a.href = URL.createObjectURL(x.blob); a.download = x.name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); toast(`Exported ${x.counts.rounds} rounds`); } catch (err) { toast('Export failed: ' + err.message); } b.disabled = false; b.textContent = 'Export to Excel'; } }, 'Export to Excel'),
           navigator.canShare ? h('button', { onclick: async e => { const b = e.currentTarget; b.disabled = true; try { const x = await buildWorkbook(state, C.lib()); const f = new File([x.blob], x.name, { type: x.blob.type }); if (navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: 'My archery data' }); else toast('Sharing files isn’t supported here — use Export'); } catch (err) { if (err.name !== 'AbortError') toast('Share failed'); } b.disabled = false; } }, 'Share…') : null))),
+      h('div', { class: 'card', id: 'privacy' }, h('h3', {}, 'Privacy & contact'),
+        h('b', {}, 'Your data stays on this phone'),
+        h('div', { class: 'muted', style: 'font-size:13px' }, 'No account, no server, no analytics, no ads. Your profile, photo, rounds and sight marks are stored only in this phone’s browser and are never sent to us.'),
+        h('b', {}, 'GDPR'),
+        h('div', { class: 'muted', style: 'font-size:13px' }, 'We don’t collect, receive or store any of your personal data, so there is no copy anywhere else to ask for or delete. You stay in control here: Export my data gives you a full copy, and Delete all my data erases everything from this phone.'),
+        h('b', {}, 'What goes online'),
+        h('div', { class: 'muted', style: 'font-size:13px' }, 'Opening the app loads it from GitHub Pages, the lettering comes from Google Fonts, and the news slide reads headlines from archery.ie. Those sites see an ordinary web visit (such as your IP address), as with any website. None of your archery data goes with it.'),
+        h('div', { class: 'grid c2' },
+          h('a', { class: 'button tile-link', href: 'https://github.com/LazyMadigan/wicklow-archers-3d-fun-app/issues', target: '_blank', rel: 'noopener' }, 'Contact us'),
+          h('button', { onclick: () => { state.pdraft = null; state.pedit = false; state.aboutBack = 'profile'; go('about'); } }, 'About')),
+        h('button', { class: 'ghost danger', id: 'pfWipe', onclick: () => {
+          if (!confirmBox('Delete ALL your data from this phone? Profile, photo, rounds, courses, sight marks and settings. This can’t be undone.')) return;
+          if (!confirmBox('Last check: delete everything? Export my data first if you want a copy.')) return;
+          try { Object.keys(localStorage).filter(k => k.startsWith('wa.')).forEach(k => localStorage.removeItem(k)); } catch {}
+          location.reload(); } }, 'Delete all my data')),
     editing ? h('div', { class: 'bottombar' }, (saved.name || '').trim() ? h('button', { style: 'flex:0 0 auto;padding:0 18px', onclick: cancelEdit }, 'Cancel') : null, h('button', { id: 'pfSave', class: 'primary', disabled: !dirty(), onclick: commit }, dirty() ? 'Save profile' : 'Saved')) : null);
+}
+
+function coloursSheet(p, changed) {
+  const { h } = C; document.querySelector('.sheet-bg')?.remove();
+  const before = p.colours ? { ...p.colours } : null;
+  const close = keep => { if (!keep) { if (before) p.colours = before; else delete p.colours; C.applyColours(p.colours); } bg.remove(); changed(); };
+  const body = h('div', { class: 'colbody' });
+  const draw = () => { const cur = p.colours; const t = cur ? colourTokens(cur) : null; const setC = c => { if (c) p.colours = c; else delete p.colours; C.applyColours(p.colours); draw(); };
+    body.replaceChildren(
+      h('div', { class: 'swgrid' },
+        h('button', { class: 'sw' + (!cur ? ' on' : ''), 'aria-pressed': !cur ? 'true' : 'false', onclick: () => setC(null) }, h('span', { class: 'swpair' }, h('i', { style: 'background:#1d4fd8' }), h('i', { style: 'background:#bcd4ff' })), h('span', {}, 'App default')),
+        ...PRESETS.map(([n, a, b]) => { const on = cur && cur.c1 === a && cur.c2 === b; return h('button', { class: 'sw' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => setC({ c1: a, c2: b }) }, h('span', { class: 'swpair' }, h('i', { style: `background:${a}` }), h('i', { style: `background:${b}` })), h('span', {}, n)); })),
+      h('div', { class: 'row swcustom' },
+        h('label', {}, h('input', { type: 'color', 'aria-label': 'Main colour', value: cur?.c1 || '#1d4fd8', onchange: e => setC({ c1: e.target.value, c2: cur?.c2 || '#ffffff' }) }), h('small', {}, 'Main')),
+        h('label', {}, h('input', { type: 'color', 'aria-label': 'Second colour', value: cur?.c2 || '#ffffff', onchange: e => setC({ c1: cur?.c1 || '#1d4fd8', c2: e.target.value }) }), h('small', {}, 'Second')),
+        h('small', { class: 'muted', style: 'flex:1;font-size:12px' }, 'Or pick your own. The app previews it behind this.')),
+      t && t.light.brand.toLowerCase() !== t.main.toLowerCase() ? h('small', { class: 'muted', style: 'font-size:12px' }, 'Shade adjusted slightly so text on buttons stays readable.') : null); };
+  draw();
+  const bg = h('div', { class: 'sheet-bg', onclick: e => { if (e.target === bg) close(true); } },
+    h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Club colours' }, h('h2', {}, 'Club colours'), body,
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'ghost', onclick: () => close(false) }, 'Cancel'), h('button', { class: 'primary', id: 'colDone', onclick: () => close(true) }, 'Done'))));
+  document.body.append(bg);
 }
 
 // ---------- setup ----------

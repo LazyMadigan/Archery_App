@@ -646,12 +646,12 @@ function settings() {
         h('div', { class: 'row' },
           h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ profile: state.profile, history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export'),
           h('button', { class: 'ghost', onclick: () => { if (confirmBox('Delete all rounds and courses on this phone?')) { state.history = []; state.courses = []; state.round = null; state.tround = null; save(); toast('Cleared'); } } }, 'Clear all'))),
-      h('button', { onclick: () => go('about') }, 'About, privacy & fair use'),
+      h('button', { onclick: () => { state.aboutBack = 'settings'; go('about'); } }, 'About, privacy & fair use'),
       h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.3 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));
 }
 function about() {
   const P = (...k) => h('p', { style: 'margin:0' }, ...k);
-  return h('div', {}, topbar('About', 'Privacy & fair use', () => go('settings')),
+  return h('div', {}, topbar('About', 'Privacy & fair use', () => go(state.aboutBack || 'settings')),
     h('div', { class: 'page' },
       h('div', { class: 'card' }, h('h3', {}, 'Your data stays on your phone'),
         P('No accounts, no server, no analytics, no ads. Names, scores, courses and traced rings live in this phone\u2019s browser storage and are never sent anywhere. Sharing a summary image or copying tracing JSON is something you do, not something the app does.'),
