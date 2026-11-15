@@ -80,7 +80,7 @@ function home() {
             h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })() : null;
   const disc = (ic, title, sub, onclick) => h('button', { class: 'disc', onclick }, h('span', { class: 'disc-ic' }, icon(ic, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, title), h('small', {}, sub)), h('span', { class: 'disc-go' }, icon('back')));
   return h('div', {},
-    topbar('3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => go('profile')))),
+    topbar((state.profile?.club || '').trim() || '3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => go('profile')))),
     h('div', { class: 'page' },
       h('div', { class: 'hero' }, rings(),
         h('div', { class: 'pegs' }, h('i', { class: 'r' }), h('i', { class: 'b' }), h('i', { class: 'w' }), h('i', { class: 'y' })),
@@ -99,6 +99,9 @@ function home() {
       h('div', { class: 'grid c2' },
         h('button', { class: 'tile', onclick: () => go('progress') }, icon('trend', 'lg'), 'Progress', h('small', {}, 'trends & sight chart')),
         h('button', { class: 'tile', onclick: () => go('history') }, icon('history', 'lg'), 'History', h('small', {}, `${hist.length} rounds`)),
+        (() => { const link = (state.profile?.booking || '').trim(); const ok = /^https?:\/\//i.test(link);
+          return ok ? h('a', { class: 'tile button', href: link, target: '_blank', rel: 'noopener' }, icon('calendar', 'lg'), 'Booking', h('small', {}, (state.profile?.club || '').trim() || 'Club bookings'))
+                    : h('button', { class: 'tile', onclick: () => { state.focusBooking = true; go('profile'); } }, icon('calendar', 'lg'), 'Booking', h('small', {}, 'Add your club’s link')); })(),
         h('button', { class: 'tile', onclick: () => go('courses') }, icon('course', 'lg'), '3D Courses', h('small', {}, `${state.courses.length} saved`)),
         h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), '3D Targets', h('small', {}, `${LIB.targets.length} animals`))),
       h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.')));

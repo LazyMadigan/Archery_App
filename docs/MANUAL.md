@@ -3,7 +3,7 @@
 Open the link on your phone. Add it to your home screen (Share → Add to Home Screen on iPhone; the "Install" prompt or ⋮ → Add to Home screen on Android). After that it opens like an app and works with no signal.
 
 ## Your profile
-Tap the round picture top-right on the home screen. Add your name, bow (recurve, compound, barebow, traditional), Archery Ireland number, club and club number, and a photo if you like. Your name and bow fill in Player 1 automatically on every round. It all stays on your phone.
+Tap the round picture top-right on the home screen. Add your name, bow (recurve, compound, barebow, traditional), Archery Ireland number, club and club number, and a photo if you like. Your name and bow fill in Player 1 automatically on every round. Your **club** name shows at the top of the home screen, and if you paste your club's **booking link** (e.g. a Google Form), the **Booking** tile on the home screen opens it. It all stays on your phone.
 
 Your profile also shows your **track record**: rounds and arrows shot, and **personal bests** for every round you've shot (kept separately per round, distance, face and bow).
 

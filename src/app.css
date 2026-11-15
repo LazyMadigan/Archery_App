@@ -232,3 +232,6 @@ td.num,th.num{text-align:right}
 .bowchip.on .chk{background:var(--brand);border-color:var(--brand);color:#fff}.bowchip.on .chk .ic{width:15px;height:15px;color:#fff}
 .bowlbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:360px){.bowchip{font-size:14px;gap:6px;padding:0 8px}.bowchip .chk{width:20px;height:20px}}
+
+a.tile.button{display:flex;text-decoration:none;color:var(--fg);background:var(--panel);border:1px solid var(--line)}
+.grid.c2>:last-child:nth-child(odd){grid-column:span 2}

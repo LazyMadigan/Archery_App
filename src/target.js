@@ -27,7 +27,7 @@ export function pbs(name) {
 function profile() {
   const { h, icon, state, save, go, topbar, toast } = C; const p = state.profile = state.profile || {};
   const set = k => e => { p[k] = e.target.value; save(); };
-  const field = (k, label, ph, type = 'text') => h('label', { class: 'fld' }, h('span', {}, label), h('input', { id: 'pf-' + k, type, inputmode: type === 'text' ? undefined : 'numeric', placeholder: ph, value: p[k] || '', oninput: set(k) }));
+  const field = (k, label, ph, type = 'text') => h('label', { class: 'fld' }, h('span', {}, label), h('input', { id: 'pf-' + k, type, inputmode: type === 'tel' ? 'numeric' : type === 'url' ? 'url' : undefined, autocapitalize: type === 'url' ? 'off' : undefined, placeholder: ph, value: p[k] || '', oninput: set(k) }));
   const name = (p.name || '').trim();
   const hist = name ? state.history.filter(r => r.players.some(x => x.name === name)) : [];
   const byKind = { '3d': 0, indoor: 0, field: 0 }; hist.forEach(r => byKind[r.kind || '3d']++);
@@ -35,6 +35,7 @@ function profile() {
   const my = name ? pbs(name) : [];
   const best3d = name ? state.history.filter(r => !isTarget(r)).reduce((m, r) => { const pl = r.players.find(x => x.name === name); const t = pl && r.final?.totals?.[pl.id]; return t && t.gross > (m?.gross || -1) ? { gross: t.gross, r } : m; }, null) : null;
   const photoIn = h('input', { type: 'file', accept: 'image/*', style: 'display:none', onchange: e => { const f = e.target.files[0]; if (f) resizePhoto(f, d => { p.photo = d; save(); C.render(); }); } });
+  if (state.focusBooking) { state.focusBooking = false; setTimeout(() => { const el = document.getElementById('pf-booking'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 50); }
   return h('div', {}, topbar('Profile', 'Stays on this phone', () => go('home')),
     h('div', { class: 'page' },
       h('div', { class: 'card', style: 'align-items:center;text-align:center' },
@@ -45,8 +46,8 @@ function profile() {
         h('div', { class: 'fld', role: 'group', 'aria-label': 'Bows I shoot' }, h('span', {}, 'Bows I shoot'),
           h('div', { class: 'bowgrid' }, ...BOWS.map(([k, n]) => { const on = myBows(p).includes(k); return h('button', { class: 'bowchip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => { const cur = myBows(p); p.bows = on ? cur.filter(x => x !== k) : [...cur, k]; delete p.bow; save(); C.render(); } }, h('span', { class: 'chk' }, on ? icon('check') : null), h('span', { class: 'bowlbl' }, n)); })),
           h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, myBows(p).length > 1 ? `Rounds start with the bow you shot last (${BOWS.find(b => b[0] === defaultBow(p))[1]}); change it per round in setup.` : 'Tick every bow you shoot. You can change it per round in setup.')),
-        field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'), field('clubNo', 'Club number', 'Membership no.', 'tel'),
-        h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically when you start a round. Nothing here leaves your phone.')),
+        field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'), field('clubNo', 'Club number', 'Membership no.', 'tel'), field('booking', 'Club booking link', 'https://…', 'url'),
+        h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically. Your club shows at the top of the home screen, and the booking link opens from the Booking tile. Nothing here leaves your phone.')),
       name ? h('div', { class: 'card' }, h('h3', {}, 'Track record'),
         h('div', { class: 'stats' }, h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')), h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrows)), h('div', { class: 'k' }, 'Arrows')), h('div', { class: 'stat' }, h('div', { class: 'v' }, `${byKind['3d']}/${byKind.indoor}/${byKind.field}`), h('div', { class: 'k' }, '3D/In/Field'))),
         my.length || best3d ? h('h3', { style: 'margin-top:6px' }, 'Personal bests') : h('div', { class: 'muted', style: 'font-size:13px' }, 'Finish a round and your personal bests show here.'),
