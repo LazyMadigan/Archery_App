@@ -117,7 +117,7 @@ function coloursSheet(p, changed) {
   const close = keep => { if (!keep) { if (before) p.colours = before; else delete p.colours; C.applyColours(p.colours); } bg.remove(); changed(); };
   const body = h('div', { class: 'colbody' });
   const draw = () => { const cur = p.colours; const t = cur ? colourTokens(cur) : null; const setC = c => { if (c) p.colours = c; else delete p.colours; C.applyColours(p.colours); draw(); };
-    body.replaceChildren(
+    body.replaceChildren(...[
       h('div', { class: 'swgrid' },
         h('button', { class: 'sw' + (!cur ? ' on' : ''), 'aria-pressed': !cur ? 'true' : 'false', onclick: () => setC(null) }, h('span', { class: 'swpair' }, h('i', { style: 'background:#1d4fd8' }), h('i', { style: 'background:#bcd4ff' })), h('span', {}, 'App default')),
         ...PRESETS.map(([n, a, b]) => { const on = cur && cur.c1 === a && cur.c2 === b; return h('button', { class: 'sw' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => setC({ c1: a, c2: b }) }, h('span', { class: 'swpair' }, h('i', { style: `background:${a}` }), h('i', { style: `background:${b}` })), h('span', {}, n)); })),
@@ -125,7 +125,7 @@ function coloursSheet(p, changed) {
         h('label', {}, h('input', { type: 'color', 'aria-label': 'Main colour', value: cur?.c1 || '#1d4fd8', onchange: e => setC({ c1: e.target.value, c2: cur?.c2 || '#ffffff' }) }), h('small', {}, 'Main')),
         h('label', {}, h('input', { type: 'color', 'aria-label': 'Second colour', value: cur?.c2 || '#ffffff', onchange: e => setC({ c1: cur?.c1 || '#1d4fd8', c2: e.target.value }) }), h('small', {}, 'Second')),
         h('small', { class: 'muted', style: 'flex:1;font-size:12px' }, 'Or pick your own. The app previews it behind this.')),
-      t && t.light.brand.toLowerCase() !== t.main.toLowerCase() ? h('small', { class: 'muted', style: 'font-size:12px' }, 'Shade adjusted slightly so text on buttons stays readable.') : null); };
+      t && t.light.brand.toLowerCase() !== t.main.toLowerCase() ? h('small', { class: 'muted', style: 'font-size:12px' }, 'Shade adjusted slightly so text on buttons stays readable.') : null].filter(Boolean)); };
   draw();
   const bg = h('div', { class: 'sheet-bg', onclick: e => { if (e.target === bg) close(true); } },
     h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Club colours' }, h('h2', {}, 'Club colours'), body,

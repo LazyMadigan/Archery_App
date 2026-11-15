@@ -8,6 +8,10 @@ Live app: https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
 
 ## v0.4.x — 15 Nov 2026 (night): practice, sight marks, achievements, club colours, privacy
 
+### Docs and interface diagrams
+- All documents brought up to date; changelog rebuilt in order. Interface diagrams as PDFs in `docs/diagrams/` (app map, Indoor & Field round, 3D round, Sight marks, Profile & privacy), drawn from screenshots of the live app.
+- Fixed a stray "null" under the custom colour pickers in the club colours pop-up.
+
 ### Profile: privacy & contact, colours in a pop-up — `2bb92d4`
 - **Privacy & contact** card at the bottom of the profile: your data stays on this phone; GDPR (nothing is collected, so you export or delete it yourself); what does go online (GitHub Pages to load the app, Google Fonts for the lettering, archery.ie for news headlines); **Contact us** (GitHub issues) and **About**.
 - **Delete all my data** erases everything the app stores on this phone (profile, photo, rounds, courses, sight marks, settings) after two confirmations. Settings → Clear all still removes only rounds and courses.
