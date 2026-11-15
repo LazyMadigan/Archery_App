@@ -86,8 +86,8 @@
      "slope": 5
     },
     {
-     "targetId": "grouse-pair",
-     "faceId": null,
+     "targetId": "crow-feeding",
+     "faceId": "t14",
      "distanceActual": 17,
      "slope": -21
     },
@@ -135,7 +135,7 @@
     },
     {
      "targetId": "grouse-pair",
-     "faceId": null,
+     "faceId": "t22",
      "distanceActual": 12,
      "slope": 3
     },

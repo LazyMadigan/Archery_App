@@ -528,11 +528,36 @@
    ]
   },
   {
-   "id": "grouse-pair",
-   "name": "Black grouse pair",
+   "id": "crow-feeding",
+   "name": "Crow, feeding (pair)",
    "cat": "birds",
    "maker": "?",
-   "faces": []
+   "faces": [
+    {
+     "id": "t14",
+     "label": "Left side",
+     "photo": "targets/photos/t14.png",
+     "w": 900,
+     "h": 847,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "grouse-pair",
+   "name": "Black grouse (blackcock)",
+   "cat": "birds",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t22",
+     "label": "Left side",
+     "photo": "targets/photos/t22.png",
+     "w": 733,
+     "h": 700,
+     "sets": []
+    }
+   ]
   },
   {
    "id": "dodo",
@@ -616,16 +641,16 @@
   },
   {
    "id": "bear-small",
-   "name": "Small bear, standing",
+   "name": "Small bear, climbing",
    "cat": "bears",
-   "maker": "Rinehart",
+   "maker": "Leitold",
    "faces": [
     {
      "id": "t20",
-     "label": "Front",
+     "label": "Front / left",
      "photo": "targets/photos/t20.png",
-     "w": 240,
-     "h": 586,
+     "w": 272,
+     "h": 700,
      "sets": []
     }
    ]
