@@ -1,0 +1,157 @@
+{
+ "courses": [
+  {
+   "name": "Dargle Valley \u00b7 Red pegs \u00b7 15 Nov 2026",
+   "peg": "red",
+   "builtin": true,
+   "saved": 1794700000000,
+   "notes": "Distances lased from the red pegs on 15 Nov 2026. Slope in % grade, + uphill / \u2212 downhill.",
+   "targets": [
+    {
+     "targetId": "panther-walk",
+     "faceId": "t01",
+     "distanceActual": 28,
+     "slope": 11
+    },
+    {
+     "targetId": "bighorn-bedded",
+     "faceId": "t02",
+     "distanceActual": 38,
+     "slope": 9
+    },
+    {
+     "targetId": "cougar-sitting",
+     "faceId": "t03",
+     "distanceActual": 25,
+     "slope": 0
+    },
+    {
+     "targetId": "lynx-walk",
+     "faceId": "t04",
+     "distanceActual": 25,
+     "slope": 3
+    },
+    {
+     "targetId": "polar-bear",
+     "faceId": "t05",
+     "distanceActual": 42,
+     "slope": -8
+    },
+    {
+     "targetId": "fox-bedded",
+     "faceId": "t06b",
+     "distanceActual": 16,
+     "slope": -20
+    },
+    {
+     "targetId": "roe-bedded",
+     "faceId": "t07",
+     "distanceActual": 22,
+     "slope": 3
+    },
+    {
+     "targetId": "mouflon",
+     "faceId": "t08",
+     "distanceActual": 39,
+     "slope": 9
+    },
+    {
+     "targetId": "roe-standing",
+     "faceId": "t09",
+     "distanceActual": 34,
+     "slope": 2
+    },
+    {
+     "targetId": "raptor",
+     "faceId": "t10",
+     "distanceActual": 20,
+     "slope": 13
+    },
+    {
+     "targetId": "triceratops",
+     "faceId": "t11",
+     "distanceActual": 13,
+     "slope": -30
+    },
+    {
+     "targetId": "stegosaurus",
+     "faceId": "t12",
+     "distanceActual": 13,
+     "slope": 15
+    },
+    {
+     "targetId": "panther-bedded",
+     "faceId": "t13",
+     "distanceActual": 28,
+     "slope": 5
+    },
+    {
+     "targetId": "grouse-pair",
+     "faceId": null,
+     "distanceActual": 17,
+     "slope": -21
+    },
+    {
+     "targetId": "dodo",
+     "faceId": "t15",
+     "distanceActual": 43,
+     "slope": 15
+    },
+    {
+     "targetId": "dall-bedded",
+     "faceId": "t16",
+     "distanceActual": 44,
+     "slope": -7
+    },
+    {
+     "targetId": "leopard-2d",
+     "faceId": "t17",
+     "distanceActual": 25,
+     "slope": 21
+    },
+    {
+     "targetId": "ibex-bedded",
+     "faceId": "t18",
+     "distanceActual": 44,
+     "slope": 8
+    },
+    {
+     "targetId": "bear-standing",
+     "faceId": "t19",
+     "distanceActual": 37,
+     "slope": -11
+    },
+    {
+     "targetId": "bear-small",
+     "faceId": "t20",
+     "distanceActual": 15,
+     "slope": 30
+    },
+    {
+     "targetId": "dodo-grey",
+     "faceId": "t21",
+     "distanceActual": 20,
+     "slope": -30
+    },
+    {
+     "targetId": "grouse-pair",
+     "faceId": null,
+     "distanceActual": 12,
+     "slope": 3
+    },
+    {
+     "targetId": "black-bear-standing",
+     "faceId": "t23",
+     "distanceActual": 29,
+     "slope": 0
+    },
+    {
+     "targetId": "fallow",
+     "faceId": "t24",
+     "distanceActual": 31,
+     "slope": 0
+    }
+   ]
+  }
+ ]
+}

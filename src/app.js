@@ -155,12 +155,13 @@ function course() {
   const d = state.draft || { targets: [] };
   const list = d.targets.map((t, i) => {
     const T = findTarget(t.targetId), F = findFace(T, t.faceId);
-    return h('div', { class: 'item' }, h('div', { class: 'n' }, String(i + 1)),
-      F?.photo ? h('img', { src: F.photo, style: 'height:44px;width:60px;object-fit:contain' }) : null,
-      h('div', { class: 't' }, T?.name || '?', h('small', {}, F?.label || '')),
-      h('button', { class: 'ghost', disabled: i === 0, onclick: () => { [d.targets[i - 1], d.targets[i]] = [d.targets[i], d.targets[i - 1]]; render(); } }, '↑'),
-      h('button', { class: 'ghost', disabled: i === d.targets.length - 1, onclick: () => { [d.targets[i + 1], d.targets[i]] = [d.targets[i], d.targets[i + 1]]; render(); } }, '↓'),
-      h('button', { class: 'ghost', onclick: () => { d.targets.splice(i, 1); render(); } }, '✕'));
+    return h('div', { class: 'item' },
+      F?.photo ? h('img', { src: F.photo, style: 'height:40px;width:48px;object-fit:contain;flex:none' }) : h('span', { style: 'width:48px;flex:none' }),
+      h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, [F?.label, t.distanceActual != null ? `${t.distanceActual} m${t.slope ? ` · ${t.slope > 0 ? '+' : ''}${t.slope}%` : ''}` : null].filter(Boolean).join(' · '))),
+      h('div', { class: 'rowbtns' },
+        h('button', { class: 'ghost', disabled: i === 0, onclick: () => { [d.targets[i - 1], d.targets[i]] = [d.targets[i], d.targets[i - 1]]; render(); } }, '↑'),
+        h('button', { class: 'ghost', disabled: i === d.targets.length - 1, onclick: () => { [d.targets[i + 1], d.targets[i]] = [d.targets[i], d.targets[i + 1]]; render(); } }, '↓'),
+        h('button', { class: 'ghost', onclick: () => { d.targets.splice(i, 1); render(); } }, '✕')));
   });
   return h('div', {},
     topbar('Course', `${d.targets.length} targets`, () => go('setup')),
@@ -174,9 +175,9 @@ function course() {
 }
 function coursesView() {
   return h('div', {}, topbar('Saved courses', null, () => go('home')),
-    h('div', { class: 'page' }, state.courses.length ? h('div', { class: 'list' }, ...state.courses.map(c => h('div', { class: 'item' }, h('div', { class: 't' }, c.name, h('small', {}, `${c.targets.length} targets · ${new Date(c.saved).toLocaleDateString()}`)),
+    h('div', { class: 'page' }, state.courses.length ? h('div', { class: 'list' }, ...state.courses.map(c => h('div', { class: 'item' }, h('div', { class: 't' }, c.name, h('small', {}, `${c.targets.length} targets${c.targets.some(t => t.distanceActual != null) ? ' · distances included' : ''}${c.builtin ? ' · built in' : ' · ' + new Date(c.saved).toLocaleDateString()}`)),
       h('button', { onclick: () => { startSetup(); state.draft.targets = structuredClone(c.targets); state.draft.courseName = c.name; go('setup'); } }, 'Use'),
-      h('button', { class: 'ghost', onclick: () => { state.courses = state.courses.filter(x => x !== c); save(); render(); } }, '✕')))) : h('p', { class: 'muted' }, 'No saved courses yet. Build one from New round → Course.')));
+      c.builtin ? null : h('button', { class: 'ghost', onclick: () => { state.courses = state.courses.filter(x => x !== c); save(); render(); } }, '✕')))) : h('p', { class: 'muted' }, 'No saved courses yet. Build one from Shoot a round → Course.')));
 }
 
 // ---------- TARGET PICKER (3 taps: category → animal → face) ----------
@@ -322,7 +323,7 @@ function play() {
     h('div', { class: 'grid c2' }, ...r.players.map(p => h('label', {}, h('small', { class: 'muted' }, `${p.name} sight setting`), numIn(t.sight[p.id], v => { t.sight[p.id] = v; save(); }, 'e.g. 25'))))) : null;
   const allDone = r.players.every(p => { const a = r.scores[ti][p.id]; return a.filter(Boolean).length >= r.arrows || (sys.walkdown && a.some(z => z && z !== 'miss')); });
   return h('div', {},
-    topbar(`${ti + 1}. ${T?.name || 'Target'}`, `${F?.label || ''} · ${sys.name}`, () => go('board'), h('button', { onclick: () => { state.pick = { ti, back: 'play', onDone: sel => { r.targets[ti] = { ...sel, distanceGuess: t.distanceGuess, distanceActual: t.distanceActual, guessLocked: t.guessLocked, slope: t.slope, sight: t.sight }; save(); go('play'); } }; go('pick'); } }, '⇄')),
+    topbar(`${ti + 1}. ${T?.name || 'Target'}`, `${F?.label || ''}${r.mode !== 'laser' && !r.games.guess && t.distanceActual != null ? ` · ${t.distanceActual} m` : ''} · ${sys.name}`, () => go('board'), h('button', { onclick: () => { state.pick = { ti, back: 'play', onDone: sel => { r.targets[ti] = { ...sel, distanceGuess: t.distanceGuess, distanceActual: t.distanceActual, guessLocked: t.guessLocked, slope: t.slope, sight: t.sight }; save(); go('play'); } }; go('pick'); } }, '⇄')),
     h('div', { class: 'page' },
       guessGate ? guess : null,
       laser,
@@ -503,6 +504,7 @@ function about() {
 // ---------- boot ----------
 fetch('targets/targets.json').then(r => r.json()).then(j => {
   LIB = j;
+  fetch('targets/courses.json').then(r => r.json()).then(cj => { (cj.courses || []).forEach(c => { if (!state.courses.some(x => x.name === c.name)) state.courses.push(c); else Object.assign(state.courses.find(x => x.name === c.name), c); }); save(); render(); }).catch(() => {});
   // zones traced on this phone with tools/trace.html override the shipped ones
   const local = LS.get('wa.zones.local', {});
   LIB.targets.forEach(t => t.faces.forEach(f => { if (local[f.id]?.some(s => s.outer?.length > 2 || s.centre)) f.sets = local[f.id]; }));
