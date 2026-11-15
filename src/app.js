@@ -67,9 +67,13 @@ function home() {
         h('h1', { style: 'margin-top:10px' }, 'Walk the course. Keep the craic.'),
         h('p', {}, 'Score a 3D round with your mates: points, King of the Castle, skins, guess the distance.'),
         h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
-      r ? h('button', { class: 'cta', onclick: () => { state.ti = nextUnscored(); go('play'); } }, icon('arrow', 'xl'),
-        h('div', { style: 'flex:1' }, h('b', {}, 'Back to the round'), h('small', {}, `${r.players.map(p => p.name).join(', ')} · ${Object.keys(r.scores).length} targets scored`)),
-        h('span', { class: 'ghost', onclick: e => { e.stopPropagation(); if (confirmBox('Abandon this round?')) { state.round = null; save(); render(); } }, style: 'color:var(--muted);font-size:12px' }, 'Abandon'))
+      r ? h('div', { class: 'card', style: 'border-color:var(--brand);border-width:2px' },
+        h('div', { class: 'row' }, icon('arrow', 'lg'), h('div', { style: 'flex:1' }, h('b', { style: 'font-family:var(--display);font-size:19px' }, r.mode === 'laser' ? 'Practice in progress' : 'Round in progress'), h('div', { class: 'muted', style: 'font-size:13px' }, `${r.players.map(p => p.name).join(', ')} · ${Object.keys(r.scores).length} target${Object.keys(r.scores).length === 1 ? '' : 's'} scored · started ${new Date(r.started).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`))),
+        h('div', { class: 'grid c2' },
+          h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'),
+          h('button', { onclick: () => go('board') }, 'Scoreboard'),
+          h('button', { onclick: () => { if (confirmBox('Stop here and save the round?')) finishRound(); } }, 'Stop & save'),
+          h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete')))
         : h('button', { class: 'cta', onclick: startSetup }, icon('bow', 'xl'), h('div', {}, h('b', {}, 'Shoot a round'), h('small', {}, 'Pick your archers, your game and go'))),
       hist.length ? h('div', { class: 'stats' },
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')),
@@ -88,7 +92,7 @@ function go(v) { state.view = v; render(); }
 
 // ---------- SETUP ----------
 function startSetup() {
-  state.draft = { players: [{ id: uid(), name: '', handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, mode: 'fun', useHandicap: false, targets: [], courseName: '' };
+  state.draft = { players: [{ id: uid(), name: '', handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, mode: 'fun', order: 'rotate', useHandicap: false, targets: [], courseName: '' };
   go('setup');
 }
 function setup() {
@@ -121,6 +125,9 @@ function setup() {
           h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games[k] = !d.games[k]; render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))),
         h('h3', { style: 'margin:14px 0 8px' }, 'Add-on'),
         h('div', { class: 'gamecard' + (d.games.guess ? ' on' : ''), onclick: () => { d.games.guess = !d.games.guess; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Guess the distance'), h('small', {}, 'Everyone calls it before anyone shoots. Lase it after. Runs alongside whatever game you play')), h('span', { class: 'chk' }, d.games.guess ? icon('check') : null))) : null,
+      h('div', { class: 'card' }, h('h3', {}, 'Shooting order'),
+        h('div', { class: 'seg' }, ...[['rotate', 'Rotate'], ['honour', 'Honour'], ['fixed', 'Fixed']].map(([k, n]) => h('button', { class: d.order === k ? 'on' : '', onclick: () => { d.order = k; render(); } }, n))),
+        h('div', { class: 'muted', style: 'font-size:13px' }, { rotate: 'Field archery standard: the app draws the order on target 1, then the first shooter drops to the back each target so everyone takes a turn up front.', honour: 'Golf style: whoever scored best on the last target shoots first. Ties keep the order. Order on target 1 is drawn.', fixed: 'Same order every target, drawn on target 1.' }[d.order])),
       h('div', { class: 'card' }, h('h3', {}, 'Course'),
         h('div', { class: 'muted', style: 'font-size:13px' }, 'Load a saved course, build one now, or just pick each animal when you get to it.'),
         h('div', { class: 'row' },
@@ -133,7 +140,7 @@ function startRound() {
   const d = state.draft;
   d.players = d.players.filter(p => p.name.trim()).map(p => ({ ...p, name: p.name.trim() }));
   d.players.forEach(p => { if (!state.names.includes(p.name)) state.names.unshift(p.name); }); state.names = state.names.slice(0, 24);
-  state.round = { id: uid(), started: Date.now(), mode: d.mode, players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => ({ ...t })), scores: {}, courseName: d.courseName };
+  state.round = { id: uid(), started: Date.now(), mode: d.mode, order: d.order, baseOrder: null, players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => ({ ...t })), scores: {}, courseName: d.courseName };
   state.ti = 0; save(); go('play');
 }
 
@@ -238,6 +245,20 @@ function zoneAt(F, x, y) {
   return 'body';
 }
 
+// ---------- SHOOTING ORDER ----------
+function orderFor(r, ti, sys) {
+  const base = r.baseOrder && r.baseOrder.every(id => r.players.some(p => p.id === id)) ? r.baseOrder : r.players.map(p => p.id);
+  if (r.order === 'fixed') return base;
+  if (r.order === 'honour') {
+    let ord = base.slice();
+    for (let i = 0; i < ti; i++) { const sc = r.scores[i]; if (!sc) continue;
+      const ranked = ord.slice().sort((a, b) => scoreTarget(sys, sc[b] || []) - scoreTarget(sys, sc[a] || []) || ord.indexOf(a) - ord.indexOf(b)); ord = ranked; }
+    return ord;
+  }
+  const k = ti % base.length; return base.slice(k).concat(base.slice(0, k));
+}
+function drawOrder(r) { const ids = r.players.map(p => p.id); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } r.baseOrder = ids; save(); }
+
 // ---------- PLAY ----------
 function nextUnscored() { const r = state.round; for (let i = 0; i < Math.max(r.targets.length, Object.keys(r.scores).length + 1); i++) if (!r.scores[i]) return i; return r.targets.length; }
 function play() {
@@ -251,7 +272,17 @@ function play() {
   r.scores[ti] = r.scores[ti] || {};
   r.players.forEach(p => { r.scores[ti][p.id] = r.scores[ti][p.id] || []; });
   t.marks = t.marks || {};
-  let active = r.players.find(p => (r.scores[ti][p.id].filter(Boolean).length < r.arrows) && !(sys.walkdown && r.scores[ti][p.id].some(z => z && z !== 'miss'))) || r.players[0];
+  const order = orderFor(r, ti, sys); const byId = Object.fromEntries(r.players.map(p => [p.id, p]));
+  const ordered = order.map(id => byId[id]).filter(Boolean);
+  const finished = p => { const a = r.scores[ti][p.id]; return a.filter(Boolean).length >= r.arrows || (sys.walkdown && a.some(z => z && z !== 'miss')); };
+  let active = ordered.find(p => !finished(p)) || ordered[0];
+  if (!r.baseOrder && r.players.length > 1) {
+    return h('div', {}, topbar(`${ti + 1}. ${T?.name || 'Target'}`, 'First target', () => go('board')),
+      h('div', { class: 'page' }, h('div', { class: 'card', style: 'align-items:center;text-align:center;padding:28px 16px' }, icon('people', 'xl'), h('h2', {}, 'Who shoots first?'),
+        h('p', { class: 'muted', style: 'margin:0' }, { rotate: 'Draw the order for target 1. After that the first shooter drops to the back each target.', honour: 'Draw the order for target 1. After that, best score on the last target shoots first.', fixed: 'Draw the order. It stays the same all round.' }[r.order]),
+        h('button', { class: 'primary', style: 'min-width:200px', onclick: () => { drawOrder(r); render(); } }, 'Draw the order'),
+        h('button', { class: 'ghost', onclick: () => { r.baseOrder = r.players.map(p => p.id); save(); render(); } }, 'Keep the order I typed'))));
+  }
   const sel = state.selPid ? r.players.find(p => p.id === state.selPid) : null; if (sel) active = sel;
   function setZone(z) {
     const arr = r.scores[ti][active.id];
@@ -261,9 +292,11 @@ function play() {
     if (sys.walkdown && z !== 'miss') arr.length = i + 1;
     state.selPid = null; save(); render();
   }
-  const zoneBtns = h('div', { class: 'zones' }, ...ZONES.map(z => h('button', { class: z, onclick: () => setZone(z) }, ZONE_LABEL[z], h('small', {}, String(sys.table[Math.min(r.scores[ti][active.id].filter(Boolean).length, sys.table.length - 1)][z])))));
-  const playerRows = r.players.map(p => { const arr = r.scores[ti][p.id]; return h('div', { class: 'player', style: p.id === active.id ? 'background:var(--bg);margin:0 -14px;padding:8px 14px;border-radius:10px' : '', onclick: () => { state.selPid = p.id; render(); } },
-    h('div', { class: 'name' }, p.id === active.id ? '▶ ' : '', p.name),
+  const arrowIdx = Math.min(r.scores[ti][active.id].filter(Boolean).length, sys.table.length - 1);
+  const zoneBtns = h('div', { class: 'zones' }, ...ZONES.map(z => h('button', { class: z, onclick: () => setZone(z) }, h('b', {}, String(sys.table[arrowIdx][z])), h('small', {}, ZONE_LABEL[z]))));
+  const playerRows = ordered.map((p, oi) => { const arr = r.scores[ti][p.id]; return h('div', { class: 'player' + (p.id === active.id ? ' up' : ''), onclick: () => { state.selPid = p.id; render(); } },
+    h('span', { class: 'ord' }, String(oi + 1)),
+    h('div', { class: 'name' }, p.name, p.id === active.id ? h('small', { class: 'upnow' }, 'up now') : null),
     h('div', { class: 'arrows' }, ...Array.from({ length: r.arrows }, (_, i) => h('span', { style: arr[i] ? `background:var(--${arr[i] === 'miss' ? 'body' : arr[i]});color:${arr[i] === 'centre' ? '#111' : '#fff'}` : '', onclick: e => { e.stopPropagation(); arr[i] = undefined; while (arr.length && !arr[arr.length - 1]) arr.pop(); state.selPid = p.id; save(); render(); } }, arr[i] ? ZONE_LABEL[arr[i]][0] : '·'))),
     h('div', { class: 'score' }, String(scoreTarget(sys, arr)))); });
   const numIn = (val, onch, ph = 'm') => h('input', { type: 'number', inputmode: 'decimal', placeholder: ph, value: val ?? '', onchange: e => onch(e.target.value === '' ? null : parseFloat(e.target.value)) });
@@ -288,7 +321,7 @@ function play() {
       guessGate ? guess : null,
       laser,
       diagram(T, F, { marks: Object.values(t.marks).flat(), onTap: m => { if (guessGate) return; t.marks[active.id] = [...(t.marks[active.id] || []), { x: m.x, y: m.y }].slice(-r.arrows); setZone(m.zone); } }),
-      guessGate ? h('div', { class: 'card muted', style: 'text-align:center' }, 'Scoring opens once the calls are locked') : h('div', { class: 'card' }, h('div', { class: 'muted', style: 'font-size:13px' }, `Scoring ${active.name} · arrow ${Math.min(r.scores[ti][active.id].filter(Boolean).length + 1, r.arrows)} of ${r.arrows} — tap the animal where it landed, or a zone button`), zoneBtns),
+      guessGate ? h('div', { class: 'card muted', style: 'text-align:center' }, 'Scoring opens once the calls are locked') : h('div', { class: 'card' }, h('div', { class: 'muted', style: 'font-size:13px' }, `${active.name} · arrow ${Math.min(r.scores[ti][active.id].filter(Boolean).length + 1, r.arrows)} of ${r.arrows} — tap the animal where it landed, or the points below`), zoneBtns),
       guessGate ? null : h('div', { class: 'card' }, ...playerRows),
       guessGate ? null : guess),
     h('div', { class: 'bottombar' },
@@ -309,8 +342,10 @@ function board() {
     return h('div', { class: 'item', onclick: () => { state.ti = i; go('play'); } }, h('div', { class: 'n' }, String(i + 1)), h('div', { class: 't' }, T?.name || 'Not picked yet', h('small', {}, r.players.map(p => `${p.name} ${sc[p.id] ? scoreTarget(sys, sc[p.id]) : '–'}`).join(' · '))), t?.distanceActual != null ? h('span', { class: 'pill' }, `${t.distanceActual} m`) : null);
   }));
   return h('div', {}, topbar(r.mode === 'laser' ? 'Practice' : 'Scoreboard', `${sys.name}${sk ? ` · ${sk.carry > 1 ? sk.carry + ' skins riding' : ''}` : ''}`, () => go('home')),
-    h('div', { class: 'page' }, h('div', { class: 'card' }, table), h('h3', {}, 'Targets'), perTarget),
-    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'), h('button', { onclick: finishRound }, 'Finish round')));
+    h('div', { class: 'page' }, h('div', { class: 'card' }, table),
+      r.players.length > 1 ? h('div', { class: 'row', style: 'font-size:13px' }, h('span', { class: 'muted', style: 'flex:0 0 auto' }, `Next up (${r.order}):`), ...orderFor(r, nextUnscored(), sys).map((id, i) => h('span', { class: 'pill' }, `${i + 1}. ${r.players.find(p => p.id === id)?.name}`))) : null,
+      h('h3', {}, 'Targets'), perTarget),
+    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'), h('button', { onclick: () => { if (confirmBox('Finish and save this round?')) finishRound(); } }, 'Finish & save'), h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); go('home'); } } }, 'Delete')));
 }
 function finishRound() {
   const r = state.round; const sys = system();
@@ -325,6 +360,7 @@ function summary() {
   return h('div', {}, topbar('Round summary', new Date(r.started).toLocaleDateString(), () => go('home')),
     h('div', { class: 'page' }, canvas,
       h('div', { class: 'row' }, h('button', { class: 'primary', onclick: () => { const a = document.createElement('a'); a.download = `round-${new Date(r.started).toISOString().slice(0, 10)}.png`; a.href = canvas.toDataURL('image/png'); a.click(); } }, 'Save image'),
+        h('button', { onclick: () => { const blob = new Blob([JSON.stringify(r, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `round-${new Date(r.started).toISOString().slice(0, 10)}.json`; a.click(); } }, 'Export data'),
         navigator.share ? h('button', { onclick: async () => { canvas.toBlob(async b => { const f = new File([b], 'round.png', { type: 'image/png' }); try { await navigator.share({ files: [f], title: '3D Fun Round' }); } catch {} }); } }, 'Share') : null)));
 }
 function drawSummary(c, r, sys, rows) {
