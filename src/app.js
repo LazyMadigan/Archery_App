@@ -96,7 +96,7 @@ function home() {
       live3d, T.liveCard(),
       h('div', { class: 'list' },
         disc('bow', '3D Course', 'Courses, games, laser practice', startSetup),
-        disc('rings', 'Indoor', 'WA 18, Vegas, Portsmouth · 10–18 m', () => T.startTarget('indoor')),
+        disc('rings', 'Indoor', 'WA 18, Vegas · 10–18 m', () => T.startTarget('indoor')),
         disc('peg', 'Field', 'WA & IFAA field faces · 10–70 m', () => T.startTarget('field'))),
       hist.length ? h('div', { class: 'stats' },
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')),

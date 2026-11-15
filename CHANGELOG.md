@@ -8,6 +8,9 @@ Live app: https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
 
 ## v0.3.x — 15 Nov 2026 (evening): disciplines, profile, polish
 
+### Home: Indoor tile on one line
+- Indoor subtitle shortened to "WA 18, Vegas · 10–18 m" so the tile is the same height as 3D Course and Field. (Portsmouth is still in the round list.)
+
 ### Indoor & Field: Practice with a goal
 - Indoor and Field setup now have **What are we doing**: *Fun round* or *Practice*.
 - Practice won't start until you write a **goal for the session**. The goal stays on screen while you shoot and on the scoreboard, and is saved with the round.
