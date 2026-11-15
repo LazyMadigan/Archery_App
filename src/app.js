@@ -40,10 +40,12 @@ const findFace = (t, fid) => t?.faces.find(f => f.id === fid) || t?.faces[0];
 
 // ---------- render ----------
 function render() {
+  const y = window.scrollY;
   const app = $('#app'); app.innerHTML = '';
   const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about };
   app.append((views[state.view] || home)());
-  window.scrollTo(0, 0);
+  if (state._lastView !== state.view) window.scrollTo(0, 0); else window.scrollTo(0, y);
+  state._lastView = state.view;
 }
 function topbar(title, sub, back, right) {
   return h('div', { class: 'topbar' },
@@ -98,7 +100,7 @@ function go(v) { state.view = v; render(); }
 
 // ---------- SETUP ----------
 function startSetup() {
-  state.draft = { players: [{ id: uid(), name: '', handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, mode: 'fun', order: 'rotate', useHandicap: false, targets: [], courseName: '' };
+  state.draft = { players: [{ id: uid(), name: '', handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, mode: 'fun', order: 'rotate', showDist: false, useHandicap: false, targets: [], courseName: '' };
   go('setup');
 }
 function setup() {
@@ -139,14 +141,17 @@ function setup() {
         h('div', { class: 'row' },
           h('select', { onchange: e => { const c = state.courses.find(c => c.name === e.target.value); d.targets = c ? structuredClone(c.targets) : []; d.courseName = c?.name || ''; render(); } },
             h('option', { value: '' }, d.targets.length ? `${d.targets.length} targets chosen` : 'Pick as we go'), ...state.courses.map(c => h('option', { value: c.name, selected: c.name === d.courseName }, `${c.name} (${c.targets.length})`))),
-          h('button', { style: 'flex:0 0 auto', onclick: () => go('course') }, d.targets.length ? 'Edit' : 'Build')))),
+          h('button', { style: 'flex:0 0 auto', onclick: () => go('course') }, d.targets.length ? 'Edit' : 'Build')),
+        d.targets.some(t => t.distanceActual != null) ? h('label', { class: 'row', style: 'padding-top:4px' },
+          h('input', { type: 'checkbox', style: 'width:24px;min-height:24px;flex:0 0 24px', checked: d.showDist && !d.games.guess, disabled: d.games.guess || d.mode === 'laser', onchange: e => { d.showDist = e.target.checked; } }),
+          h('div', {}, h('div', {}, 'Show distances while shooting'), h('small', { class: 'muted' }, d.games.guess ? 'Off while Guess the distance is on' : d.mode === 'laser' ? 'Always shown in Laser practice' : 'This course has lased distances saved'))) : null)),
     h('div', { class: 'bottombar' }, h('button', { id: 'startBtn', class: 'primary', onclick: startRound, disabled: !d.players.some(p => p.name.trim()) }, d.mode === 'laser' ? 'Start practice' : 'Start shooting')));
 }
 function startRound() {
   const d = state.draft;
   d.players = d.players.filter(p => p.name.trim()).map(p => ({ ...p, name: p.name.trim() }));
   d.players.forEach(p => { if (!state.names.includes(p.name)) state.names.unshift(p.name); }); state.names = state.names.slice(0, 24);
-  state.round = { id: uid(), started: Date.now(), mode: d.mode, order: d.order, baseOrder: null, players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => ({ ...t })), scores: {}, courseName: d.courseName };
+  state.round = { id: uid(), started: Date.now(), mode: d.mode, order: d.order, showDist: !!d.showDist, baseOrder: null, players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => ({ ...t })), scores: {}, courseName: d.courseName };
   state.ti = 0; save(); go('play');
 }
 
@@ -157,14 +162,14 @@ function course() {
     const T = findTarget(t.targetId), F = findFace(T, t.faceId);
     return h('div', { class: 'item' },
       F?.photo ? h('img', { src: F.photo, style: 'height:40px;width:48px;object-fit:contain;flex:none' }) : h('span', { style: 'width:48px;flex:none' }),
-      h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, [F?.label, t.distanceActual != null ? `${t.distanceActual} m${t.slope ? ` · ${t.slope > 0 ? '+' : ''}${t.slope}%` : ''}` : null].filter(Boolean).join(' · '))),
+      h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, [F?.label, state.courseDist && t.distanceActual != null ? `${t.distanceActual} m${t.slope ? ` · ${t.slope > 0 ? '+' : ''}${t.slope}%` : ''}` : null].filter(Boolean).join(' · '))),
       h('div', { class: 'rowbtns' },
         h('button', { class: 'ghost', disabled: i === 0, onclick: () => { [d.targets[i - 1], d.targets[i]] = [d.targets[i], d.targets[i - 1]]; render(); } }, '↑'),
         h('button', { class: 'ghost', disabled: i === d.targets.length - 1, onclick: () => { [d.targets[i + 1], d.targets[i]] = [d.targets[i], d.targets[i + 1]]; render(); } }, '↓'),
         h('button', { class: 'ghost', onclick: () => { d.targets.splice(i, 1); render(); } }, '✕')));
   });
   return h('div', {},
-    topbar('Course', `${d.targets.length} targets`, () => go('setup')),
+    topbar('Course', `${d.targets.length} targets`, () => go('setup'), d.targets.some(t => t.distanceActual != null) ? h('button', { onclick: () => { state.courseDist = !state.courseDist; render(); }, title: 'Show / hide distances', style: 'width:auto;padding:0 10px;font-size:13px' }, state.courseDist ? 'Hide m' : 'Show m') : null),
     h('div', { class: 'page' },
       h('div', { class: 'list' }, ...list),
       h('button', { class: 'tile', onclick: () => { state.pick = { onDone: sel => { d.targets.push(sel); go('course'); }, back: 'course' }; go('pick'); } }, '+ Add target'),
@@ -323,7 +328,7 @@ function play() {
     h('div', { class: 'grid c2' }, ...r.players.map(p => h('label', {}, h('small', { class: 'muted' }, `${p.name} sight setting`), numIn(t.sight[p.id], v => { t.sight[p.id] = v; save(); }, 'e.g. 25'))))) : null;
   const allDone = r.players.every(p => { const a = r.scores[ti][p.id]; return a.filter(Boolean).length >= r.arrows || (sys.walkdown && a.some(z => z && z !== 'miss')); });
   return h('div', {},
-    topbar(`${ti + 1}. ${T?.name || 'Target'}`, `${F?.label || ''}${r.mode !== 'laser' && !r.games.guess && t.distanceActual != null ? ` · ${t.distanceActual} m` : ''} · ${sys.name}`, () => go('board'), h('button', { onclick: () => { state.pick = { ti, back: 'play', onDone: sel => { r.targets[ti] = { ...sel, distanceGuess: t.distanceGuess, distanceActual: t.distanceActual, guessLocked: t.guessLocked, slope: t.slope, sight: t.sight }; save(); go('play'); } }; go('pick'); } }, '⇄')),
+    topbar(`${ti + 1}. ${T?.name || 'Target'}`, `${F?.label || ''}${r.mode !== 'laser' && !r.games.guess && r.showDist && t.distanceActual != null ? ` · ${t.distanceActual} m${t.slope ? ` ${t.slope > 0 ? '+' : ''}${t.slope}%` : ''}` : ''} · ${sys.name}`, () => go('board'), h('button', { onclick: () => { state.pick = { ti, back: 'play', onDone: sel => { r.targets[ti] = { ...sel, distanceGuess: t.distanceGuess, distanceActual: t.distanceActual, guessLocked: t.guessLocked, slope: t.slope, sight: t.sight }; save(); go('play'); } }; go('pick'); } }, '⇄')),
     h('div', { class: 'page' },
       guessGate ? guess : null,
       laser,
@@ -346,7 +351,7 @@ function board() {
     ...rows.map(p => h('tr', {}, h('td', {}, k && k.king === p.id ? h('span', { class: 'crown' }, '♛ ') : '', p.name), h('td', { class: 'num' }, h('b', {}, String(tot[p.id].gross))), r.useHandicap ? h('td', { class: 'num' }, String(tot[p.id].net)) : null, k ? h('td', { class: 'num' }, `${k.holesWon[p.id]}${k.streak[p.id] > 1 ? ` (${k.streak[p.id]}🔥)` : ''}`) : null, sk ? h('td', { class: 'num' }, String(sk.won[p.id])) : null, g ? h('td', { class: 'num' }, String(g[p.id].pts)) : null)));
   const perTarget = h('div', { class: 'list' }, ...Array.from({ length: Math.max(r.targets.length, Object.keys(r.scores).length) }, (_, i) => {
     const t = r.targets[i]; const T = t && findTarget(t.targetId); const sc = r.scores[i] || {};
-    return h('div', { class: 'item', onclick: () => { state.ti = i; go('play'); } }, h('div', { class: 'n' }, String(i + 1)), h('div', { class: 't' }, T?.name || 'Not picked yet', h('small', {}, r.players.map(p => `${p.name} ${sc[p.id] ? scoreTarget(sys, sc[p.id]) : '–'}`).join(' · '))), t?.distanceActual != null ? h('span', { class: 'pill' }, `${t.distanceActual} m`) : null);
+    return h('div', { class: 'item', onclick: () => { state.ti = i; go('play'); } }, h('div', { class: 'n' }, String(i + 1)), h('div', { class: 't' }, T?.name || 'Not picked yet', h('small', {}, r.players.map(p => `${p.name} ${sc[p.id] ? scoreTarget(sys, sc[p.id]) : '–'}`).join(' · '))), t?.distanceActual != null && (r.mode === 'laser' || r.showDist || t.guessLocked) ? h('span', { class: 'pill' }, `${t.distanceActual} m`) : null);
   }));
   return h('div', {}, topbar(r.mode === 'laser' ? 'Practice' : 'Scoreboard', `${sys.name}${sk ? ` · ${sk.carry > 1 ? sk.carry + ' skins riding' : ''}` : ''}`, () => go('home')),
     h('div', { class: 'page' }, h('div', { class: 'card' }, table),
