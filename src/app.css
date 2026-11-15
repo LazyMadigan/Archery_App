@@ -118,3 +118,10 @@ td.num,th.num{text-align:right}
 .bars i{display:block;height:100%}
 .delta{font-weight:700}.delta.up{color:var(--ok)}.delta.down{color:var(--peg-red)}
 @media (prefers-reduced-motion:no-preference){.hero .animals img{animation:drift 14s linear infinite}@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-6px)}}}
+
+/* settings points table: fits a phone, no sideways scroll */
+.pts{table-layout:fixed}
+.pts td,.pts th{padding:6px 4px}
+.pts th:first-child,.pts td:first-child{width:38%}
+.pts input{width:100%;min-height:44px;padding:0 6px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.zdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
