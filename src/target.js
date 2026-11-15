@@ -136,7 +136,7 @@ function tsetup() {
         h('div', { class: 'facepreview' }, drawFace(sch, { size: '120px' }), h('div', { class: 'muted', style: 'font-size:13px' }, `${SCHEMES[sch].name}`, h('br'), `${d.ends * d.arrows} arrows · ${d.ends * d.arrows * SCHEMES[sch].max} max`))),
       h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'What are we doing'),
         h('div', { class: 'list' },
-          h('div', { class: 'gamecard' + (!practice ? ' on' : ''), onclick: () => { d.mode = 'fun'; C.render(); } }, icon('trophy', 'lg'), h('div', {}, h('b', {}, 'Fun round'), h('small', {}, 'Score against each other')), h('span', { class: 'chk' }, !practice ? icon('check') : null)),
+          h('div', { class: 'gamecard' + (!practice ? ' on' : ''), onclick: () => { d.mode = 'fun'; C.render(); } }, icon('trophy', 'lg'), h('div', {}, h('b', {}, 'Competition'), h('small', {}, 'Score against each other')), h('span', { class: 'chk' }, !practice ? icon('check') : null)),
           h('div', { class: 'gamecard' + (practice ? ' on' : ''), onclick: () => { if (practice) return; d.mode = 'practice'; d.games = { total: true }; state._focusGoal = true; C.render(); } }, icon('target', 'lg'), h('div', {}, h('b', {}, 'Practice'), h('small', {}, 'Set a goal for the session, then shoot')), h('span', { class: 'chk' }, practice ? icon('check') : null)))),
       practice ? h('div', { class: 'card', style: 'border-color:var(--brand);border-width:2px' },
         h('label', { class: 'fld' }, h('span', {}, 'Goal for this practice'),
