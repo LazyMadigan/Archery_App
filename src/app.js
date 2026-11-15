@@ -56,7 +56,7 @@ function render() {
 function topbar(title, sub, back, right) {
   return h('div', { class: 'topbar' },
     back ? h('button', { onclick: back, 'aria-label': 'Back' }, icon('back')) : h('span', { style: 'width:6px' }),
-    h('div', { class: 'title' }, title, sub ? h('div', { class: 'sub' }, sub) : null),
+    h('div', { class: 'title' }, h('span', { class: 'tt' }, title), sub ? h('div', { class: 'sub' }, sub) : null),
     right || null);
 }
 
@@ -91,8 +91,8 @@ function home() {
         h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
       live3d, T.liveCard(),
       h('div', { class: 'list' },
-        disc('bow', '3D Course', 'Animals in the woods · courses, games, laser practice', startSetup),
-        disc('rings', 'Indoor', 'WA 18, Vegas 300, Portsmouth · 18 / 15 / 10 m', () => T.startTarget('indoor')),
+        disc('bow', '3D Course', 'Courses, games, laser practice', startSetup),
+        disc('rings', 'Indoor', 'WA 18, Vegas, Portsmouth · 10–18 m', () => T.startTarget('indoor')),
         disc('peg', 'Field', 'WA & IFAA field faces · 10–70 m', () => T.startTarget('field'))),
       hist.length ? h('div', { class: 'stats' },
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')),
@@ -132,7 +132,7 @@ function startSetup() {
 function setup() {
   const d = state.draft; const sys = SYSTEMS[d.systemKey];
   d.arrows = sys.arrows;
-  const playerRow = (p, i) => h('div', { class: 'row' },
+  const playerRow = (p, i) => h('div', { class: 'row prow' },
     h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; if (d.useHandicap) { const s = suggestHandicap(state.history, p.name, d.systemKey); if (s != null) p.handicap = s; } const sb = $('#startBtn'); if (sb) sb.disabled = !d.players.some(x => x.name.trim()); } }),
     d.useHandicap ? h('input', { type: 'number', step: '0.5', style: 'flex:0 0 90px', value: p.handicap, title: 'Handicap: points per target added', oninput: e => p.handicap = parseFloat(e.target.value) || 0 }) : null,
     h('button', { class: 'ghost', style: 'flex:0 0 44px', onclick: () => { d.players.splice(i, 1); render(); } }, '✕'));
@@ -158,7 +158,7 @@ function setup() {
         h('h3', { style: 'margin:14px 0 8px' }, 'Add-on'),
         h('div', { class: 'gamecard' + (d.games.guess ? ' on' : ''), onclick: () => { d.games.guess = !d.games.guess; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Guess the distance'), h('small', {}, 'Everyone calls it before anyone shoots. Lase it after. Runs alongside whatever game you play')), h('span', { class: 'chk' }, d.games.guess ? icon('check') : null))) : null,
       h('div', { class: 'card' }, h('h3', {}, 'Shooting order'),
-        h('div', { class: 'seg' }, ...[['rotate', 'Rotate'], ['honour', 'Honour'], ['fixed', 'Fixed']].map(([k, n]) => h('button', { class: d.order === k ? 'on' : '', onclick: () => { d.order = k; render(); } }, n))),
+        h('div', { class: 'chips c3' }, ...[['rotate', 'Rotate'], ['honour', 'Honour'], ['fixed', 'Fixed']].map(([k, n]) => h('button', { class: d.order === k ? 'on' : '', onclick: () => { d.order = k; render(); } }, n))),
         h('div', { class: 'muted', style: 'font-size:13px' }, { rotate: 'Field archery standard: the app draws the order on target 1, then the first shooter drops to the back each target so everyone takes a turn up front.', honour: 'Golf style: whoever scored best on the last target shoots first. Ties keep the order. Order on target 1 is drawn.', fixed: 'Same order every target, drawn on target 1.' }[d.order])),
       h('div', { class: 'card' }, h('h3', {}, 'Course'),
         h('div', { class: 'muted', style: 'font-size:13px' }, 'Load a saved course, build one now, or just pick each animal when you get to it.'),
@@ -166,8 +166,8 @@ function setup() {
           h('select', { onchange: e => { const c = state.courses.find(c => c.name === e.target.value); d.targets = c ? structuredClone(c.targets) : []; d.courseName = c?.name || ''; render(); } },
             h('option', { value: '' }, d.targets.length ? `${d.targets.length} targets chosen` : 'Pick as we go'), ...state.courses.map(c => h('option', { value: c.name, selected: c.name === d.courseName }, `${c.name} (${c.targets.length})`))),
           h('button', { style: 'flex:0 0 auto', onclick: () => go('course') }, d.targets.length ? 'Edit' : 'Build')),
-        coursePegs(d.targets).length ? h('div', { class: 'row', style: 'padding-top:4px' }, h('span', { style: 'flex:0 0 auto' }, 'Shooting from'),
-          h('div', { class: 'seg' }, ...coursePegs(d.targets).map(k => h('button', { class: (d.peg || coursePegs(d.targets)[0]) === k ? 'on' : '', onclick: () => { d.peg = k; render(); } }, pegDot(k), ' ', PEGS.find(p => p[0] === k)[1])))) : null,
+        coursePegs(d.targets).length ? h('div', { class: 'optblock' }, h('span', { class: 'optlbl' }, 'Shooting from'),
+          h('div', { class: 'chips' }, ...coursePegs(d.targets).map(k => h('button', { class: (d.peg || coursePegs(d.targets)[0]) === k ? 'on' : '', onclick: () => { d.peg = k; render(); } }, pegDot(k), ' ', PEGS.find(p => p[0] === k)[1])))) : null,
         coursePegs(d.targets).length ? h('label', { class: 'row', style: 'padding-top:4px' },
           h('input', { type: 'checkbox', style: 'width:24px;min-height:24px;flex:0 0 24px', checked: d.showDist && !d.games.guess, disabled: d.games.guess || d.mode === 'laser', onchange: e => { d.showDist = e.target.checked; } }),
           h('div', {}, h('div', {}, 'Show distances while shooting'), h('small', { class: 'muted' }, d.games.guess ? 'Off while Guess the distance is on' : d.mode === 'laser' ? 'Always shown in Laser practice' : 'This course has lased distances saved'))) : null)),
@@ -541,7 +541,7 @@ function settings() {
         h('button', { class: 'ghost', onclick: () => { delete state.pointsOverride[key]; save(); render(); } }, 'Reset to default')),
       h('div', { class: 'card' }, h('h3', {}, 'Data'),
         h('div', { class: 'row' },
-          h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ profile: state.profile, history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export backup'),
+          h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ profile: state.profile, history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export'),
           h('button', { class: 'ghost', onclick: () => { if (confirmBox('Delete all rounds and courses on this phone?')) { state.history = []; state.courses = []; state.round = null; state.tround = null; save(); toast('Cleared'); } } }, 'Clear all'))),
       h('button', { onclick: () => go('about') }, 'About, privacy & fair use'),
       h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.3 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));

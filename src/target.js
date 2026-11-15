@@ -65,8 +65,8 @@ export function startTarget(kind) {
 function tsetup() {
   const { h, icon, state, go, topbar, uid, $ } = C; const d = state.tdraft; const K = KIND[d.kind]; const R = K.rounds.find(r => r.key === d.roundKey);
   const applyRound = r => Object.assign(d, { roundKey: r.key, name: r.name, face: r.face, scheme: r.scheme, dist: r.dist, ends: r.ends, arrows: r.arrows });
-  const seg = (opts, cur, set, fmt = x => x) => h('div', { class: 'seg wrap' }, ...opts.map(o => h('button', { class: o === cur ? 'on' : '', onclick: () => { set(o); C.render(); } }, fmt(o))));
-  const playerRow = (p, i) => h('div', { class: 'row' }, h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; const b = $('#tStart'); if (b) b.disabled = !d.players.some(x => x.name.trim()); } }),
+  const seg = (opts, cur, set, fmt = x => x) => h('div', { class: 'chips' + (opts.length <= 2 ? ' c2' : opts.length === 3 ? ' c3' : opts.length === 4 ? ' c4' : ' c4') }, ...opts.map(o => h('button', { class: o === cur ? 'on' : '', onclick: () => { set(o); C.render(); } }, fmt(o))));
+  const playerRow = (p, i) => h('div', { class: 'row prow' }, h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; const b = $('#tStart'); if (b) b.disabled = !d.players.some(x => x.name.trim()); } }),
     h('select', { class: 'bowsel', 'aria-label': 'Bow', onchange: e => { p.bow = e.target.value; C.render(); } }, ...(() => { const mineFirst = p.name.trim() && p.name.trim() === (state.profile?.name || '').trim() ? [...BOWS.filter(b => myBows(state.profile).includes(b[0])), ...BOWS.filter(b => !myBows(state.profile).includes(b[0]))] : BOWS; return mineFirst.map(([k, n]) => h('option', { value: k, selected: (p.bow || 'recurve') === k }, n)); })()),
     h('button', { class: 'ghost', style: 'flex:0 0 44px', onclick: () => { d.players.splice(i, 1); C.render(); } }, '✕'));
   const sch = schemeForFace(d.kind, d.face, d.scheme);
@@ -79,11 +79,11 @@ function tsetup() {
       h('div', { class: 'card' }, h('h3', {}, 'Round'),
         h('select', { onchange: e => { applyRound(K.rounds.find(r => r.key === e.target.value)); C.render(); } }, ...K.rounds.map(r => h('option', { value: r.key, selected: r.key === d.roundKey }, r.name))),
         h('div', { class: 'muted', style: 'font-size:13px' }, R.note),
-        h('div', { class: 'tset' },
-          h('span', {}, 'Distance'), seg(K.dists, d.dist, v => d.dist = v, v => `${v} m`),
-          h('span', {}, 'Face'), seg(K.faces, d.face, v => d.face = v, v => FACES[v].replace(' cm', '').replace('40 3-spot', '3-spot') + (v === '3spot' ? '' : ' cm')),
-          h('span', {}, d.kind === 'field' ? 'Targets' : 'Ends'), h('div', { class: 'stepper' }, h('button', { onclick: () => { d.ends = Math.max(1, d.ends - 1); C.render(); } }, '−'), h('b', {}, String(d.ends)), h('button', { onclick: () => { d.ends = Math.min(60, d.ends + 1); C.render(); } }, '+')),
-          h('span', {}, 'Arrows'), seg(d.kind === 'field' ? [3, 4] : [3, 6], d.arrows, v => d.arrows = v)),
+        h('div', { class: 'optblock' }, h('span', { class: 'optlbl' }, 'Distance'), seg(K.dists, d.dist, v => d.dist = v, v => `${v} m`)),
+        h('div', { class: 'optblock' }, h('span', { class: 'optlbl' }, 'Face'), seg(K.faces, d.face, v => d.face = v, v => v === '3spot' ? '3-spot' : FACES[v])),
+        h('div', { class: 'optpair' },
+          h('div', { class: 'optblock' }, h('span', { class: 'optlbl' }, d.kind === 'field' ? 'Targets' : 'Ends'), h('div', { class: 'stepper' }, h('button', { 'aria-label': 'Fewer', onclick: () => { d.ends = Math.max(1, d.ends - 1); C.render(); } }, '−'), h('b', {}, String(d.ends)), h('button', { 'aria-label': 'More', onclick: () => { d.ends = Math.min(60, d.ends + 1); C.render(); } }, '+'))),
+          h('div', { class: 'optblock' }, h('span', { class: 'optlbl' }, 'Arrows'), seg(d.kind === 'field' ? [3, 4] : [3, 6], d.arrows, v => d.arrows = v))),
         h('div', { class: 'facepreview' }, drawFace(sch, { size: '120px' }), h('div', { class: 'muted', style: 'font-size:13px' }, `${SCHEMES[sch].name}`, h('br'), `${d.ends * d.arrows} arrows · ${d.ends * d.arrows * SCHEMES[sch].max} max`))),
       h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Game'),
         h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Highest total wins'], ['king', 'crown', 'King of the Castle', 'Best end takes the crown; hold it to stay King'], ['sets', 'trophy', 'Set play', 'Olympic match style: 2 points for winning an end, 1 each for a tie. First to 6 (head to head)']].map(([k, ic, n, desc]) =>
