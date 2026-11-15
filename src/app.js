@@ -1,5 +1,6 @@
 import { SYSTEMS, ZONES, ZONE_LABEL, scoreTarget, maxArrows } from './scoring.js';
 import { totals, kingOfTheCastle, skins, guessTotals, suggestHandicap, distancePoints } from './games.js';
+import { icon } from './icons.js';
 
 // ---------- state ----------
 const LS = {
@@ -40,37 +41,47 @@ const findFace = (t, fid) => t?.faces.find(f => f.id === fid) || t?.faces[0];
 // ---------- render ----------
 function render() {
   const app = $('#app'); app.innerHTML = '';
-  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView };
+  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about };
   app.append((views[state.view] || home)());
   window.scrollTo(0, 0);
 }
 function topbar(title, sub, back, right) {
   return h('div', { class: 'topbar' },
-    back ? h('button', { onclick: back, 'aria-label': 'Back' }, '‹') : h('span', { style: 'width:6px' }),
+    back ? h('button', { onclick: back, 'aria-label': 'Back' }, icon('back')) : h('span', { style: 'width:6px' }),
     h('div', { class: 'title' }, title, sub ? h('div', { class: 'sub' }, sub) : null),
     right || null);
 }
 
 // ---------- HOME ----------
 function home() {
-  const r = state.round;
+  const r = state.round; const hist = state.history;
+  const best = hist.reduce((m, x) => Math.max(m, ...Object.values(x.final?.totals || {}).map(t => t.gross)), 0);
+  const arrowsShot = hist.reduce((n, x) => n + Object.values(x.scores).reduce((a, by) => a + Object.values(by).reduce((b, arr) => b + arr.filter(Boolean).length, 0), 0), 0);
+  const animals = LIB.targets.filter(t => t.faces[0]?.photo).slice(0, 12);
+  const rings = () => { const ns = 'http://www.w3.org/2000/svg'; const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('class', 'rings'); [46, 34, 22, 10].forEach(rr => { const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', 50); c.setAttribute('cy', 50); c.setAttribute('r', rr); svg.append(c); }); return svg; };
   return h('div', {},
-    topbar('3D Fun Round', 'Fun scoring', null, h('button', { onclick: () => go('settings') }, '⚙')),
+    topbar('3D Fun Round', null, null, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog'))),
     h('div', { class: 'page' },
-      r ? h('div', { class: 'card' },
-        h('h3', {}, 'Round in progress'),
-        h('div', {}, `${r.players.map(p => p.name).join(', ')} · ${r.targets.length} targets set · ${Object.keys(r.scores).length} scored`),
-        h('div', { class: 'row' },
-          h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'),
-          h('button', { onclick: () => go('board') }, 'Scoreboard'),
-          h('button', { class: 'ghost', onclick: () => { if (confirmBox('Abandon this round?')) { state.round = null; save(); render(); } } }, 'Abandon'))) : null,
-      h('button', { class: 'primary tile', style: 'min-height:84px;font-size:20px', onclick: startSetup }, 'New round'),
+      h('div', { class: 'hero' }, rings(),
+        h('div', { class: 'pegs' }, h('i', { class: 'r' }), h('i', { class: 'b' }), h('i', { class: 'w' }), h('i', { class: 'y' })),
+        h('h1', { style: 'margin-top:10px' }, 'Walk the course. Keep the craic.'),
+        h('p', {}, 'Score a 3D round with your mates: points, King of the Castle, skins, guess the distance.'),
+        h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
+      r ? h('button', { class: 'cta', onclick: () => { state.ti = nextUnscored(); go('play'); } }, icon('arrow', 'xl'),
+        h('div', { style: 'flex:1' }, h('b', {}, 'Back to the round'), h('small', {}, `${r.players.map(p => p.name).join(', ')} · ${Object.keys(r.scores).length} targets scored`)),
+        h('span', { class: 'ghost', onclick: e => { e.stopPropagation(); if (confirmBox('Abandon this round?')) { state.round = null; save(); render(); } }, style: 'color:var(--muted);font-size:12px' }, 'Abandon'))
+        : h('button', { class: 'cta', onclick: startSetup }, icon('bow', 'xl'), h('div', {}, h('b', {}, 'Shoot a round'), h('small', {}, 'Pick your archers, your game and go'))),
+      hist.length ? h('div', { class: 'stats' },
+        h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')),
+        h('div', { class: 'stat' }, h('div', { class: 'v' }, String(best)), h('div', { class: 'k' }, 'Best score')),
+        h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrowsShot)), h('div', { class: 'k' }, 'Arrows shot'))) : null,
       h('div', { class: 'grid c2' },
-        h('button', { class: 'tile', onclick: () => go('courses') }, 'Courses', h('small', {}, `${state.courses.length} saved`)),
-        h('button', { class: 'tile', onclick: () => go('history') }, 'History', h('small', {}, `${state.history.length} rounds`)),
-        h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, 'Target library', h('small', {}, `${LIB.targets.length} animals`)),
-        h('button', { class: 'tile', onclick: () => location.href = 'tools/trace.html' }, 'Trace zones', h('small', {}, 'mark scoring rings'))),
-      h('p', { class: 'muted', style: 'font-size:13px' }, 'Free, volunteer-built, for any club. Works offline once loaded — add it to your home screen.')));
+        h('button', { class: 'tile', onclick: () => go('progress') }, icon('trend', 'lg'), 'Progress', h('small', {}, 'getting better?')),
+        h('button', { class: 'tile', onclick: () => go('history') }, icon('history', 'lg'), 'History', h('small', {}, `${hist.length} rounds`)),
+        h('button', { class: 'tile', onclick: () => go('courses') }, icon('course', 'lg'), 'Courses', h('small', {}, `${state.courses.length} saved`)),
+        h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), 'Targets', h('small', {}, `${LIB.targets.length} animals`))),
+      h('button', { class: 'ghost', style: 'align-self:center', onclick: () => location.href = 'tools/trace.html' }, icon('trace'), ' Trace scoring rings'),
+      h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.')));
 }
 function confirmBox(msg) { return window.confirm ? window.confirm(msg) : true; }
 function go(v) { state.view = v; render(); }
@@ -88,10 +99,10 @@ function setup() {
     d.useHandicap ? h('input', { type: 'number', step: '0.5', style: 'flex:0 0 90px', value: p.handicap, title: 'Handicap: points per target added', oninput: e => p.handicap = parseFloat(e.target.value) || 0 }) : null,
     h('button', { class: 'ghost', style: 'flex:0 0 44px', onclick: () => { d.players.splice(i, 1); render(); } }, '✕'));
   return h('div', {},
-    topbar('New round', null, () => go('home')),
+    topbar('Shoot a round', null, () => go('home')),
     h('datalist', { id: 'names' }, state.names.map(n => h('option', { value: n }))),
     h('div', { class: 'page' },
-      h('div', { class: 'card' }, h('h3', {}, 'Who’s shooting'),
+      h('div', { class: 'card' }, h('div', { class: 'row' }, icon('people'), h('h3', {}, 'Who’s shooting')),
         ...d.players.map(playerRow),
         h('div', { class: 'row' },
           h('button', { onclick: () => { d.players.push({ id: uid(), name: '', handicap: 0 }); render(); }, disabled: d.players.length >= 6 }, '+ Add player'),
@@ -100,10 +111,10 @@ function setup() {
         h('select', { onchange: e => { d.systemKey = e.target.value; d.arrows = SYSTEMS[d.systemKey].arrows; render(); } }, ...Object.entries(SYSTEMS).map(([k, s]) => h('option', { value: k, selected: k === d.systemKey }, s.name))),
         h('div', { class: 'muted', style: 'font-size:13px' }, sys.desc),
         h('div', { class: 'row' }, h('span', { style: 'flex:0 0 auto' }, 'Arrows per target'),
-          ...[1, 2, 3].map(n => h('button', { class: (d.arrows === n ? 'primary' : ''), disabled: n > sys.arrows, onclick: () => { d.arrows = n; render(); } }, String(n))))),
-      h('div', { class: 'card' }, h('h3', {}, 'Games'),
-        ...[['total', 'Total points', 'Plain score, highest wins'], ['king', 'King of the Castle', 'Best arrow takes the target; hold it to stay King'], ['skins', 'Skins', 'Each target is a skin; ties roll over'], ['guess', 'Guess the distance', 'Call it, shoot it, then lase it']].map(([k, n, desc]) =>
-          h('label', { class: 'row', style: 'padding:6px 0' }, h('input', { type: 'checkbox', style: 'width:24px;min-height:24px;flex:0 0 24px', checked: d.games[k], onchange: e => d.games[k] = e.target.checked }), h('div', {}, h('div', {}, n), h('small', { class: 'muted' }, desc))))),
+          h('div', { class: 'seg' }, ...[1, 2, 3].map(n => h('button', { class: (d.arrows === n ? 'on' : ''), disabled: n > sys.arrows, onclick: () => { d.arrows = n; render(); } }, String(n)))))),
+      h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Games'),
+        h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Plain score, highest wins'], ['king', 'crown', 'King of the Castle', 'Best arrow takes the target; hold it to stay King'], ['skins', 'skin', 'Skins', 'Each target is a skin; ties roll over'], ['guess', 'ruler', 'Guess the distance', 'Call it, shoot it, then lase it']].map(([k, ic, n, desc]) =>
+          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games[k] = !d.games[k]; render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null))))),
       h('div', { class: 'card' }, h('h3', {}, 'Course'),
         h('div', { class: 'muted', style: 'font-size:13px' }, 'Load a saved course, build one now, or just pick each animal when you get to it.'),
         h('div', { class: 'row' },
@@ -313,6 +324,47 @@ function historyView() {
     h('div', { class: 'page' }, state.history.length ? h('div', { class: 'list' }, ...state.history.map(r => h('div', { class: 'item', onclick: () => { state.last = r; go('summary'); } }, h('div', { class: 't' }, r.players.map(p => `${p.name} ${r.final?.totals?.[p.id]?.gross ?? ''}`).join(' · '), h('small', {}, `${new Date(r.started).toLocaleDateString()} · ${SYSTEMS[r.systemKey]?.name} · ${r.targets.length} targets`))))) : h('p', { class: 'muted' }, 'No finished rounds yet.')));
 }
 
+// ---------- PROGRESS ----------
+function sparkline(points, { w = 320, hgt = 120, label } = {}) {
+  const ns = 'http://www.w3.org/2000/svg'; const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${w} ${hgt}`); svg.setAttribute('class', 'spark');
+  if (points.length < 1) return svg;
+  const ys = points.map(p => p.y); const lo = Math.min(...ys) * 0.9, hi = Math.max(...ys) * 1.05 || 1;
+  const X = i => 20 + (points.length === 1 ? (w - 40) / 2 : i * (w - 40) / (points.length - 1)), Y = v => hgt - 22 - (v - lo) / (hi - lo || 1) * (hgt - 40);
+  const mk = (t, a) => { const e = document.createElementNS(ns, t); Object.entries(a).forEach(([k, v]) => e.setAttribute(k, v)); return e; };
+  [0, .5, 1].forEach(f => svg.append(mk('line', { class: 'grid', x1: 20, x2: w - 20, y1: Y(lo + (hi - lo) * f), y2: Y(lo + (hi - lo) * f) })));
+  const d = points.map((p, i) => `${i ? 'L' : 'M'}${X(i)},${Y(p.y)}`).join(' ');
+  if (points.length > 1) { svg.append(mk('path', { class: 'area', d: `${d} L${X(points.length - 1)},${hgt - 22} L${X(0)},${hgt - 22}Z` })); svg.append(mk('path', { class: 'line', d })); }
+  points.forEach((p, i) => { svg.append(mk('circle', { class: 'dot', cx: X(i), cy: Y(p.y), r: 4 })); const t = mk('text', { x: X(i), y: hgt - 6, 'text-anchor': 'middle' }); t.textContent = p.label; svg.append(t); });
+  const t1 = mk('text', { x: 2, y: Y(hi) + 4 }); t1.textContent = hi.toFixed(0); const t2 = mk('text', { x: 2, y: Y(lo) + 4 }); t2.textContent = lo.toFixed(0); svg.append(t1, t2);
+  return svg;
+}
+function progress() {
+  const names = [...new Set(state.history.flatMap(r => r.players.map(p => p.name)))];
+  const who = state.progName && names.includes(state.progName) ? state.progName : names[0];
+  const rounds = state.history.filter(r => r.players.some(p => p.name === who)).slice().reverse();
+  const bySys = {};
+  rounds.forEach(r => { const p = r.players.find(p => p.name === who); const t = r.final?.totals?.[p.id]; if (!t?.targets) return; (bySys[r.systemKey] = bySys[r.systemKey] || []).push({ y: t.gross / t.targets, label: new Date(r.started).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), r, gross: t.gross }); });
+  // zone distribution across all arrows
+  const dist = { centre: 0, inner: 0, vital: 0, body: 0, miss: 0 }; let n = 0;
+  rounds.forEach(r => { const p = r.players.find(p => p.name === who); Object.values(r.scores).forEach(by => (by[p.id] || []).forEach(z => { if (z) { dist[z]++; n++; } })); });
+  const guess = rounds.filter(r => r.final?.guess).map(r => { const p = r.players.find(p => p.name === who); const g = r.final.guess[p.id]; return g?.calls ? g.absErr / g.calls : null; }).filter(v => v != null);
+  const kings = rounds.filter(r => { const p = r.players.find(p => p.name === who); return r.final?.king?.king === p.id; }).length;
+  return h('div', {}, topbar('Progress', 'Am I getting better?', () => go('home')),
+    h('div', { class: 'page' },
+      names.length ? h('select', { onchange: e => { state.progName = e.target.value; render(); } }, ...names.map(nm => h('option', { value: nm, selected: nm === who }, nm))) : h('p', { class: 'muted' }, 'Shoot a round first and your trend shows up here.'),
+      ...Object.entries(bySys).map(([k, pts]) => {
+        const first = pts[0].y, last = pts[pts.length - 1].y, delta = last - first;
+        return h('div', { class: 'card' }, h('div', { class: 'row' }, h('h3', {}, SYSTEMS[k]?.name || k), pts.length > 1 ? h('span', { class: 'delta ' + (delta >= 0 ? 'up' : 'down'), style: 'flex:0 0 auto' }, `${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toFixed(1)} pts/target`) : null),
+          h('div', { class: 'row' }, h('div', { class: 'stat' }, h('div', { class: 'v' }, last.toFixed(1)), h('div', { class: 'k' }, 'Last avg / target')), h('div', { class: 'stat' }, h('div', { class: 'v' }, Math.max(...pts.map(p => p.gross))), h('div', { class: 'k' }, 'Best round')), h('div', { class: 'stat' }, h('div', { class: 'v' }, String(pts.length)), h('div', { class: 'k' }, 'Rounds'))),
+          sparkline(pts.slice(-10)));
+      }),
+      n ? h('div', { class: 'card' }, h('h3', {}, `Where the arrows go · ${n} arrows`),
+        h('div', { class: 'bars' }, ...['centre', 'inner', 'vital', 'body', 'miss'].map(z => h('i', { style: `width:${dist[z] / n * 100}%;background:var(--${z === 'miss' ? 'fg' : z})`, title: z }))),
+        h('div', { class: 'row', style: 'font-size:12px' }, ...['centre', 'inner', 'vital', 'body', 'miss'].map(z => h('span', { class: 'pill' }, `${ZONE_LABEL[z]} ${Math.round(dist[z] / n * 100)}%`)))) : null,
+      guess.length ? h('div', { class: 'card' }, h('h3', {}, 'Distance judging'), h('div', { class: 'row' }, h('div', { class: 'stat' }, h('div', { class: 'v' }, guess[guess.length - 1].toFixed(1) + ' m'), h('div', { class: 'k' }, 'Last avg error')), h('div', { class: 'stat' }, h('div', { class: 'v' }, Math.min(...guess).toFixed(1) + ' m'), h('div', { class: 'k' }, 'Best')))) : null,
+      kings ? h('div', { class: 'card' }, h('div', { class: 'row' }, icon('crown', 'lg'), h('div', {}, h('b', {}, `King of the Castle ${kings}×`), h('small', { class: 'muted' }, 'rounds finished wearing the crown')))) : null));
+}
+
 // ---------- SETTINGS ----------
 function settings() {
   const key = state.settingsKey || 'ifaa_hunting'; const base = SYSTEMS[key]; const table = state.pointsOverride[key] || base.table;
@@ -328,7 +380,24 @@ function settings() {
         h('div', { class: 'row' },
           h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export backup'),
           h('button', { class: 'ghost', onclick: () => { if (confirmBox('Delete all rounds and courses on this phone?')) { state.history = []; state.courses = []; state.round = null; save(); toast('Cleared'); } } }, 'Clear all'))),
-      h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.1 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));
+      h('button', { onclick: () => go('about') }, 'About, privacy & fair use'),
+      h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.2 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));
+}
+function about() {
+  const P = (...k) => h('p', { style: 'margin:0' }, ...k);
+  return h('div', {}, topbar('About', 'Privacy & fair use', () => go('settings')),
+    h('div', { class: 'page' },
+      h('div', { class: 'card' }, h('h3', {}, 'Your data stays on your phone'),
+        P('No accounts, no server, no analytics, no ads. Names, scores, courses and traced rings live in this phone\u2019s browser storage and are never sent anywhere. Sharing a summary image or copying tracing JSON is something you do, not something the app does.'),
+        P(h('b', {}, 'Clear all'), ' in Settings deletes everything; there is no copy elsewhere, so export a backup first if you want one.')),
+      h('div', { class: 'card' }, h('h3', {}, 'Free for any club'),
+        P('Volunteer-built, open source (MIT). Use it, share the link, fork it, rebrand it. Please don\u2019t charge for it, bolt on tracking, or present it as an official federation scoring system \u2014 the points tables are editable because clubs differ.')),
+      h('div', { class: 'card' }, h('h3', {}, 'Help: trace the rings'),
+        P('Only some targets have their scoring rings traced. Tap ', h('b', {}, 'Trace scoring rings'), ' on the home screen, pick the animal, tap around the moulded lines, save. Then Copy JSON and send it in so every club gets it.'),
+        h('button', { class: 'primary', onclick: () => location.href = 'tools/trace.html' }, 'Open the tracing tool')),
+      h('div', { class: 'card' }, h('h3', {}, 'Target photos'),
+        P('Greyscale manufacturer product photos (SRT, Eleven, Rinehart, Delta McKenzie) used only to identify the animal and show ring positions in a non-commercial club tool. Being replaced with our own photos. Any maker who\u2019d rather theirs weren\u2019t here: open an issue and it goes the same day.')),
+      h('p', { class: 'muted', style: 'font-size:12px' }, 'Full text: PRIVACY.md, FAIR-USE.md and docs/MANUAL.md in the repository.')));
 }
 
 // ---------- boot ----------

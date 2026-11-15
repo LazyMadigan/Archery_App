@@ -1,6 +1,6 @@
 // Offline cache: app shell + target library. Bump CACHE when files change.
-const CACHE = 'wa3d-v2';
-const SHELL = ['./', './index.html', './src/app.css', './src/app.js', './src/scoring.js', './src/games.js', './targets/targets.json', './manifest.webmanifest', './icon.png', './tools/trace.html'];
+const CACHE = 'wa3d-v4';
+const SHELL = ['./', './index.html', './src/app.css', './src/app.js', './src/scoring.js', './src/games.js', './src/icons.js', './targets/targets.json', './manifest.webmanifest', './icon.png', './tools/trace.html'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {

@@ -5,6 +5,15 @@ Runs as a web app (install to home screen, works offline). No accounts, no serve
 
 **Live app:** https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
 
+## Privacy, in one line
+Nothing leaves your phone: no accounts, no server, no analytics. See [PRIVACY.md](PRIVACY.md).
+
+## Use it, share it
+Free for any club or archer, MIT licensed. See [FAIR-USE.md](FAIR-USE.md). Manual: [docs/MANUAL.md](docs/MANUAL.md).
+
+## Help wanted: trace the rings
+Most targets don't have their scoring rings traced yet. Open the app → **Trace scoring rings**, tap around the lines, Save, Copy JSON, and paste it into an issue. A minute each, and it makes the tap-to-score work for everyone.
+
 ## What it does
 - Set up a round: players (up to 6), scoring system, arrows per target (max 3), games to play.
 - Scoring systems: IFAA 3D Hunting, IFAA 3D Standard, World Archery 3D, NFAS Big Game (walk-down), ASA, IBO. Points per zone are editable in Settings if your club scores differently.
