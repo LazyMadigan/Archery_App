@@ -1,0 +1,255 @@
+{
+ "t01": {
+  "file": "t01_srt-black-panther.jpg",
+  "crop": [
+   107,
+   127,
+   688,
+   455
+  ],
+  "w": 581,
+  "h": 328
+ },
+ "t02": {
+  "file": "t02_srt-rocky-mountain-sheep-bedded.jpg",
+  "crop": [
+   88,
+   75,
+   710,
+   523
+  ],
+  "w": 622,
+  "h": 448
+ },
+ "t03": {
+  "file": "t03_srt-mountain-lion-sitting.jpg",
+  "crop": [
+   207,
+   28,
+   575,
+   599
+  ],
+  "w": 368,
+  "h": 571
+ },
+ "t04": {
+  "file": "t04_srt-european-lynx.jpg",
+  "crop": [
+   107,
+   68,
+   688,
+   530
+  ],
+  "w": 581,
+  "h": 462
+ },
+ "t05": {
+  "file": "t05_eleven-polar-bear-insert.jpg",
+  "crop": [
+   84,
+   64,
+   716,
+   538
+  ],
+  "w": 632,
+  "h": 474
+ },
+ "t06": {
+  "file": "t06_srt-fox-bedded.jpg",
+  "crop": [
+   89,
+   9,
+   713,
+   591
+  ],
+  "w": 624,
+  "h": 582
+ },
+ "t06b": {
+  "file": "t06b_srt-fox-bedded-rear.png",
+  "crop": [
+   264,
+   36,
+   686,
+   496
+  ],
+  "w": 422,
+  "h": 460
+ },
+ "t07": {
+  "file": "t07_eleven-bedded-deer.png",
+  "crop": [
+   0,
+   41,
+   800,
+   760
+  ],
+  "w": 800,
+  "h": 719
+ },
+ "t08": {
+  "file": "t08_eleven-sheep-insert.jpg",
+  "crop": [
+   85,
+   0,
+   715,
+   600
+  ],
+  "w": 630,
+  "h": 600
+ },
+ "t09": {
+  "file": "t09_eleven-deer-insert.jpg",
+  "crop": [
+   129,
+   0,
+   670,
+   600
+  ],
+  "w": 541,
+  "h": 600
+ },
+ "t10": {
+  "file": "t10_rinehart-velociraptor.jpg",
+  "crop": [
+   100,
+   125,
+   702,
+   476
+  ],
+  "w": 602,
+  "h": 351
+ },
+ "t11": {
+  "file": "t11_eleven-triceratops.jpg",
+  "crop": [
+   111,
+   95,
+   689,
+   512
+  ],
+  "w": 578,
+  "h": 417
+ },
+ "t12": {
+  "file": "t12_rinehart-stegosaurus.jpg",
+  "crop": [
+   100,
+   130,
+   691,
+   447
+  ],
+  "w": 591,
+  "h": 317
+ },
+ "t13": {
+  "file": "t13_eleven-black-panther-bedded.jpg",
+  "crop": [
+   85,
+   112,
+   710,
+   484
+  ],
+  "w": 625,
+  "h": 372
+ },
+ "t15": {
+  "file": "t15_eleven-dodo.jpg",
+  "crop": [
+   149,
+   33,
+   651,
+   568
+  ],
+  "w": 502,
+  "h": 535
+ },
+ "t16": {
+  "file": "t16_srt-dall-sheep-bedded.jpg",
+  "crop": [
+   93,
+   79,
+   715,
+   524
+  ],
+  "w": 622,
+  "h": 445
+ },
+ "t17": {
+  "file": "t17_eleven-2d-bedded-leopard.jpg",
+  "crop": [
+   89,
+   64,
+   708,
+   538
+  ],
+  "w": 619,
+  "h": 474
+ },
+ "t18": {
+  "file": "t18_srt-iberian-ibex-bedded.jpg",
+  "crop": [
+   110,
+   83,
+   684,
+   519
+  ],
+  "w": 574,
+  "h": 436
+ },
+ "t19": {
+  "file": "t19_eleven-standing-bear-insert.jpg",
+  "crop": [
+   293,
+   0,
+   498,
+   600
+  ],
+  "w": 205,
+  "h": 600
+ },
+ "t20": {
+  "file": "t20_rinehart-small-bear.jpg",
+  "crop": [
+   280,
+   14,
+   520,
+   600
+  ],
+  "w": 240,
+  "h": 586
+ },
+ "t21": {
+  "file": "t21_srt-dodo.jpg",
+  "crop": [
+   151,
+   15,
+   649,
+   581
+  ],
+  "w": 498,
+  "h": 566
+ },
+ "t23": {
+  "file": "t23_delta-standing-black-bear.jpg",
+  "crop": [
+   292,
+   0,
+   516,
+   600
+  ],
+  "w": 224,
+  "h": 600
+ },
+ "t24": {
+  "file": "t24_eleven-fallow-deer-insert.jpg",
+  "crop": [
+   145,
+   0,
+   654,
+   600
+  ],
+  "w": 509,
+  "h": 600
+ }
+}

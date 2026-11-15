@@ -1,0 +1,682 @@
+{
+ "categories": {
+  "deer": "Deer",
+  "sheep": "Sheep, goats & ibex",
+  "cats": "Big cats",
+  "bears": "Bears",
+  "birds": "Birds",
+  "dino": "Dinosaurs",
+  "small": "Small game"
+ },
+ "targets": [
+  {
+   "id": "panther-walk",
+   "name": "Black panther, walking",
+   "cat": "cats",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t01",
+     "label": "Left side",
+     "photo": "targets/photos/t01.png",
+     "w": 581,
+     "h": 328,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "bighorn-bedded",
+   "name": "Bighorn ram, bedded",
+   "cat": "sheep",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t02",
+     "label": "Left side",
+     "photo": "targets/photos/t02.png",
+     "w": 622,
+     "h": 448,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "cougar-sitting",
+   "name": "Mountain lion, sitting",
+   "cat": "cats",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t03",
+     "label": "Front / left",
+     "photo": "targets/photos/t03.png",
+     "w": 368,
+     "h": 571,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "lynx-walk",
+   "name": "Lynx, walking",
+   "cat": "cats",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t04",
+     "label": "Left side",
+     "photo": "targets/photos/t04.png",
+     "w": 581,
+     "h": 462,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "polar-bear",
+   "name": "Polar bear, standing",
+   "cat": "bears",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t05",
+     "label": "Right side",
+     "photo": "targets/photos/t05.png",
+     "w": 632,
+     "h": 474,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "fox-bedded",
+   "name": "Fox, bedded on rock",
+   "cat": "small",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t06",
+     "label": "Left side",
+     "photo": "targets/photos/t06.png",
+     "w": 624,
+     "h": 582,
+     "sets": [
+      {
+       "outer": [
+        [
+         37.29,
+         31.67
+        ],
+        [
+         42.9,
+         30.53
+        ],
+        [
+         49.84,
+         30.41
+        ],
+        [
+         55.72,
+         31.22
+        ],
+        [
+         60.26,
+         33.68
+        ],
+        [
+         62.13,
+         38.26
+        ],
+        [
+         61.33,
+         43.13
+        ],
+        [
+         58.38,
+         47.71
+        ],
+        [
+         54.12,
+         51.15
+        ],
+        [
+         49.31,
+         52.87
+        ],
+        [
+         43.96,
+         52.01
+        ],
+        [
+         38.62,
+         48.85
+        ],
+        [
+         35.42,
+         44.28
+        ],
+        [
+         34.89,
+         38.54
+        ]
+       ],
+       "inner": [
+        [
+         39.7,
+         34.54
+        ],
+        [
+         43.43,
+         33.68
+        ],
+        [
+         47.44,
+         34.54
+        ],
+        [
+         50.91,
+         37.11
+        ],
+        [
+         52.24,
+         40.84
+        ],
+        [
+         51.17,
+         44.28
+        ],
+        [
+         48.24,
+         46.27
+        ],
+        [
+         44.23,
+         46.27
+        ],
+        [
+         40.75,
+         43.99
+        ],
+        [
+         39.42,
+         39.69
+        ]
+       ],
+       "centre": {
+        "cx": 46.37,
+        "cy": 41.12,
+        "rx": 3.21,
+        "ry": 3.09
+       }
+      },
+      {
+       "outer": [
+        [
+         70.14,
+         36.82
+        ],
+        [
+         73.35,
+         35.79
+        ],
+        [
+         77.61,
+         36.82
+        ],
+        [
+         81.89,
+         38.26
+        ],
+        [
+         86.17,
+         40.84
+        ],
+        [
+         89.38,
+         44.28
+        ],
+        [
+         89.9,
+         47.99
+        ],
+        [
+         87.23,
+         50.0
+        ],
+        [
+         81.89,
+         49.71
+        ],
+        [
+         76.01,
+         47.99
+        ],
+        [
+         71.2,
+         44.85
+        ],
+        [
+         69.34,
+         40.84
+        ]
+       ],
+       "inner": [
+        [
+         75.75,
+         40.26
+        ],
+        [
+         78.96,
+         39.57
+        ],
+        [
+         82.69,
+         40.95
+        ],
+        [
+         85.37,
+         43.69
+        ],
+        [
+         85.1,
+         46.0
+        ],
+        [
+         82.16,
+         46.86
+        ],
+        [
+         78.41,
+         45.7
+        ],
+        [
+         76.01,
+         43.42
+        ]
+       ],
+       "centre": {
+        "cx": 81.36,
+        "cy": 44.85,
+        "rx": 2.24,
+        "ry": 1.72
+       }
+      }
+     ]
+    },
+    {
+     "id": "t06b",
+     "label": "Rear / right side",
+     "photo": "targets/photos/t06b.png",
+     "w": 422,
+     "h": 460,
+     "sets": [
+      {
+       "outer": [
+        [
+         51.78,
+         47.07
+        ],
+        [
+         57.11,
+         44.35
+        ],
+        [
+         63.03,
+         42.43
+        ],
+        [
+         68.96,
+         44.09
+        ],
+        [
+         73.7,
+         47.07
+        ],
+        [
+         74.88,
+         50.87
+        ],
+        [
+         73.1,
+         55.76
+        ],
+        [
+         68.96,
+         60.65
+        ],
+        [
+         63.03,
+         64.17
+        ],
+        [
+         57.11,
+         65.0
+        ],
+        [
+         51.78,
+         62.83
+        ],
+        [
+         48.53,
+         58.48
+        ],
+        [
+         47.91,
+         54.13
+        ]
+       ],
+       "inner": [
+        [
+         55.92,
+         49.24
+        ],
+        [
+         60.66,
+         48.59
+        ],
+        [
+         65.4,
+         50.04
+        ],
+        [
+         68.67,
+         53.04
+        ],
+        [
+         68.36,
+         56.3
+        ],
+        [
+         65.12,
+         58.48
+        ],
+        [
+         60.07,
+         58.74
+        ],
+        [
+         55.64,
+         56.85
+        ],
+        [
+         54.27,
+         53.04
+        ]
+       ],
+       "centre": {
+        "cx": 61.37,
+        "cy": 54.4,
+        "rx": 3.08,
+        "ry": 1.96
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "roe-bedded",
+   "name": "Roe buck, bedded",
+   "cat": "deer",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t07",
+     "label": "Left side",
+     "photo": "targets/photos/t07.png",
+     "w": 800,
+     "h": 719,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "mouflon",
+   "name": "Mouflon ram, standing",
+   "cat": "sheep",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t08",
+     "label": "Left side",
+     "photo": "targets/photos/t08.png",
+     "w": 630,
+     "h": 600,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "roe-standing",
+   "name": "Roe deer, standing",
+   "cat": "deer",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t09",
+     "label": "Right side",
+     "photo": "targets/photos/t09.png",
+     "w": 541,
+     "h": 600,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "raptor",
+   "name": "Velociraptor",
+   "cat": "dino",
+   "maker": "Rinehart",
+   "faces": [
+    {
+     "id": "t10",
+     "label": "Left side",
+     "photo": "targets/photos/t10.png",
+     "w": 602,
+     "h": 351,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "triceratops",
+   "name": "Triceratops",
+   "cat": "dino",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t11",
+     "label": "Left side",
+     "photo": "targets/photos/t11.png",
+     "w": 578,
+     "h": 417,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "stegosaurus",
+   "name": "Stegosaurus",
+   "cat": "dino",
+   "maker": "Rinehart",
+   "faces": [
+    {
+     "id": "t12",
+     "label": "Right side",
+     "photo": "targets/photos/t12.png",
+     "w": 591,
+     "h": 317,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "panther-bedded",
+   "name": "Black panther, bedded",
+   "cat": "cats",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t13",
+     "label": "Left side",
+     "photo": "targets/photos/t13.png",
+     "w": 625,
+     "h": 372,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "grouse-pair",
+   "name": "Black grouse pair",
+   "cat": "birds",
+   "maker": "?",
+   "faces": []
+  },
+  {
+   "id": "dodo",
+   "name": "Dodo (dark)",
+   "cat": "birds",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t15",
+     "label": "Left side",
+     "photo": "targets/photos/t15.png",
+     "w": 502,
+     "h": 535,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "dall-bedded",
+   "name": "Dall sheep, bedded (white)",
+   "cat": "sheep",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t16",
+     "label": "Right side",
+     "photo": "targets/photos/t16.png",
+     "w": 622,
+     "h": 445,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "leopard-2d",
+   "name": "Leopard, bedded (flat 2\u00bdD)",
+   "cat": "cats",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t17",
+     "label": "Face",
+     "photo": "targets/photos/t17.png",
+     "w": 619,
+     "h": 474,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "ibex-bedded",
+   "name": "Iberian ibex, bedded",
+   "cat": "sheep",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t18",
+     "label": "Right side",
+     "photo": "targets/photos/t18.png",
+     "w": 574,
+     "h": 436,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "bear-standing",
+   "name": "Brown bear, standing",
+   "cat": "bears",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t19",
+     "label": "Front",
+     "photo": "targets/photos/t19.png",
+     "w": 205,
+     "h": 600,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "bear-small",
+   "name": "Small bear, standing",
+   "cat": "bears",
+   "maker": "Rinehart",
+   "faces": [
+    {
+     "id": "t20",
+     "label": "Front",
+     "photo": "targets/photos/t20.png",
+     "w": 240,
+     "h": 586,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "dodo-grey",
+   "name": "Dodo (grey, on base)",
+   "cat": "birds",
+   "maker": "SRT",
+   "faces": [
+    {
+     "id": "t21",
+     "label": "Right side",
+     "photo": "targets/photos/t21.png",
+     "w": 498,
+     "h": 566,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "black-bear-standing",
+   "name": "Black bear, standing",
+   "cat": "bears",
+   "maker": "Delta McKenzie",
+   "faces": [
+    {
+     "id": "t23",
+     "label": "Front",
+     "photo": "targets/photos/t23.png",
+     "w": 224,
+     "h": 600,
+     "sets": []
+    }
+   ]
+  },
+  {
+   "id": "fallow",
+   "name": "Fallow buck, standing",
+   "cat": "deer",
+   "maker": "Eleven",
+   "faces": [
+    {
+     "id": "t24",
+     "label": "Right side",
+     "photo": "targets/photos/t24.png",
+     "w": 509,
+     "h": 600,
+     "sets": []
+    }
+   ]
+  }
+ ]
+}

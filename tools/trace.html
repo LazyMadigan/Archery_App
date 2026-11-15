@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trace zones · Wicklow Archers 3D</title>
+<style>
+body{margin:0;font:15px system-ui;background:#f4f3ee;color:#17201a}
+.bar{background:#1f3d2b;color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar select,.bar button{min-height:40px;border-radius:8px;border:0;padding:0 10px;font:inherit}
+.wrap{padding:12px;max-width:900px;margin:0 auto}
+.stage{position:relative;background:#fff;border-radius:12px;overflow:hidden;touch-action:none;user-select:none}
+.stage img{display:block;width:100%;pointer-events:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%}
+.stage svg *{vector-effect:non-scaling-stroke}
+.vital{fill:#4a8de0;fill-opacity:.35;stroke:#222;stroke-width:1}.inner{fill:#e0494a;fill-opacity:.4;stroke:#222;stroke-width:1}.centre{fill:#f2c94c;fill-opacity:.6;stroke:#222;stroke-width:1}
+.pt{fill:#fff;stroke:#111;stroke-width:1.5}.pt.active{fill:#c9622c}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tools button{min-height:44px;border-radius:10px;border:2px solid #d8d9d1;background:#fff;padding:0 12px;font:inherit}
+.tools button.on{border-color:#c9622c;background:#fff3ec}
+textarea{width:100%;height:160px;font:12px ui-monospace,monospace;border-radius:10px;border:1px solid #d8d9d1;padding:8px}
+.hint{color:#5f6b63;font-size:13px}
+</style></head><body>
+<div class="bar"><b>Trace zones</b>
+  <select id="target"></select><select id="face"></select>
+  <button id="save">Save to this phone</button><button id="back" onclick="location.href='../index.html'">← App</button></div>
+<div class="wrap">
+  <p class="hint">Pick a layer, then tap around the ring on the photo following the moulded line (8–14 taps is plenty). Drag a point to move it. <b>Centre</b> is placed with two taps: centre, then edge. Add a second set for targets with rings on the hip as well as the shoulder.</p>
+  <div class="stage" id="stage"><img id="img" alt=""><svg id="svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div>
+  <div class="tools">
+    <span>Set <select id="set"></select></span><button id="addset">+ set</button><button id="delset">– set</button>
+    <button data-layer="outer" class="on">Vital (outer)</button><button data-layer="inner">Inner</button><button data-layer="centre">Centre</button>
+    <button id="undo">Undo point</button><button id="clear">Clear layer</button>
+  </div>
+  <p class="hint">Saved tracings are kept on this phone and used by the app straight away. To get them into the shared library, copy the JSON below and paste it into the GitHub issue / to Cian.</p>
+  <textarea id="out" readonly></textarea>
+  <button id="copy">Copy JSON</button>
+</div>
+<script type="module">
+const $=s=>document.querySelector(s);
+const LIB=await fetch('../targets/targets.json').then(r=>r.json());
+const local=JSON.parse(localStorage.getItem('wa.zones.local')||'{}');
+let T=LIB.targets[0],F=T.faces[0],setI=0,layer='outer',drag=null;
+function sets(){ const k=F.id; if(!local[k]) local[k]=structuredClone(F.sets||[]); if(!local[k].length) local[k].push({outer:[],inner:[],centre:null}); return local[k]; }
+function fillSelects(){ $('#target').innerHTML=LIB.targets.map(t=>`<option value="${t.id}" ${t.id===T.id?'selected':''}>${t.name}</option>`).join('');
+  $('#face').innerHTML=T.faces.map(f=>`<option value="${f.id}" ${f.id===F.id?'selected':''}>${f.label}</option>`).join('');
+  $('#set').innerHTML=sets().map((_,i)=>`<option value="${i}" ${i===setI?'selected':''}>${i+1}</option>`).join(''); }
+function path(p){const n=p.length;if(n<3)return'';let d=`M${p[0][0]},${p[0][1]}`;for(let i=0;i<n;i++){const a=p[(i-1+n)%n],b=p[i],c=p[(i+1)%n],e=p[(i+2)%n];d+=` C${b[0]+(c[0]-a[0])/6},${b[1]+(c[1]-a[1])/6} ${c[0]-(e[0]-b[0])/6},${c[1]-(e[1]-b[1])/6} ${c[0]},${c[1]}`;}return d+'Z';}
+function draw(){ $('#img').src='../'+F.photo; const svg=$('#svg'); let s='';
+  sets().forEach((st,i)=>{ const act=i===setI; if(st.outer?.length>2) s+=`<path class="vital" d="${path(st.outer)}"/>`; if(st.inner?.length>2) s+=`<path class="inner" d="${path(st.inner)}"/>`; if(st.centre) s+=`<ellipse class="centre" cx="${st.centre.cx}" cy="${st.centre.cy}" rx="${st.centre.rx}" ry="${st.centre.ry}"/>`;
+    if(act&&layer!=='centre') (st[layer]||[]).forEach((p,j)=>s+=`<circle class="pt ${j===(st[layer].length-1)?'active':''}" data-j="${j}" cx="${p[0]}" cy="${p[1]}" r="1.3"/>`); });
+  svg.innerHTML=s; $('#out').value=JSON.stringify({[F.id]:sets()},null,0); fillSelects(); }
+function pos(e){const r=$('#stage').getBoundingClientRect();const t=e.touches?e.touches[0]:e;return [Math.round((t.clientX-r.left)/r.width*1000)/10,Math.round((t.clientY-r.top)/r.height*1000)/10];}
+let pendingCentre=null;
+$('#stage').addEventListener('pointerdown',e=>{ const st=sets()[setI]; const [x,y]=pos(e);
+  if(e.target.classList.contains('pt')){drag=+e.target.dataset.j;return;}
+  if(layer==='centre'){ if(!pendingCentre){pendingCentre=[x,y];st.centre={cx:x,cy:y,rx:1,ry:1};} else {const dx=Math.abs(x-pendingCentre[0]),dy=Math.abs(y-pendingCentre[1]);const r=Math.max(dx,dy,0.8);st.centre={cx:pendingCentre[0],cy:pendingCentre[1],rx:Math.max(dx,0.8),ry:Math.max(dy,0.8)};if(dx<0.5||dy<0.5){st.centre.rx=r;st.centre.ry=r*0.85;}pendingCentre=null;} }
+  else { st[layer]=st[layer]||[]; st[layer].push([x,y]); }
+  draw(); });
+$('#stage').addEventListener('pointermove',e=>{ if(drag==null)return; const st=sets()[setI]; st[layer][drag]=pos(e); draw(); });
+window.addEventListener('pointerup',()=>drag=null);
+document.querySelectorAll('[data-layer]').forEach(b=>b.onclick=()=>{layer=b.dataset.layer;pendingCentre=null;document.querySelectorAll('[data-layer]').forEach(x=>x.classList.toggle('on',x===b));draw();});
+$('#undo').onclick=()=>{const st=sets()[setI]; if(layer==='centre'){st.centre=null;pendingCentre=null;} else st[layer]?.pop(); draw();};
+$('#clear').onclick=()=>{const st=sets()[setI]; if(layer==='centre')st.centre=null; else st[layer]=[]; draw();};
+$('#addset').onclick=()=>{sets().push({outer:[],inner:[],centre:null});setI=sets().length-1;draw();};
+$('#delset').onclick=()=>{if(sets().length>1){sets().splice(setI,1);setI=0;draw();}};
+$('#set').onchange=e=>{setI=+e.target.value;draw();};
+$('#target').onchange=e=>{T=LIB.targets.find(t=>t.id===e.target.value);F=T.faces[0];setI=0;draw();};
+$('#face').onchange=e=>{F=T.faces.find(f=>f.id===e.target.value);setI=0;draw();};
+$('#save').onclick=()=>{localStorage.setItem('wa.zones.local',JSON.stringify(local));alert('Saved on this phone. The app will use these zones.');};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#out').value);alert('Copied');}catch{ $('#out').select(); }};
+draw();
+</script></body></html>
