@@ -81,15 +81,16 @@ h3{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;le
 .seg button.on{background:var(--brand);color:#fff}
 /* diagram */
 .diagram{position:relative;width:100%;background:#fff;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
+.diagram .stage{position:relative}
 .diagram img{display:block;width:100%;height:auto}
 .diagram svg{position:absolute;inset:0;width:100%;height:100%}
 .diagram .z-vital{fill:var(--vital);fill-opacity:.42;stroke:#222;stroke-width:.6}
 .diagram .z-inner{fill:var(--inner);fill-opacity:.5;stroke:#222;stroke-width:.6}
 .diagram .z-centre{fill:var(--centre);fill-opacity:.7;stroke:#222;stroke-width:.6}
 .diagram .arrow{fill:#111;stroke:#fff;stroke-width:.5}
-.legend{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);border-radius:10px;padding:6px 8px;font-size:12px;color:#222;display:flex;flex-direction:column;gap:3px}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;padding:8px 10px;border-top:1px solid var(--line);background:#f6f8fc;font-size:12px;font-weight:600;color:#222}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid #444}
-.notrace{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:4px 8px;border-radius:8px}
+.notrace{padding:6px 10px;font-size:12px;color:#555;background:#f6f8fc;text-align:center}
 .zones{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .zones button{min-height:66px;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:6px 2px;font-family:var(--display);color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .zones button b{font-size:26px;line-height:1;font-weight:800}

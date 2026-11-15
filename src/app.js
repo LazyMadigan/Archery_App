@@ -167,20 +167,30 @@ function course() {
         h('button', { class: 'ghost', onclick: () => { d.targets.splice(i, 1); render(); } }, '✕')));
   });
   return h('div', {},
-    topbar('Course', `${d.targets.length} targets`, () => go('setup'), d.targets.some(t => t.distanceActual != null) ? h('button', { onclick: () => { state.courseDist = !state.courseDist; render(); }, title: 'Show / hide distances', style: 'width:auto;padding:0 10px;font-size:13px' }, state.courseDist ? 'Hide m' : 'Show m') : null),
+    topbar(d.standalone ? (d.courseName || 'New course') : 'Course', `${d.targets.length} targets`, () => go(d.standalone ? 'courses' : 'setup'), d.targets.some(t => t.distanceActual != null) ? h('button', { onclick: () => { state.courseDist = !state.courseDist; render(); }, title: 'Show / hide distances', style: 'width:auto;padding:0 10px;font-size:13px' }, state.courseDist ? 'Hide m' : 'Show m') : null),
     h('div', { class: 'page' },
       h('div', { class: 'list' }, ...list),
       h('button', { class: 'tile', onclick: () => { state.pick = { onDone: sel => { d.targets.push(sel); go('course'); }, back: 'course' }; go('pick'); } }, '+ Add target'),
       h('div', { class: 'card' }, h('h3', {}, 'Save course'),
         h('div', { class: 'row' }, h('input', { placeholder: 'Course name, e.g. Red pegs Nov 2026', value: d.courseName || '', oninput: e => d.courseName = e.target.value }),
           h('button', { style: 'flex:0 0 auto', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); state.courses = state.courses.filter(c => c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now() }); d.courseName = name; save(); toast('Course saved'); } }, 'Save')))),
-    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => go('setup') }, 'Done')));
+    h('div', { class: 'bottombar' }, d.standalone
+      ? h('button', { class: 'primary', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); const prev = state.courses.find(c => c.name === name); if (prev?.builtin) { toast('Pick a new name — that one is built in'); return; } state.courses = state.courses.filter(c => c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now() }); save(); toast('Course saved'); go('courses'); } }, 'Save course')
+      : h('button', { class: 'primary', onclick: () => go('setup') }, 'Done')));
 }
 function coursesView() {
-  return h('div', {}, topbar('Saved courses', null, () => go('home')),
-    h('div', { class: 'page' }, state.courses.length ? h('div', { class: 'list' }, ...state.courses.map(c => h('div', { class: 'item' }, h('div', { class: 't' }, c.name, h('small', {}, `${c.targets.length} targets${c.targets.some(t => t.distanceActual != null) ? ' · distances included' : ''}${c.builtin ? ' · built in' : ' · ' + new Date(c.saved).toLocaleDateString()}`)),
-      h('button', { onclick: () => { startSetup(); state.draft.targets = structuredClone(c.targets); state.draft.courseName = c.name; go('setup'); } }, 'Use'),
-      c.builtin ? null : h('button', { class: 'ghost', onclick: () => { state.courses = state.courses.filter(x => x !== c); save(); render(); } }, '✕')))) : h('p', { class: 'muted' }, 'No saved courses yet. Build one from Shoot a round → Course.')));
+  const fresh = () => ({ players: [], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true }, mode: 'fun', targets: [], courseName: '', standalone: true });
+  return h('div', {}, topbar('Courses', null, () => go('home')),
+    h('div', { class: 'page' },
+      h('button', { class: 'cta', onclick: () => { state.draft = fresh(); go('course'); } }, icon('course', 'xl'), h('div', {}, h('b', {}, 'Build new course'), h('small', {}, 'Pick the animals in order, add the side you shoot from, save it'))),
+      h('h3', { style: 'margin-top:6px' }, 'Saved courses'),
+      state.courses.length ? h('div', { class: 'list' }, ...state.courses.map(c => h('div', { class: 'item' },
+        h('div', { class: 't' }, h('div', { style: 'font-weight:600' }, c.name), h('small', {}, `${c.targets.length} targets${c.targets.some(t => t.distanceActual != null) ? ' · distances' : ''}${c.builtin ? ' · built in' : ' · ' + new Date(c.saved).toLocaleDateString()}`)),
+        h('div', { class: 'rowbtns' },
+          h('button', { class: 'primary', style: 'width:auto;padding:0 12px', onclick: () => { startSetup(); state.draft.targets = structuredClone(c.targets); state.draft.courseName = c.name; go('setup'); } }, 'Shoot'),
+          h('button', { class: 'ghost', style: 'width:auto;padding:0 10px', onclick: () => { state.draft = { ...fresh(), targets: structuredClone(c.targets), courseName: c.builtin ? c.name + ' (copy)' : c.name }; go('course'); } }, 'Edit'),
+          c.builtin ? null : h('button', { class: 'ghost', onclick: () => { if (confirmBox(`Delete “${c.name}”?`)) { state.courses = state.courses.filter(x => x !== c); save(); render(); } } }, '✕')))))
+        : h('p', { class: 'muted' }, 'No saved courses yet.')));
 }
 
 // ---------- TARGET PICKER (3 taps: category → animal → face) ----------
@@ -232,9 +242,10 @@ function diagram(T, F, opts = {}) {
   const ell = (c, cls) => { const e = document.createElementNS(ns, 'ellipse'); e.setAttribute('cx', c.cx); e.setAttribute('cy', c.cy); e.setAttribute('rx', c.rx); e.setAttribute('ry', c.ry); e.setAttribute('class', cls); e.setAttribute('vector-effect', 'non-scaling-stroke'); return e; };
   (F.sets || []).forEach(s => { if (s.outer) svg.append(poly(s.outer, 'z-vital')); if (s.inner) svg.append(poly(s.inner, 'z-inner')); if (s.centre) svg.append(ell(s.centre, 'z-centre')); });
   (opts.marks || []).forEach(m => { const e = document.createElementNS(ns, 'circle'); e.setAttribute('cx', m.x); e.setAttribute('cy', m.y); e.setAttribute('r', 1.4); e.setAttribute('class', 'arrow'); e.setAttribute('vector-effect', 'non-scaling-stroke'); svg.append(e); });
-  const wrap = h('div', { class: 'diagram' }, h('img', { src: F.photo, alt: `${T.name}, ${F.label}` }), svg, legend,
-    !(F.sets || []).length ? h('div', { class: 'notrace' }, 'Rings not traced yet — score with the buttons') : null);
-  if (opts.onTap) wrap.addEventListener('click', e => { const r = wrap.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * 100, y = (e.clientY - r.top) / r.height * 100; opts.onTap({ x, y, zone: zoneAt(F, x, y) }); });
+  const stage = h('div', { class: 'stage' }, h('img', { src: F.photo, alt: `${T.name}, ${F.label}` }), svg);
+  const wrap = h('div', { class: 'diagram' }, stage, legend,
+    !(F.sets || []).length ? h('div', { class: 'notrace' }, 'Rings not traced yet — score with the buttons below') : null);
+  if (opts.onTap) stage.addEventListener('click', e => { const r = stage.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * 100, y = (e.clientY - r.top) / r.height * 100; opts.onTap({ x, y, zone: zoneAt(F, x, y) }); });
   return wrap;
 }
 function smoothPath(pts) { // Catmull-Rom → cubic bezier closed path
