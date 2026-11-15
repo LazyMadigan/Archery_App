@@ -76,7 +76,7 @@ function home() {
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(best)), h('div', { class: 'k' }, 'Best score')),
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrowsShot)), h('div', { class: 'k' }, 'Arrows shot'))) : null,
       h('div', { class: 'grid c2' },
-        h('button', { class: 'tile', onclick: () => go('progress') }, icon('trend', 'lg'), 'Progress', h('small', {}, 'getting better?')),
+        h('button', { class: 'tile', onclick: () => go('progress') }, icon('trend', 'lg'), 'Progress', h('small', {}, 'trends & sight chart')),
         h('button', { class: 'tile', onclick: () => go('history') }, icon('history', 'lg'), 'History', h('small', {}, `${hist.length} rounds`)),
         h('button', { class: 'tile', onclick: () => go('courses') }, icon('course', 'lg'), 'Courses', h('small', {}, `${state.courses.length} saved`)),
         h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), 'Targets', h('small', {}, `${LIB.targets.length} animals`))),
@@ -88,7 +88,7 @@ function go(v) { state.view = v; render(); }
 
 // ---------- SETUP ----------
 function startSetup() {
-  state.draft = { players: [{ id: uid(), name: '', handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, useHandicap: false, targets: [], courseName: '' };
+  state.draft = { players: [{ id: uid(), name: '', handicap: 0 }], systemKey: 'ifaa_hunting', arrows: 1, games: { total: true, king: false, skins: false, guess: false }, mode: 'fun', useHandicap: false, targets: [], courseName: '' };
   go('setup');
 }
 function setup() {
@@ -112,22 +112,28 @@ function setup() {
         h('div', { class: 'muted', style: 'font-size:13px' }, sys.desc),
         h('div', { class: 'row' }, h('span', { style: 'flex:0 0 auto' }, 'Arrows per target'),
           h('div', { class: 'seg' }, ...[1, 2, 3].map(n => h('button', { class: (d.arrows === n ? 'on' : ''), disabled: n > sys.arrows, onclick: () => { d.arrows = n; render(); } }, String(n)))))),
-      h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Games'),
-        h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Plain score, highest wins'], ['king', 'crown', 'King of the Castle', 'Best arrow takes the target; hold it to stay King'], ['skins', 'skin', 'Skins', 'Each target is a skin; ties roll over'], ['guess', 'ruler', 'Guess the distance', 'Call it, shoot it, then lase it']].map(([k, ic, n, desc]) =>
-          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games[k] = !d.games[k]; render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null))))),
+      h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'What are we doing'),
+        h('div', { class: 'list' },
+          h('div', { class: 'gamecard' + (d.mode === 'fun' ? ' on' : ''), onclick: () => { d.mode = 'fun'; render(); } }, icon('trophy', 'lg'), h('div', {}, h('b', {}, 'Fun round'), h('small', {}, 'Score against each other')), h('span', { class: 'chk' }, d.mode === 'fun' ? icon('check') : null)),
+          h('div', { class: 'gamecard' + (d.mode === 'laser' ? ' on' : ''), onclick: () => { d.mode = 'laser'; d.games.guess = false; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Laser practice'), h('small', {}, 'Lase it, dial your sight, shoot. Builds your sight chart')), h('span', { class: 'chk' }, d.mode === 'laser' ? icon('check') : null)))),
+      d.mode === 'fun' ? h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Games'),
+        h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Plain score, highest wins'], ['king', 'crown', 'King of the Castle', 'Best arrow takes the target; hold it to stay King'], ['skins', 'skin', 'Skins', 'Each target is a skin; ties roll over']].map(([k, ic, n, desc]) =>
+          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games[k] = !d.games[k]; render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))),
+        h('h3', { style: 'margin:14px 0 8px' }, 'Add-on'),
+        h('div', { class: 'gamecard' + (d.games.guess ? ' on' : ''), onclick: () => { d.games.guess = !d.games.guess; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Guess the distance'), h('small', {}, 'Everyone calls it before anyone shoots. Lase it after. Runs alongside whatever game you play')), h('span', { class: 'chk' }, d.games.guess ? icon('check') : null))) : null,
       h('div', { class: 'card' }, h('h3', {}, 'Course'),
         h('div', { class: 'muted', style: 'font-size:13px' }, 'Load a saved course, build one now, or just pick each animal when you get to it.'),
         h('div', { class: 'row' },
           h('select', { onchange: e => { const c = state.courses.find(c => c.name === e.target.value); d.targets = c ? structuredClone(c.targets) : []; d.courseName = c?.name || ''; render(); } },
             h('option', { value: '' }, d.targets.length ? `${d.targets.length} targets chosen` : 'Pick as we go'), ...state.courses.map(c => h('option', { value: c.name, selected: c.name === d.courseName }, `${c.name} (${c.targets.length})`))),
           h('button', { style: 'flex:0 0 auto', onclick: () => go('course') }, d.targets.length ? 'Edit' : 'Build')))),
-    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: startRound, disabled: !d.players.some(p => p.name.trim()) }, 'Start shooting')));
+    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: startRound, disabled: !d.players.some(p => p.name.trim()) }, d.mode === 'laser' ? 'Start practice' : 'Start shooting')));
 }
 function startRound() {
   const d = state.draft;
   d.players = d.players.filter(p => p.name.trim()).map(p => ({ ...p, name: p.name.trim() }));
   d.players.forEach(p => { if (!state.names.includes(p.name)) state.names.unshift(p.name); }); state.names = state.names.slice(0, 24);
-  state.round = { id: uid(), started: Date.now(), players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => ({ ...t })), scores: {}, courseName: d.courseName };
+  state.round = { id: uid(), started: Date.now(), mode: d.mode, players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => ({ ...t })), scores: {}, courseName: d.courseName };
   state.ti = 0; save(); go('play');
 }
 
@@ -260,18 +266,31 @@ function play() {
     h('div', { class: 'name' }, p.id === active.id ? '▶ ' : '', p.name),
     h('div', { class: 'arrows' }, ...Array.from({ length: r.arrows }, (_, i) => h('span', { style: arr[i] ? `background:var(--${arr[i] === 'miss' ? 'body' : arr[i]});color:${arr[i] === 'centre' ? '#111' : '#fff'}` : '', onclick: e => { e.stopPropagation(); arr[i] = undefined; while (arr.length && !arr[arr.length - 1]) arr.pop(); state.selPid = p.id; save(); render(); } }, arr[i] ? ZONE_LABEL[arr[i]][0] : '·'))),
     h('div', { class: 'score' }, String(scoreTarget(sys, arr)))); });
-  const guess = r.games.guess ? h('div', { class: 'card' }, h('h3', {}, 'Guess the distance'),
-    h('div', { class: 'grid c2' }, ...r.players.map(p => h('label', {}, h('small', { class: 'muted' }, p.name), h('input', { type: 'number', inputmode: 'decimal', placeholder: 'm', value: t.distanceGuess?.[p.id] ?? '', onchange: e => { t.distanceGuess = t.distanceGuess || {}; t.distanceGuess[p.id] = e.target.value === '' ? null : parseFloat(e.target.value); save(); } })))),
-    h('label', {}, h('small', { class: 'muted' }, 'Actual (lased) distance'), h('input', { type: 'number', inputmode: 'decimal', placeholder: 'm', value: t.distanceActual ?? '', onchange: e => { t.distanceActual = e.target.value === '' ? null : parseFloat(e.target.value); save(); render(); } })),
-    t.distanceActual != null ? h('div', { class: 'row' }, ...r.players.map(p => h('span', { class: 'pill' }, `${p.name}: ${t.distanceGuess?.[p.id] ?? '–'} → ${distancePoints(t.distanceGuess?.[p.id], t.distanceActual)} pts`))) : null) : null;
+  const numIn = (val, onch, ph = 'm') => h('input', { type: 'number', inputmode: 'decimal', placeholder: ph, value: val ?? '', onchange: e => onch(e.target.value === '' ? null : parseFloat(e.target.value)) });
+  const guessesIn = r.games.guess && r.players.every(p => t.distanceGuess?.[p.id] != null);
+  const guessGate = r.games.guess && !t.guessLocked;
+  const guess = r.games.guess ? h('div', { class: 'card', style: guessGate ? 'border-color:var(--brand);border-width:2px' : '' }, h('div', { class: 'row' }, icon('ruler'), h('h3', {}, guessGate ? 'Call the distance first' : 'Guess the distance')),
+    guessGate ? h('div', { class: 'muted', style: 'font-size:13px' }, 'Everyone calls it before anyone draws. Lock the calls, then shoot.') : null,
+    h('div', { class: 'grid c2' }, ...r.players.map(p => h('label', {}, h('small', { class: 'muted' }, p.name), t.guessLocked ? h('div', { class: 'big', style: 'font-size:24px' }, `${t.distanceGuess?.[p.id] ?? '–'} m`) : numIn(t.distanceGuess?.[p.id], v => { t.distanceGuess = t.distanceGuess || {}; t.distanceGuess[p.id] = v; save(); render(); })))),
+    guessGate ? h('button', { class: 'primary', disabled: !guessesIn, onclick: () => { t.guessLocked = true; save(); render(); } }, 'Lock calls — shoot!') : null,
+    t.guessLocked ? h('label', {}, h('small', { class: 'muted' }, 'Actual (lased) distance — after shooting'), numIn(t.distanceActual, v => { t.distanceActual = v; save(); render(); })) : null,
+    t.guessLocked && t.distanceActual != null ? h('div', { class: 'row' }, ...r.players.map(p => h('span', { class: 'pill' }, `${p.name}: ${t.distanceGuess?.[p.id] ?? '–'} → ${distancePoints(t.distanceGuess?.[p.id], t.distanceActual)} pts`))) : null) : null;
+  t.sight = t.sight || {};
+  const laser = r.mode === 'laser' ? h('div', { class: 'card', style: 'border-color:var(--brand);border-width:2px' }, h('div', { class: 'row' }, icon('ruler'), h('h3', {}, 'Lase, then dial')),
+    h('div', { class: 'row' }, h('label', {}, h('small', { class: 'muted' }, 'Lased distance (m)'), numIn(t.distanceActual, v => { t.distanceActual = v; save(); render(); })),
+      h('label', {}, h('small', { class: 'muted' }, 'Slope % (+up / −down)'), numIn(t.slope, v => { t.slope = v; save(); render(); }, '%'))),
+    t.distanceActual != null ? h('div', { class: 'muted', style: 'font-size:13px' }, `Cut distance ${(t.distanceActual * Math.cos(Math.atan((t.slope || 0) / 100))).toFixed(1)} m${sightSuggest(active.name, t.distanceActual, t.slope) != null ? ` · your chart says sight ≈ ${sightSuggest(active.name, t.distanceActual, t.slope)}` : ''}`) : null,
+    h('div', { class: 'grid c2' }, ...r.players.map(p => h('label', {}, h('small', { class: 'muted' }, `${p.name} sight setting`), numIn(t.sight[p.id], v => { t.sight[p.id] = v; save(); }, 'e.g. 25'))))) : null;
   const allDone = r.players.every(p => { const a = r.scores[ti][p.id]; return a.filter(Boolean).length >= r.arrows || (sys.walkdown && a.some(z => z && z !== 'miss')); });
   return h('div', {},
-    topbar(`${ti + 1}. ${T?.name || 'Target'}`, `${F?.label || ''} · ${sys.name}`, () => go('board'), h('button', { onclick: () => { state.pick = { ti, back: 'play', onDone: sel => { r.targets[ti] = { ...sel, distanceGuess: t.distanceGuess, distanceActual: t.distanceActual }; save(); go('play'); } }; go('pick'); } }, '⇄')),
+    topbar(`${ti + 1}. ${T?.name || 'Target'}`, `${F?.label || ''} · ${sys.name}`, () => go('board'), h('button', { onclick: () => { state.pick = { ti, back: 'play', onDone: sel => { r.targets[ti] = { ...sel, distanceGuess: t.distanceGuess, distanceActual: t.distanceActual, guessLocked: t.guessLocked, slope: t.slope, sight: t.sight }; save(); go('play'); } }; go('pick'); } }, '⇄')),
     h('div', { class: 'page' },
-      diagram(T, F, { marks: Object.values(t.marks).flat(), onTap: m => { t.marks[active.id] = [...(t.marks[active.id] || []), { x: m.x, y: m.y }].slice(-r.arrows); setZone(m.zone); } }),
-      h('div', { class: 'card' }, h('div', { class: 'muted', style: 'font-size:13px' }, `Scoring ${active.name} · arrow ${Math.min(r.scores[ti][active.id].filter(Boolean).length + 1, r.arrows)} of ${r.arrows} — tap the animal where it landed, or a zone button`), zoneBtns),
-      h('div', { class: 'card' }, ...playerRows),
-      guess),
+      guessGate ? guess : null,
+      laser,
+      diagram(T, F, { marks: Object.values(t.marks).flat(), onTap: m => { if (guessGate) return; t.marks[active.id] = [...(t.marks[active.id] || []), { x: m.x, y: m.y }].slice(-r.arrows); setZone(m.zone); } }),
+      guessGate ? h('div', { class: 'card muted', style: 'text-align:center' }, 'Scoring opens once the calls are locked') : h('div', { class: 'card' }, h('div', { class: 'muted', style: 'font-size:13px' }, `Scoring ${active.name} · arrow ${Math.min(r.scores[ti][active.id].filter(Boolean).length + 1, r.arrows)} of ${r.arrows} — tap the animal where it landed, or a zone button`), zoneBtns),
+      guessGate ? null : h('div', { class: 'card' }, ...playerRows),
+      guessGate ? null : guess),
     h('div', { class: 'bottombar' },
       h('button', { onclick: () => { state.ti = Math.max(0, ti - 1); state.selPid = null; render(); }, disabled: ti === 0 }, '‹ Prev'),
       h('button', { class: 'primary', onclick: () => { state.ti = ti + 1; state.selPid = null; save(); render(); } }, allDone ? 'Next target ›' : 'Skip ›'),
@@ -289,7 +308,7 @@ function board() {
     const t = r.targets[i]; const T = t && findTarget(t.targetId); const sc = r.scores[i] || {};
     return h('div', { class: 'item', onclick: () => { state.ti = i; go('play'); } }, h('div', { class: 'n' }, String(i + 1)), h('div', { class: 't' }, T?.name || 'Not picked yet', h('small', {}, r.players.map(p => `${p.name} ${sc[p.id] ? scoreTarget(sys, sc[p.id]) : '–'}`).join(' · '))), t?.distanceActual != null ? h('span', { class: 'pill' }, `${t.distanceActual} m`) : null);
   }));
-  return h('div', {}, topbar('Scoreboard', `${sys.name}${sk ? ` · ${sk.carry > 1 ? sk.carry + ' skins riding' : ''}` : ''}`, () => go('home')),
+  return h('div', {}, topbar(r.mode === 'laser' ? 'Practice' : 'Scoreboard', `${sys.name}${sk ? ` · ${sk.carry > 1 ? sk.carry + ' skins riding' : ''}` : ''}`, () => go('home')),
     h('div', { class: 'page' }, h('div', { class: 'card' }, table), h('h3', {}, 'Targets'), perTarget),
     h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'), h('button', { onclick: finishRound }, 'Finish round')));
 }
@@ -322,6 +341,41 @@ function drawSummary(c, r, sys, rows) {
 function historyView() {
   return h('div', {}, topbar('History', null, () => go('home')),
     h('div', { class: 'page' }, state.history.length ? h('div', { class: 'list' }, ...state.history.map(r => h('div', { class: 'item', onclick: () => { state.last = r; go('summary'); } }, h('div', { class: 't' }, r.players.map(p => `${p.name} ${r.final?.totals?.[p.id]?.gross ?? ''}`).join(' · '), h('small', {}, `${new Date(r.started).toLocaleDateString()} · ${SYSTEMS[r.systemKey]?.name} · ${r.targets.length} targets`))))) : h('p', { class: 'muted' }, 'No finished rounds yet.')));
+}
+
+// ---------- SIGHT CHART (from laser practice) ----------
+function sightPoints(name) {
+  const pts = [];
+  const all = [...state.history, ...(state.round ? [state.round] : [])];
+  all.forEach(r => { const p = r.players.find(p => p.name === name); if (!p) return; (r.targets || []).forEach(t => { if (t.distanceActual != null && t.sight?.[p.id] != null) pts.push({ d: t.distanceActual * Math.cos(Math.atan((t.slope || 0) / 100)), s: t.sight[p.id] }); }); });
+  return pts;
+}
+function sightFit(pts) { // least squares quadratic s = a d^2 + b d + c (falls back to linear / none)
+  if (pts.length < 2) return null;
+  const n = pts.length; const S = k => pts.reduce((a, p) => a + p.d ** k, 0); const T = k => pts.reduce((a, p) => a + p.s * p.d ** k, 0);
+  if (n < 3) { const b = (T(1) - S(1) * T(0) / n) / (S(2) - S(1) ** 2 / n || 1); const c = (T(0) - b * S(1)) / n; return d => b * d + c; }
+  const A = [[S(4), S(3), S(2)], [S(3), S(2), S(1)], [S(2), S(1), n]], B = [T(2), T(1), T(0)];
+  for (let i = 0; i < 3; i++) { let m = i; for (let k = i + 1; k < 3; k++) if (Math.abs(A[k][i]) > Math.abs(A[m][i])) m = k; [A[i], A[m]] = [A[m], A[i]]; [B[i], B[m]] = [B[m], B[i]]; if (Math.abs(A[i][i]) < 1e-9) return null;
+    for (let k = i + 1; k < 3; k++) { const f = A[k][i] / A[i][i]; for (let j = i; j < 3; j++) A[k][j] -= f * A[i][j]; B[k] -= f * B[i]; } }
+  const x = [0, 0, 0]; for (let i = 2; i >= 0; i--) { x[i] = (B[i] - (i < 2 ? A[i][i + 1] * x[i + 1] : 0) - (i < 1 ? A[i][i + 2] * x[i + 2] : 0)) / A[i][i]; }
+  return d => x[0] * d * d + x[1] * d + x[2];
+}
+function sightSuggest(name, dist, slope) { const f = sightFit(sightPoints(name)); if (!f || dist == null) return null; const v = f(dist * Math.cos(Math.atan((slope || 0) / 100))); return isFinite(v) ? Math.round(v * 2) / 2 : null; }
+function sightCard(name) {
+  const pts = sightPoints(name); if (!pts.length) return null; const f = sightFit(pts);
+  const ns = 'http://www.w3.org/2000/svg'; const w = 320, hgt = 170; const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${w} ${hgt}`); svg.setAttribute('class', 'spark'); svg.style.height = '170px';
+  const mk = (t, a) => { const e = document.createElementNS(ns, t); Object.entries(a).forEach(([k, v]) => e.setAttribute(k, v)); return e; };
+  const dmin = Math.max(5, Math.floor(Math.min(...pts.map(p => p.d)) / 5) * 5 - 5), dmax = Math.ceil(Math.max(...pts.map(p => p.d)) / 5) * 5 + 5;
+  const smin = Math.floor(Math.min(...pts.map(p => p.s))) - 2, smax = Math.ceil(Math.max(...pts.map(p => p.s))) + 2;
+  const X = d => 28 + (d - dmin) / (dmax - dmin) * (w - 40), Y = sv => hgt - 20 - (sv - smin) / (smax - smin) * (hgt - 32);
+  for (let d = dmin; d <= dmax; d += 5) { svg.append(mk('line', { class: 'grid', x1: X(d), x2: X(d), y1: 10, y2: hgt - 20 })); const t = mk('text', { x: X(d), y: hgt - 6, 'text-anchor': 'middle' }); t.textContent = d; svg.append(t); }
+  [smin, Math.round((smin + smax) / 2), smax].forEach(sv => { const t = mk('text', { x: 2, y: Y(sv) + 4 }); t.textContent = sv; svg.append(t); });
+  if (f) { let d = ''; for (let x = dmin; x <= dmax; x += 1) d += `${d ? 'L' : 'M'}${X(x)},${Y(f(x))} `; svg.append(mk('path', { class: 'line', d })); }
+  pts.forEach(p => svg.append(mk('circle', { class: 'dot', cx: X(p.d), cy: Y(p.s), r: 4 })));
+  const rows = []; if (f) for (let d = Math.ceil(dmin / 5) * 5; d <= dmax; d += 5) rows.push([d, Math.round(f(d) * 2) / 2]);
+  return h('div', { class: 'card' }, h('div', { class: 'row' }, icon('ruler'), h('h3', {}, `Sight chart · ${pts.length} shots`)), svg,
+    rows.length ? h('div', { class: 'row', style: 'font-size:13px' }, ...rows.map(([d, sv]) => h('span', { class: 'pill' }, `${d} m → ${sv}`))) : h('div', { class: 'muted', style: 'font-size:13px' }, 'Two or more distances and the curve appears.'),
+    h('div', { class: 'muted', style: 'font-size:12px' }, 'Distances are cut (horizontal) distances. Suggestions appear in Laser practice once you have a few points.'));
 }
 
 // ---------- PROGRESS ----------
@@ -362,6 +416,7 @@ function progress() {
         h('div', { class: 'bars' }, ...['centre', 'inner', 'vital', 'body', 'miss'].map(z => h('i', { style: `width:${dist[z] / n * 100}%;background:var(--${z === 'miss' ? 'fg' : z})`, title: z }))),
         h('div', { class: 'row', style: 'font-size:12px' }, ...['centre', 'inner', 'vital', 'body', 'miss'].map(z => h('span', { class: 'pill' }, `${ZONE_LABEL[z]} ${Math.round(dist[z] / n * 100)}%`)))) : null,
       guess.length ? h('div', { class: 'card' }, h('h3', {}, 'Distance judging'), h('div', { class: 'row' }, h('div', { class: 'stat' }, h('div', { class: 'v' }, guess[guess.length - 1].toFixed(1) + ' m'), h('div', { class: 'k' }, 'Last avg error')), h('div', { class: 'stat' }, h('div', { class: 'v' }, Math.min(...guess).toFixed(1) + ' m'), h('div', { class: 'k' }, 'Best')))) : null,
+      sightCard(who),
       kings ? h('div', { class: 'card' }, h('div', { class: 'row' }, icon('crown', 'lg'), h('div', {}, h('b', {}, `King of the Castle ${kings}×`), h('small', { class: 'muted' }, 'rounds finished wearing the crown')))) : null));
 }
 

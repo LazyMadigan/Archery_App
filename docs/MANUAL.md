@@ -5,11 +5,12 @@ Open the link on your phone. Add it to your home screen (Share → Add to Home S
 ## Shoot a round
 1. **Who's shooting** — type names (they're remembered next time). Up to six. Tick **Handicap** if you want points-per-target added for weaker archers; it suggests a number from past rounds and you can change it.
 2. **Scoring** — pick the system your group uses. Arrows per target is capped at 3 and by the system (World Archery 3D is 2, IFAA Hunting is 1, NFAS is walk-down up to 3). You can edit the points for any system in Settings.
-3. **Games** — tick any mix:
+3. **What are we doing** — *Fun round* (score against each other) or *Laser practice* (see below).
+   **Games** (fun round) — tick any mix:
    - **Total points** — the usual.
    - **King of the Castle** — best single arrow on the target wins it. Win and you're King; the King keeps the crown on a tie. Scoreboard shows holes won and the current streak.
    - **Skins** — each target is worth one skin; if nobody wins outright, it carries to the next (two skins riding, three…).
-   - **Guess the distance** — everyone calls the distance before shooting, then you lase it. 5 pts within 1 m, 3 within 2 m, 1 within 3 m. Separate leaderboard; great on your own too.
+   **Add-on: Guess the distance** — layers over any game. At each target everyone calls the distance *first*; scoring stays locked until the calls are locked in. Lase it after shooting. 5 pts within 1 m, 3 within 2 m, 1 within 3 m, on its own leaderboard.
 4. **Course** — load a saved course, build one now (category → animal → side, then drag to order), or leave it as *Pick as we go*.
 5. **Start shooting.**
 
@@ -19,6 +20,9 @@ Open the link on your phone. Add it to your home screen (Share → Add to Home S
 - Score an archer by **tapping the picture where the arrow landed** (the app reads the zone from the rings) or by tapping a **zone button**. Tap a player's row to switch who you're scoring. Tap an arrow chip to clear it.
 - **Next target ›** when everyone's in. **Board** any time for standings. **⇄** swaps the animal if you picked wrong.
 - Finish from the Board. You get a summary card you can save or share as an image.
+
+## Laser practice
+For sighting in, alone or together. At each target: lase the distance, enter the slope if there is one (the app shows the cut distance), enter the sight setting each archer used, shoot, score as normal. Every shot adds a point to your **sight chart** (Progress → Sight chart): distance against setting with a fitted curve and a 5 m lookup table. Once you have a few points, Laser practice suggests a setting for the distance you've just lased.
 
 ## Progress
 Per archer: average points per target across rounds (per scoring system), best round, where your arrows land (centre / inner / vital / body / miss), distance-judging error, and crowns won. The trend line needs two or more rounds.
