@@ -11,6 +11,10 @@ node tests/indoor.js               # profile, indoor Vegas set play, field, prog
 DEV='iPhone SE' node tests/indoor.js
 node tests/bow.js                  # compound vs recurve on the same tap
 node tests/export.js              # shoots rounds, exports, saves the .xlsx to /tmp
+node tests/achievements.test.mjs   # achievements engine unit tests
+node tests/achievements.js         # unlock pop-up, page, home tile
+node tests/sight.js                # sight marks: two bows, session, chart, image + Excel
+node tests/rules.js                # game rules pop-up
 node tests/practice.js              # indoor/field practice: goal required, shown while shooting, saved
 node tests/bows2.js  tests/book.js  tests/welcome.js  tests/pegs.js  tests/theme.js
 ```

@@ -3,7 +3,7 @@
 import { SYSTEMS, scoreTarget, ZONE_LABEL } from './scoring.js';
 import { SCHEMES, FACES, valueOf, bowName, schemeFor, endTotal } from './faces.js';
 
-function loadXLSX() {
+export function loadXLSX() {
   if (window.XLSX) return Promise.resolve(window.XLSX);
   return new Promise((ok, fail) => { const s = document.createElement('script'); s.src = 'vendor/xlsx.mini.min.js'; s.onload = () => ok(window.XLSX); s.onerror = () => fail(new Error('Could not load the spreadsheet library')); document.head.append(s); });
 }
@@ -67,6 +67,7 @@ export async function buildWorkbook(state, LIB) {
   const sRows = [['Date', 'Archer', 'Is me', 'Target', 'Distance lased (m)', 'Slope (%)', 'Cut distance (m)', 'Sight setting', 'Points scored']];
   rounds.filter(r => !r.kind).forEach(r => (r.targets || []).forEach((tg, ti) => r.players.forEach(p => { const sv = tg.sight?.[p.id]; if (sv == null) return; const T = lib(tg.targetId);
     sRows.push([d(r.started), p.name, p.name === me ? 'Yes' : '', T?.name || '', tg.distanceActual ?? '', tg.slope ?? '', cut(tg.distanceActual, tg.slope), sv, r.scores?.[ti]?.[p.id] ? scoreTarget(SYSTEMS[r.systemKey], r.scores[ti][p.id]) : '']); })));
+  (state.sight || []).forEach(c => (c.marks || []).forEach(m => sRows.push([d(m.at || c.updated), me, me ? 'Yes' : '', `Sight marks · ${c.bow}${c.note ? ' · ' + c.note : ''}`, m.d, '', m.d, m.s, ''])));
 
   // ---- Read me (written for an AI as much as a person)
   const sysLines = Object.values(SYSTEMS).map(s => [`3D scoring: ${s.name}`, s.desc]);
@@ -84,7 +85,7 @@ export async function buildWorkbook(state, LIB) {
     ['Arrows', 'Indoor and field only: every arrow. Hit X/Y are the arrow position on the face when it was tapped (centre = 0,0; edge = 1; +X is right, +Y is low). Positive mean X = grouping right; positive mean Y = grouping low. Arrows entered with a score button have no position.'],
     ['3D targets', 'Every 3D target each archer shot: animal, side faced, peg, lased distance, slope (% grade, + uphill), cut (horizontal) distance, zone hit per arrow, points, sight setting (Laser practice) and distance guess.'],
     ['Courses', 'Saved courses with each target and its distance/slope per peg colour.'],
-    ['Sight marks', 'Distance vs sight setting from Laser practice. Use cut distance to fit a sight curve.'],
+    ['Sight marks', 'Distance vs sight setting from 3D Laser practice and from Sight marks charts (Target column names the bow). Use cut distance to fit a sight curve.'],
     [''],
     ['SCORING'],
     ['3D zones', 'Centre (smallest ring) > Inner > Vital (outer kill zone) > Body (anywhere else on the animal) > Miss.'],

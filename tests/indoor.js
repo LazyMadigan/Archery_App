@@ -1,6 +1,6 @@
 const BASE = process.env.BASE || 'http://localhost:8111';
 const { chromium, devices } = require('playwright');
-(async () => { const b = await chromium.launch(); const ctx = await b.newContext({ ...devices[process.env.DEV || 'Pixel 7'] }); const p = await ctx.newPage(); await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); } catch {} }); p.on('dialog', d => d.accept()); const errs=[]; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type()==='error' && !/fonts|ERR_TUNNEL/.test(m.text())) errs.push(m.text()); });
+(async () => { const b = await chromium.launch(); const ctx = await b.newContext({ ...devices[process.env.DEV || 'Pixel 7'] }); const p = await ctx.newPage(); await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); localStorage.setItem('wa.rulesOff', JSON.stringify(['3d_king','3d_skins','3d_guess','t_king','t_sets']));  } catch {} }); p.on('dialog', d => d.accept()); const errs=[]; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type()==='error' && !/fonts|ERR_TUNNEL/.test(m.text())) errs.push(m.text()); });
   const over = async n => { const r = await p.evaluate(() => document.documentElement.scrollWidth > screen.width || window.innerWidth > screen.width); if (r) errs.push('OVERFLOW ' + n); };
   await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(700); await p.screenshot({ path: '/tmp/i0.png', fullPage: true }); await over('home');
   // profile

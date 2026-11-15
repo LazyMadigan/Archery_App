@@ -115,7 +115,7 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06
 td.num,th.num{text-align:right}
 .crown{color:var(--centre)}
 .search{position:sticky;top:60px;z-index:4;background:var(--bg);padding:6px 0}
-.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:9;opacity:0;transition:opacity .2s}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:18px;max-width:calc(100vw - 32px);width:max-content;text-align:center;pointer-events:none;font-size:14px;z-index:9;opacity:0;transition:opacity .2s}
 .toast.show{opacity:1}
 /* progress */
 .spark{width:100%;height:120px;display:block}
@@ -305,3 +305,37 @@ a.tile.button{display:flex;text-decoration:none;color:var(--fg);background:var(-
 .setprof b{display:block;font-family:var(--display);font-size:18px}.setprof small{color:var(--muted);font-weight:500}
 .avatar.sm{width:48px;height:48px;flex:none;background:var(--brand)!important;color:#fff;border:0!important;font-size:16px}
 .avatar.sm .ic{color:#fff}
+
+/* achievements */
+.ach{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+.ach .ach-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;background:color-mix(in srgb,var(--muted) 14%,var(--panel));color:var(--muted)}
+.ach.on{border-color:color-mix(in srgb,var(--brand) 55%,var(--line))}
+.ach.on .ach-ic{background:var(--brand);color:#fff}
+.ach b{font-family:var(--display);font-size:16px;display:block}
+.ach small{display:block;color:var(--muted);font-size:13px}
+.ach small.ach-when{color:var(--brand);font-weight:600;font-size:12px;margin-top:2px}
+.ach .chk{width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.ach .chk .ic{width:15px;height:15px;color:#fff}
+.ach-prog{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--muted)}
+.ach-prog .bar{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.ach-prog .bar i{display:block;height:100%;background:var(--brand)}
+.ach-prog.big{font-size:15px;font-weight:700;color:var(--fg)}.ach-prog.big .bar{height:10px;border-radius:5px}
+
+.tile.wide{grid-column:1/-1}
+/* sight marks */
+.sdist{text-align:center;padding:6px 0}.sdist .big{font-family:var(--display);font-size:64px;font-weight:800;line-height:1}.sdist .big small{font-size:24px;color:var(--muted)}
+.scalls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.scalls .sc{width:40px;height:40px;border-radius:50%;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted)}
+.scalls .sc.on{border:0;background:var(--brand);color:#fff}.scalls .sc.high,.scalls .sc.low{border:0;background:color-mix(in srgb,var(--peg-red) 80%,var(--panel));color:#fff}
+.stable{width:100%;border-collapse:collapse;font-size:15px}.stable th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 8px}.stable td{padding:8px;border-top:1px solid var(--line)}.stable .num{text-align:right}.stable tr.m td{font-weight:800}
+.smark input{min-width:0}
+
+/* game rules sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(8,12,24,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fadein .15s}
+.sheet{background:var(--panel);color:var(--fg);width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;max-height:85vh;overflow:auto}
+.sheet h2{margin:0;font-family:var(--display);font-size:24px}
+.sheet .sheet-ic{width:48px;height:48px;border-radius:14px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.sheet .sheet-ic .ic{color:#fff}
+.rules{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:1.4}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.homehead{margin:10px 2px -4px}

@@ -61,7 +61,7 @@ function profile() {
         my.length || best3d ? h('h3', { style: 'margin-top:6px' }, 'Personal bests') : h('div', { class: 'muted', style: 'font-size:13px' }, 'Finish a round and your personal bests show here.'),
         ...my.map(b => h('div', { class: 'pb' }, h('span', { class: 'pbk' }, icon(KIND[b.kind].icon)), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, b.label), h('small', {}, new Date(b.date).toLocaleDateString())), h('div', { class: 'pbv' }, String(b.total), h('small', {}, `/${b.max}${b.xs ? ` · ${b.xs}X` : ''}`)))),
         best3d ? h('div', { class: 'pb' }, h('span', { class: 'pbk' }, icon('bow')), h('div', { style: 'flex:1' }, h('b', {}, '3D best round'), h('small', {}, `${best3d.r.targets.length} targets · ${new Date(best3d.r.started).toLocaleDateString()}`)), h('div', { class: 'pbv' }, String(best3d.gross))) : null,
-        h('button', { onclick: () => { state.progName = name; state.pdraft = null; go('progress'); } }, 'See progress')) : null,
+        h('div', { class: 'row' }, h('button', { onclick: () => { state.progName = name; state.pdraft = null; go('progress'); } }, 'See progress'), h('button', { onclick: () => { state.pdraft = null; state.achBack = 'profile'; go('achievements'); } }, `Achievements ${C.achCount().join('/')}`))) : null,
       h('div', { class: 'card' }, h('div', { class: 'row' }, icon('share'), h('h3', {}, 'Export my data')),
         h('div', { class: 'muted', style: 'font-size:13px' }, 'One Excel file with your profile, every round, every arrow, your 3D targets, courses and sight marks. It includes a “Read me” sheet that explains the data, so you can give it to an AI and ask for coaching advice. Built on this phone; your photo isn’t included.'),
         h('div', { class: 'row' },
@@ -114,7 +114,7 @@ function tsetup() {
         h('small', { id: 'tGoalHint', class: 'muted', style: 'font-size:12px' }, goalHint())) : null,
       practice ? null : h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Game'),
         h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Highest total wins'], ['king', 'crown', 'King of the Castle', 'Best end takes the crown; hold it to stay King'], ['sets', 'trophy', 'Set play', 'Olympic match style: 2 points for winning an end, 1 each for a tie. First to 6 (head to head)']].map(([k, ic, n, desc]) =>
-          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games = { [k]: true }; C.render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))))),
+          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { const was = d.games[k]; d.games = { [k]: true }; C.render(); if (!was) C.showRules?.('t_' + k); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))))),
     h('div', { class: 'bottombar' }, h('button', { id: 'tStart', class: 'primary', disabled: !canStart(), onclick: () => { if (canStart()) startT(); } }, practice ? 'Start practice' : 'Start shooting')));
 }
 function startT() {
@@ -177,7 +177,7 @@ function tboard() {
 }
 function finishT() {
   const { state, save, go } = C; const r = state.tround; const { tal, sp, kg } = standings(r);
-  r.final = { tally: tal, sets: sp, king: kg, ended: Date.now() }; state.history.unshift(r); state.tround = null; state.tlast = r; save(); go('tsummary');
+  r.final = { tally: tal, sets: sp, king: kg, ended: Date.now() }; state.history.unshift(r); state.tround = null; state.tlast = r; save(); go('tsummary'); C.achCheck?.();
 }
 function tsummary() {
   const { h, icon, state, save, go, topbar, confirmBox } = C; const r = state.tlast; if (!r) { go('home'); return h('div'); }

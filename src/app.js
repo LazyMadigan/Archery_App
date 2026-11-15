@@ -2,6 +2,8 @@ import { SYSTEMS, ZONES, ZONE_LABEL, scoreTarget, maxArrows } from './scoring.js
 import { totals, kingOfTheCastle, skins, guessTotals, suggestHandicap, distancePoints } from './games.js';
 import { icon } from './icons.js';
 import { init as initTarget, isTarget } from './target.js';
+import { init as initSight, sightFit } from './sight.js';
+import { evaluate as evalAch, GROUPS as ACH_GROUPS, TOTAL as ACH_TOTAL } from './achievements.js';
 
 // ---------- state ----------
 const LS = {
@@ -23,10 +25,14 @@ let state = {
   profile: LS.get('wa.profile', {}),
   onboarded: LS.get('wa.onboarded', false),
   theme: LS.get('wa.theme', 'system'),
+  achSeen: LS.get('wa.ach', null),
+  rulesOff: LS.get('wa.rulesOff', []),  // games whose rules pop-up was turned off
+  sight: LS.get('wa.sight', []),        // sight mark charts, one per bow setup
+  sdraft: LS.get('wa.sdraft', null),    // sight marks session in progress      // achievement ids already announced
 };
 function applyTheme() { const r = document.documentElement; if (state.theme === 'light' || state.theme === 'dark') r.dataset.theme = state.theme; else delete r.dataset.theme; }
 applyTheme();
-const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); LS.set('wa.onboarded', state.onboarded); LS.set('wa.theme', state.theme); };
+const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); LS.set('wa.onboarded', state.onboarded); LS.set('wa.theme', state.theme); if (state.achSeen) LS.set('wa.ach', state.achSeen); LS.set('wa.sight', state.sight); LS.set('wa.rulesOff', state.rulesOff); LS.set('wa.sdraft', state.sdraft); };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const $ = sel => document.querySelector(sel);
 const h = (tag, attrs = {}, ...kids) => {
@@ -40,7 +46,51 @@ const h = (tag, attrs = {}, ...kids) => {
   kids.flat().forEach(k => k != null && el.append(k.nodeType ? k : document.createTextNode(k)));
   return el;
 };
-function toast(msg) { let t = $('.toast'); if (!t) { t = h('div', { class: 'toast' }); document.body.append(t); } t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+function toast(msg, ms = 1800) { let t = $('.toast'); if (!t) { t = h('div', { class: 'toast' }); document.body.append(t); } t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms); }
+// ---------- game rules pop-up ----------
+const RULES = {
+  '3d_king': ['King of the Castle', 'crown', ['On each target, the best single arrow wins it.', 'Win a target and you take the crown. Keep winning targets to stay King.', 'If the King ties for best, the King keeps the crown. If challengers tie, nobody takes it.', 'Whoever holds the crown after the last target wins.']],
+  '3d_skins': ['Skins', 'skin', ['Every target is a skin.', 'The best single arrow on a target wins the skin.', 'A tie means nobody wins it: the skin rolls over, so the next target is worth 2 (then 3, and so on).', 'Most skins at the end wins.']],
+  '3d_guess': ['Guess the distance', 'ruler', ['Before anyone shoots, everyone enters their guess for the distance. Guesses lock once entered.', 'After shooting, enter the real distance (lase it or use the peg).', 'Within 1 m scores 5, within 2 m scores 3, within 3 m scores 1.', 'It runs alongside your main game. Distances stay hidden while it’s on.']],
+  't_king': ['King of the Castle', 'crown', ['Each end, the best end total wins the end and takes the crown.', 'If the King ties for best, the King keeps it. If challengers tie, nobody wins that end.', 'Most ends won ranks first. The crown shows who held it last.']],
+  't_sets': ['Set play', 'trophy', ['Olympic match style, scored end by end.', 'Highest end total gets 2 set points. A tie gives 1 to each archer who tied.', 'Head to head, the first to 6 set points wins. With more archers, most set points wins.', 'Your arrows still count towards your total and personal bests.']],
+};
+function showRules(key) {
+  const R = RULES[key]; if (!R || (state.rulesOff || []).includes(key)) return; document.querySelector('.sheet-bg')?.remove();
+  let off = false; const close = () => { if (off) { state.rulesOff = [...new Set([...(state.rulesOff || []), key])]; save(); } bg.remove(); };
+  const bg = h('div', { class: 'sheet-bg', onclick: e => { if (e.target === bg) close(); } },
+    h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': `${R[0]} rules` },
+      h('div', { class: 'row' }, h('span', { class: 'sheet-ic' }, icon(R[1], 'lg')), h('div', { style: 'flex:1' }, h('small', { class: 'muted' }, 'How to play'), h('h2', {}, R[0]))),
+      h('ol', { class: 'rules' }, ...R[2].map(t => h('li', {}, t))),
+      h('label', { class: 'row', style: 'gap:10px;font-size:14px' }, h('input', { type: 'checkbox', style: 'width:22px;min-height:22px;flex:0 0 22px', onchange: e => { off = e.target.checked; } }), h('span', {}, 'Don’t show this again')),
+      h('div', { class: 'grid c2' }, h('button', { class: 'ghost', onclick: close }, 'Skip'), h('button', { class: 'primary', onclick: close }, 'Got it'))));
+  document.body.append(bg);
+}
+
+// ---------- achievements ----------
+const sysFor = k => { if (!SYSTEMS[k]) return null; const s = structuredClone(SYSTEMS[k]); const o = state.pointsOverride[k]; if (o) s.table = o; return s; };
+const achList = () => { const me = (state.profile?.name || '').trim(); return me ? evalAch(state.history, me, sysFor, (state.sight || []).flatMap(c => c.marks.map(m => m.at || c.updated))) : []; };
+function achCheck() { // after a round is saved: announce anything newly earned
+  const done = achList().filter(a => a.done); if (!state.achSeen) { state.achSeen = done.map(a => a.id); save(); return; }
+  const fresh = done.filter(a => !state.achSeen.includes(a.id)); if (!fresh.length) return;
+  state.achSeen = [...state.achSeen, ...fresh.map(a => a.id)]; save();
+  setTimeout(() => toast(fresh.length === 1 ? `🏅 Achievement unlocked: ${fresh[0].t}` : `🏅 ${fresh.length} achievements unlocked: ${fresh.map(a => a.t).join(', ')}`, 4000), 300);
+}
+function achievementsView() {
+  const me = (state.profile?.name || '').trim(); const list = achList(); const n = list.filter(a => a.done).length;
+  if (!state.achSeen && me) { state.achSeen = list.filter(a => a.done).map(a => a.id); save(); }
+  const badge = a => h('div', { class: 'ach' + (a.done ? ' on' : '') }, h('span', { class: 'ach-ic' }, icon(a.ic, 'lg')),
+    h('div', { style: 'flex:1;min-width:0' }, h('b', {}, a.t), h('small', {}, a.d),
+      a.done ? h('small', { class: 'ach-when' }, `Earned ${new Date(a.date).toLocaleDateString()}`)
+        : a.need ? h('div', { class: 'ach-prog' }, h('div', { class: 'bar' }, h('i', { style: `width:${Math.round(a.have / a.need * 100)}%` })), h('span', {}, `${a.have.toLocaleString()} / ${a.need.toLocaleString()}`)) : null),
+    a.done ? h('span', { class: 'chk' }, icon('check')) : null);
+  return h('div', {}, topbar('Achievements', me ? `${n} of ${ACH_TOTAL} unlocked` : 'Add your name to start', () => go(state.achBack || 'home')),
+    h('div', { class: 'page' },
+      !me ? h('div', { class: 'card' }, h('div', {}, 'Achievements are worked out from rounds where you’re one of the archers, so the app needs your name.'), h('button', { class: 'primary', onclick: () => { state.pback = 'achievements'; go('profile'); } }, 'Add my name')) :
+        h('div', { class: 'card' }, h('div', { class: 'ach-prog big' }, h('div', { class: 'bar' }, h('i', { style: `width:${Math.round(n / ACH_TOTAL * 100)}%` })), h('span', {}, `${n} / ${ACH_TOTAL}`)), h('small', { class: 'muted' }, 'Earned from your saved rounds on this phone. Delete a round and anything that depended on it goes too.')),
+      ...(me ? ACH_GROUPS.map(([g, title]) => { const items = list.filter(a => a.g === g); const got = items.filter(a => a.done).length;
+        return h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, `${title} · ${got}/${items.length}`), h('div', { class: 'list' }, ...items.sort((x, y) => (y.done - x.done)).map(badge))); }) : [])));
+}
 function system() { const s = structuredClone(SYSTEMS[state.round?.systemKey || state.draft?.systemKey || 'ifaa_hunting']); const o = state.pointsOverride[state.round?.systemKey]; if (o) s.table = o; return s; }
 let T; // indoor/field module, initialised after helpers
 const findTarget = id => LIB.targets.find(t => t.id === id);
@@ -50,7 +100,7 @@ const findFace = (t, fid) => t?.faces.find(f => f.id === fid) || t?.faces[0];
 function render() {
   const y = window.scrollY;
   const app = $('#app'); app.innerHTML = '';
-  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about, tsetup: T.tsetup, tplay: T.tplay, tboard: T.tboard, tsummary: T.tsummary, profile: T.profile, welcome };
+  const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about, tsetup: T.tsetup, tplay: T.tplay, tboard: T.tboard, tsummary: T.tsummary, profile: T.profile, welcome, achievements: achievementsView, sight: S.sight, schart: S.schart, ssetup: S.ssetup, splay: S.splay };
   if (state.view === 'home' && !state.onboarded && !(state.profile?.name || '').trim() && !state.round && !state.tround && !state.history.length) state.view = 'welcome';
   app.append((views[state.view] || home)());
   if (state._lastView !== state.view || state._top) window.scrollTo(0, 0); else window.scrollTo(0, y);
@@ -94,6 +144,7 @@ function home() {
         h('p', {}, '3D courses, indoor and field. Games with your mates and a record of every arrow.'),
         h('div', { class: 'animals' }, ...animals.map(t => h('img', { src: t.faces[0].photo, alt: '' })))),
       live3d, T.liveCard(),
+      h('h3', { class: 'homehead' }, 'Shoot now'),
       h('div', { class: 'list' },
         disc('bow', '3D Course', 'Courses, games, laser practice', startSetup),
         disc('rings', 'Indoor', 'WA 18, Vegas · 10–18 m', () => T.startTarget('indoor')),
@@ -102,17 +153,21 @@ function home() {
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')),
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrowsShot)), h('div', { class: 'k' }, 'Arrows shot')),
         h('div', { class: 'stat' }, h('div', { class: 'v' }, String(myPbs)), h('div', { class: 'k' }, me ? 'My PBs' : 'PBs'))) : null,
+      h('h3', { class: 'homehead' }, 'Off the line'),
       h('div', { class: 'grid c2' },
         h('button', { class: 'tile', onclick: () => go('progress') }, icon('trend', 'lg'), 'Progress', h('small', {}, 'trends & sight chart')),
         h('button', { class: 'tile', onclick: () => go('history') }, icon('history', 'lg'), 'History', h('small', {}, `${hist.length} rounds`)),
         (() => { const link = (state.profile?.booking || '').trim(); const ok = /^https?:\/\//i.test(link);
           return ok ? h('a', { class: 'tile button', href: link, target: '_blank', rel: 'noopener' }, icon('calendar', 'lg'), 'Booking', h('small', {}, (state.profile?.club || '').trim() || 'Club bookings'))
                     : h('button', { class: 'tile', onclick: () => { state.focusBooking = true; go('profile'); } }, icon('calendar', 'lg'), 'Booking', h('small', {}, 'Add your club’s link')); })(),
+        h('button', { class: 'tile', onclick: () => go(state.sdraft ? 'splay' : 'sight') }, icon('ruler', 'lg'), 'Sight marks', h('small', {}, state.sdraft ? 'Session in progress' : (state.sight || []).length ? `${state.sight.length} chart${state.sight.length > 1 ? 's' : ''}` : 'Chart every bow')),
         h('button', { class: 'tile', onclick: () => go('courses') }, icon('course', 'lg'), '3D Courses', h('small', {}, `${state.courses.length} saved`)),
-        h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), '3D Targets', h('small', {}, `${LIB.targets.length} animals`))),
+        h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), '3D Targets', h('small', {}, `${LIB.targets.length} animals`)),
+        h('button', { class: 'tile wide', onclick: () => { state.achBack = 'home'; go('achievements'); } }, icon('trophy', 'lg'), 'Achievements', h('small', {}, me ? `${achList().filter(a => a.done).length} of ${ACH_TOTAL} unlocked` : `${ACH_TOTAL} to earn`))),
       h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.')));
 }
-T = initTarget({ lib: () => LIB, h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, sparkline: (...x) => sparkline(...x) });
+T = initTarget({ lib: () => LIB, h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, sparkline: (...x) => sparkline(...x), achCheck: () => achCheck(), showRules: k => showRules(k), achCount: () => { const l = achList(); return [l.filter(a => a.done).length, ACH_TOTAL]; } });
+const S = initSight({ h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, achCheck: () => achCheck() });
 function welcome() {
   const done = v => { state.onboarded = true; save(); go(v); };
   return h('div', { class: 'welcome' },
@@ -158,9 +213,9 @@ function setup() {
           h('div', { class: 'gamecard' + (d.mode === 'laser' ? ' on' : ''), onclick: () => { d.mode = 'laser'; d.games.guess = false; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Laser practice'), h('small', {}, 'Lase it, dial your sight, shoot. Builds your sight chart')), h('span', { class: 'chk' }, d.mode === 'laser' ? icon('check') : null)))),
       d.mode === 'fun' ? h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Game'),
         h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Plain score, highest wins'], ['king', 'crown', 'King of the Castle', 'Best arrow takes the target; hold it to stay King'], ['skins', 'skin', 'Skins', 'Each target is a skin; ties roll over']].map(([k, ic, n, desc]) =>
-          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games.total = d.games.king = d.games.skins = false; d.games[k] = true; render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))),
+          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { const was = d.games[k]; d.games.total = d.games.king = d.games.skins = false; d.games[k] = true; render(); if (!was) showRules('3d_' + k); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))),
         h('h3', { style: 'margin:14px 0 8px' }, 'Add-on'),
-        h('div', { class: 'gamecard' + (d.games.guess ? ' on' : ''), onclick: () => { d.games.guess = !d.games.guess; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Guess the distance'), h('small', {}, 'Everyone calls it before anyone shoots. Lase it after. Runs alongside whatever game you play')), h('span', { class: 'chk' }, d.games.guess ? icon('check') : null))) : null,
+        h('div', { class: 'gamecard' + (d.games.guess ? ' on' : ''), onclick: () => { d.games.guess = !d.games.guess; render(); if (d.games.guess) showRules('3d_guess'); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Guess the distance'), h('small', {}, 'Everyone calls it before anyone shoots. Lase it after. Runs alongside whatever game you play')), h('span', { class: 'chk' }, d.games.guess ? icon('check') : null))) : null,
       h('div', { class: 'card' }, h('h3', {}, 'Shooting order'),
         h('div', { class: 'chips c3' }, ...[['rotate', 'Rotate'], ['honour', 'Honour'], ['fixed', 'Fixed']].map(([k, n]) => h('button', { class: d.order === k ? 'on' : '', onclick: () => { d.order = k; render(); } }, n))),
         h('div', { class: 'muted', style: 'font-size:13px' }, { rotate: 'Field archery standard: the app draws the order on target 1, then the first shooter drops to the back each target so everyone takes a turn up front.', honour: 'Golf style: whoever scored best on the last target shoots first. Ties keep the order. Order on target 1 is drawn.', fixed: 'Same order every target, drawn on target 1.' }[d.order])),
@@ -420,7 +475,7 @@ function board() {
 function finishRound() {
   const r = state.round; const sys = system();
   r.final = { totals: totals(r, sys), king: r.games.king ? kingOfTheCastle(r, sys) : null, skins: r.games.skins ? skins(r, sys) : null, guess: r.games.guess ? guessTotals(r) : null, ended: Date.now() };
-  state.history.unshift(r); state.round = null; state.last = r; save(); go('summary');
+  state.history.unshift(r); state.round = null; state.last = r; save(); go('summary'); achCheck();
 }
 function summary() {
   const r = state.last || state.history[0]; if (!r) return home(); const sys = SYSTEMS[r.systemKey];
@@ -457,16 +512,6 @@ function sightPoints(name) {
   const all = [...state.history, ...(state.round ? [state.round] : [])];
   all.filter(r => !isTarget(r)).forEach(r => { const p = r.players.find(p => p.name === name); if (!p) return; (r.targets || []).forEach(t => { if (t.distanceActual != null && t.sight?.[p.id] != null) pts.push({ d: t.distanceActual * Math.cos(Math.atan((t.slope || 0) / 100)), s: t.sight[p.id] }); }); });
   return pts;
-}
-function sightFit(pts) { // least squares quadratic s = a d^2 + b d + c (falls back to linear / none)
-  if (pts.length < 2) return null;
-  const n = pts.length; const S = k => pts.reduce((a, p) => a + p.d ** k, 0); const T = k => pts.reduce((a, p) => a + p.s * p.d ** k, 0);
-  if (n < 3) { const b = (T(1) - S(1) * T(0) / n) / (S(2) - S(1) ** 2 / n || 1); const c = (T(0) - b * S(1)) / n; return d => b * d + c; }
-  const A = [[S(4), S(3), S(2)], [S(3), S(2), S(1)], [S(2), S(1), n]], B = [T(2), T(1), T(0)];
-  for (let i = 0; i < 3; i++) { let m = i; for (let k = i + 1; k < 3; k++) if (Math.abs(A[k][i]) > Math.abs(A[m][i])) m = k; [A[i], A[m]] = [A[m], A[i]]; [B[i], B[m]] = [B[m], B[i]]; if (Math.abs(A[i][i]) < 1e-9) return null;
-    for (let k = i + 1; k < 3; k++) { const f = A[k][i] / A[i][i]; for (let j = i; j < 3; j++) A[k][j] -= f * A[i][j]; B[k] -= f * B[i]; } }
-  const x = [0, 0, 0]; for (let i = 2; i >= 0; i--) { x[i] = (B[i] - (i < 2 ? A[i][i + 1] * x[i + 1] : 0) - (i < 1 ? A[i][i + 2] * x[i + 2] : 0)) / A[i][i]; }
-  return d => x[0] * d * d + x[1] * d + x[2];
 }
 function sightSuggest(name, dist, slope) { const f = sightFit(sightPoints(name)); if (!f || dist == null) return null; const v = f(dist * Math.cos(Math.atan((slope || 0) / 100))); return isFinite(v) ? Math.round(v * 2) / 2 : null; }
 function sightCard(name) {

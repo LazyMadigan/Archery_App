@@ -8,6 +8,23 @@ Live app: https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
 
 ## v0.3.x — 15 Nov 2026 (evening): disciplines, profile, polish
 
+### Sight marks — a sight mark chart for every bow
+- New home tile **Sight marks**. Name the bow (e.g. "30lb Hoyt"), pick its type, tick the distances you have targets at (or add your own), choose arrows per distance.
+- At each distance: call each arrow **High / On / Low** (the app says which way to move the sight), enter the setting the group was on with. After the first marks it suggests a setting from the curve.
+- Builds a **sight mark chart**: fitted curve, a row every 5 m across your range (bold = shot, others from the curve). Edit, add or remove marks by hand.
+- Save or share the chart as an **image card** or an **Excel file**; **Export all charts** makes one workbook with a sheet per bow. Charts are kept per bow; reshooting a distance replaces that mark. Marks also appear in Profile → Export my data.
+
+### Achievements — 60 to earn
+- New **Achievements** page (home tile and Profile): arrows shot (100 → 10,000), rounds, firsts, habits (twice in a week, 3/6/12/26-week streaks, back-to-back days, weekend warrior, early bird, night owl), variety, indoor & field scores (first X, perfect ends, WA 18 450–570, Vegas 250/280, % of max), personal bests, 3D scores (centres, clean rounds, % of max), games won, sight marks.
+- Earned from the profile owner's saved rounds; progress bars on count-based ones; a pop-up announces new ones when a round is saved.
+
+### Game rules pop-up
+- Picking King of the Castle, Skins, Guess the distance (3D) or King of the Castle, Set play (indoor/field) shows how to play. **Skip** or **Got it**, and **Don't show this again** per game.
+
+### Home: "Shoot now" and "Off the line"
+- The three disciplines sit under **Shoot now**; everything else under **Off the line**. Achievements spans the full width.
+- Pop-up messages no longer block taps underneath them.
+
 ### Home: Indoor tile on one line
 - Indoor subtitle shortened to "WA 18, Vegas · 10–18 m" so the tile is the same height as 3D Course and Field. (Portsmouth is still in the round list.)
 

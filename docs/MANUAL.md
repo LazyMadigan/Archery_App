@@ -75,3 +75,12 @@ Stays on your phone. See PRIVACY.md. Settings → Export backup makes a file you
 
 ## Indoor and Field practice
 In Indoor or Field setup, **What are we doing** offers *Fun round* (score against each other, with a game) or *Practice*. Practice asks for **a goal for the session** and won't start until you write one (e.g. "hold at full draw until the shot breaks"). The goal stays at the top of the screen while you shoot and on the scoreboard. When you finish, the summary shows the goal again with a **How did it go?** box for notes. The goal and notes are saved with the round and show in History. Practice scores still count towards progress and personal bests.
+
+## Sight marks
+Home → **Sight marks** keeps a sight mark chart for each bow. **+ New sight chart**: name the bow (e.g. "30lb Hoyt"), type and an optional note, tick the distances you have targets at, and set arrows per distance. At each distance, shoot, tap **High / On / Low** for each arrow (move the sight towards the arrows: group high, sight up), adjust until the group is on, and enter the setting. **Finish & build chart** fits a curve and lists a setting every 5 m across your range; bold rows were shot, the rest come from the curve. From a chart: **Save/Share image**, **Export/Share Excel**, edit or add marks, or **Shoot a session** to update it. **Export all charts to Excel** puts every bow in one workbook.
+
+## Achievements
+Home → **Achievements** (or Profile). 60 badges earned from rounds where you are an archer (your profile name): arrows shot, rounds, firsts, weekly habits and streaks (weeks run Monday–Sunday), scores, personal bests, games won and sight marks. New ones pop up when you save a round. Deleting a round removes anything that depended on it.
+
+## Game rules
+Picking a game shows a short how-to-play. Tick **Don't show this again** to stop it for that game.

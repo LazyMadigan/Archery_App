@@ -1,7 +1,7 @@
 const BASE = process.env.BASE || 'http://localhost:8111';
 const { chromium, devices } = require('playwright');
 (async () => {
-  const b = await chromium.launch(); const ctx = await b.newContext({ ...devices['Pixel 7'] }); const p = await ctx.newPage(); await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); } catch {} });
+  const b = await chromium.launch(); const ctx = await b.newContext({ ...devices['Pixel 7'] }); const p = await ctx.newPage(); await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); localStorage.setItem('wa.rulesOff', JSON.stringify(['3d_king','3d_skins','3d_guess','t_king','t_sets']));  } catch {} });
   const errs = []; p.on('dialog', d => d.accept()); p.on('pageerror', e => errs.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('CONSOLE ' + m.text()); });
   await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(800);
   await p.screenshot({ path: '/tmp/s1.png' });
