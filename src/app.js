@@ -105,7 +105,7 @@ function startSetup() {
 }
 function setup() {
   const d = state.draft; const sys = SYSTEMS[d.systemKey];
-  d.arrows = maxArrows(sys, d.arrows);
+  d.arrows = sys.arrows;
   const playerRow = (p, i) => h('div', { class: 'row' },
     h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; if (d.useHandicap) { const s = suggestHandicap(state.history, p.name, d.systemKey); if (s != null) p.handicap = s; } const sb = $('#startBtn'); if (sb) sb.disabled = !d.players.some(x => x.name.trim()); } }),
     d.useHandicap ? h('input', { type: 'number', step: '0.5', style: 'flex:0 0 90px', value: p.handicap, title: 'Handicap: points per target added', oninput: e => p.handicap = parseFloat(e.target.value) || 0 }) : null,
@@ -121,16 +121,14 @@ function setup() {
           h('label', { class: 'row', style: 'flex:0 0 auto' }, h('input', { type: 'checkbox', style: 'width:24px;min-height:24px', checked: d.useHandicap, onchange: e => { d.useHandicap = e.target.checked; if (d.useHandicap) d.players.forEach(p => { const s = suggestHandicap(state.history, p.name, d.systemKey); if (s != null) p.handicap = s; }); render(); } }), 'Handicap'))),
       h('div', { class: 'card' }, h('h3', {}, 'Scoring'),
         h('select', { onchange: e => { d.systemKey = e.target.value; d.arrows = SYSTEMS[d.systemKey].arrows; render(); } }, ...Object.entries(SYSTEMS).map(([k, s]) => h('option', { value: k, selected: k === d.systemKey }, s.name))),
-        h('div', { class: 'muted', style: 'font-size:13px' }, sys.desc),
-        h('div', { class: 'row' }, h('span', { style: 'flex:0 0 auto' }, 'Arrows per target'),
-          h('div', { class: 'seg' }, ...[1, 2, 3].map(n => h('button', { class: (d.arrows === n ? 'on' : ''), disabled: n > sys.arrows, onclick: () => { d.arrows = n; render(); } }, String(n)))))),
+        h('div', { class: 'muted', style: 'font-size:13px' }, sys.desc)),
       h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'What are we doing'),
         h('div', { class: 'list' },
           h('div', { class: 'gamecard' + (d.mode === 'fun' ? ' on' : ''), onclick: () => { d.mode = 'fun'; render(); } }, icon('trophy', 'lg'), h('div', {}, h('b', {}, 'Fun round'), h('small', {}, 'Score against each other')), h('span', { class: 'chk' }, d.mode === 'fun' ? icon('check') : null)),
           h('div', { class: 'gamecard' + (d.mode === 'laser' ? ' on' : ''), onclick: () => { d.mode = 'laser'; d.games.guess = false; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Laser practice'), h('small', {}, 'Lase it, dial your sight, shoot. Builds your sight chart')), h('span', { class: 'chk' }, d.mode === 'laser' ? icon('check') : null)))),
-      d.mode === 'fun' ? h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Games'),
+      d.mode === 'fun' ? h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Game'),
         h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Plain score, highest wins'], ['king', 'crown', 'King of the Castle', 'Best arrow takes the target; hold it to stay King'], ['skins', 'skin', 'Skins', 'Each target is a skin; ties roll over']].map(([k, ic, n, desc]) =>
-          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games[k] = !d.games[k]; render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))),
+          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games.total = d.games.king = d.games.skins = false; d.games[k] = true; render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))),
         h('h3', { style: 'margin:14px 0 8px' }, 'Add-on'),
         h('div', { class: 'gamecard' + (d.games.guess ? ' on' : ''), onclick: () => { d.games.guess = !d.games.guess; render(); } }, icon('ruler', 'lg'), h('div', {}, h('b', {}, 'Guess the distance'), h('small', {}, 'Everyone calls it before anyone shoots. Lase it after. Runs alongside whatever game you play')), h('span', { class: 'chk' }, d.games.guess ? icon('check') : null))) : null,
       h('div', { class: 'card' }, h('h3', {}, 'Shooting order'),
