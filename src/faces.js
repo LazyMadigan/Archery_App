@@ -50,7 +50,7 @@ export function drawFace(scheme, { arrows = [], onTap, size = '100%', faded = []
   const labs = RING_LABEL[scheme] || []; const n = labs.length;
   labs.forEach((v, i) => { const outer = scheme === 'ifaa' ? [1, 2 / 3, 1 / 3][i] : 1 - i / n; const inner = scheme === 'ifaa' ? [2 / 3, 1 / 3, 0][i] : 1 - (i + 1) / n; if (i === n - 1 && scheme !== 'ifaa') return;
     const mid = (outer + inner) / 2 * 100; const fill = bands(scheme).find(b => b[0] >= outer - 1e-6 && b[0] <= outer + 1e-6)?.[1];
-    const t = mk('text', { x: mid, y: 3.5, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: fill === BLACK ? '#fff' : '#222', opacity: .55 }); t.textContent = v; svg.append(t); });
+    const t = mk('text', { x: mid, y: 3.5, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: fill === BLACK ? '#fff' : '#111', opacity: .9 }); t.textContent = v; svg.append(t); });
   faded.forEach(a => svg.append(mk('circle', { cx: a.x * 100, cy: a.y * 100, r: 2.6, fill: '#111', 'fill-opacity': .28 })));
   arrows.forEach((a, i) => { svg.append(mk('circle', { cx: a.x * 100, cy: a.y * 100, r: 4.2, fill: '#111', stroke: '#fff', 'stroke-width': 1.4 }));
     const t = mk('text', { x: a.x * 100, y: a.y * 100 + 2.6, 'text-anchor': 'middle', 'font-size': 6.5, 'font-weight': 800, fill: '#fff' }); t.textContent = i + 1; svg.append(t); });

@@ -181,7 +181,7 @@ function home() {
             h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'),
             h('button', { onclick: () => go('board') }, 'Scoreboard'),
             h('button', { onclick: () => { if (confirmBox('Stop here and save the round?')) finishRound(); } }, 'Stop & save'),
-            h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })() : null;
+            h('button', { class: 'ghost', style: 'color:var(--danger)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })() : null;
   const disc = (ic, title, sub, onclick) => h('button', { class: 'disc', onclick }, h('span', { class: 'disc-ic' }, icon(ic, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, title), h('small', {}, sub)), h('span', { class: 'disc-go' }, icon('back')));
   return h('div', {},
     topbar((state.profile?.club || '').trim() || '3D Fun Round', null, null, h('div', { class: 'row', style: 'flex:0 0 auto;gap:8px' }, h('button', { onclick: () => go('settings'), 'aria-label': 'Settings' }, icon('cog')), T.profileBadge(() => { state.pback = 'home'; go('profile'); }))),
@@ -312,7 +312,7 @@ function course() {
     return h('div', { class: 'item', style: 'flex-wrap:wrap' },
       h('div', { class: 'rowtap', onclick: () => { state.openPeg = open ? null : i; render(); } },
         F?.photo ? h('img', { src: F.photo, style: 'height:40px;width:48px;object-fit:contain;flex:none' }) : h('span', { style: 'width:48px;flex:none' }),
-        h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, F?.label || ''), summary || h('div', { class: 'pegsum' }, h('span', { style: 'color:var(--brand);font-weight:600' }, 'Tap to add distances')))),
+        h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, F?.label || ''), summary || h('div', { class: 'pegsum' }, h('span', { style: 'color:var(--brand-text);font-weight:600' }, 'Tap to add distances')))),
       h('div', { class: 'rowbtns' },
         h('button', { class: 'ghost' + (open ? ' on' : ''), title: 'Distances & slope', style: 'width:auto;padding:0 8px;font-size:13px;font-weight:700', onclick: () => { state.openPeg = open ? null : i; render(); } }, has.length ? 'm ✓' : '+ m'),
         h('button', { class: 'ghost', disabled: i === 0, onclick: () => { [d.targets[i - 1], d.targets[i]] = [d.targets[i], d.targets[i - 1]]; state.openPeg = null; render(); } }, '↑'),
@@ -520,7 +520,7 @@ function board() {
     h('div', { class: 'page' }, h('div', { class: 'card' }, table),
       r.players.length > 1 ? h('div', { class: 'row', style: 'font-size:13px' }, h('span', { class: 'muted', style: 'flex:0 0 auto' }, `Next up (${r.order}):`), ...orderFor(r, nextUnscored(), sys).map((id, i) => h('span', { class: 'pill' }, `${i + 1}. ${r.players.find(p => p.id === id)?.name}`))) : null,
       h('h3', {}, 'Targets'), perTarget),
-    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'), h('button', { onclick: () => { if (confirmBox('Finish and save this round?')) finishRound(); } }, 'Finish & save'), h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); go('home'); } } }, 'Delete')));
+    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => { state.ti = nextUnscored(); go('play'); } }, 'Continue'), h('button', { onclick: () => { if (confirmBox('Finish and save this round?')) finishRound(); } }, 'Finish & save'), h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--danger)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); go('home'); } } }, 'Delete')));
 }
 function finishRound() {
   const r = state.round; const sys = system();
@@ -538,7 +538,7 @@ function summary() {
         h('button', { onclick: () => { const blob = new Blob([JSON.stringify(r, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `round-${new Date(r.started).toISOString().slice(0, 10)}.json`; a.click(); } }, 'Export data'),
         navigator.share ? h('button', { onclick: async () => { canvas.toBlob(async b => { const f = new File([b], 'round.png', { type: 'image/png' }); try { await navigator.share({ files: [f], title: '3D Fun Round' }); } catch {} }); } }, 'Share') : null),
       h('div', { class: 'row' }, h('button', { onclick: () => go('progress') }, 'See my progress'), h('button', { onclick: () => go('home') }, 'Home'),
-        h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this saved round?')) { state.history = state.history.filter(x => x !== r); state.last = null; save(); go('home'); } } }, 'Delete'))));
+        h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--danger)', onclick: () => { if (confirmBox('Delete this saved round?')) { state.history = state.history.filter(x => x !== r); state.last = null; save(); go('home'); } } }, 'Delete'))));
 }
 function drawSummary(c, r, sys, rows) {
   const x = c.getContext('2d'); const W = c.width; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, c.height);

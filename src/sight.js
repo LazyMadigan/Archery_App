@@ -99,19 +99,51 @@ const busy = (fn) => async e => { const b = e.currentTarget, t = b.textContent; 
 // ---------- views ----------
 function sight() {
   const { h, icon, state, go, topbar } = C; const list = charts();
-  const bows = [...new Set(list.map(c => c.bow))];
   const me = (state.profile?.name || '').trim();
+  const day = t => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  const sighted = c => c.marks.length ? Math.max(...c.marks.map(m => m.at || c.updated || c.created)) : null;
+  const types = [...BOWS.map(b => b[0]), ...new Set(list.map(c => c.type).filter(t => !BOWS.some(b => b[0] === t)))].filter(t => list.some(c => (c.type || 'recurve') === t));
   return h('div', {}, topbar('Sight marks', 'A chart for every bow', () => go('home')),
     h('div', { class: 'page' },
       h('div', { class: 'card' }, h('div', { class: 'muted', style: 'font-size:14px' }, 'Tell the app the distances you have targets at, shoot a few arrows at each, and enter your sight setting once the group is on. It fits a curve and builds a sight mark chart you can save as an image or Excel file.')),
-      ...bows.map(b => h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, b),
-        h('div', { class: 'list' }, ...list.filter(c => c.bow === b).map(c => h('button', { class: 'disc schart-item', onclick: () => { state.sc = c.id; go('schart'); } },
+      ...types.map(t => h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, bowName(t)),
+        h('div', { class: 'list' }, ...list.filter(c => (c.type || 'recurve') === t).sort((a, b) => (sighted(b) || b.created) - (sighted(a) || a.created)).map(c => h('button', { class: 'disc schart-item', onclick: () => { state.sc = c.id; go('schart'); } },
           h('span', { class: 'disc-ic' }, icon('ruler', 'lg')),
-          h('div', { style: 'flex:1;min-width:0' }, h('b', {}, c.note || bowName(c.type)), h('small', {}, c.marks.length ? `${c.marks.length} mark${c.marks.length > 1 ? 's' : ''} · ${Math.min(...c.marks.map(m => m.d))}–${Math.max(...c.marks.map(m => m.d))} m · ${new Date(c.updated || c.created).toLocaleDateString()}` : 'No marks yet')),
+          h('div', { style: 'flex:1;min-width:0' }, h('b', {}, c.bow + (c.note ? ` · ${c.note}` : '')),
+            h('small', {}, c.marks.length ? `Sighted ${day(sighted(c))} · ${c.marks.length} mark${c.marks.length > 1 ? 's' : ''}, ${c.marks.length > 1 ? `${Math.min(...c.marks.map(m => m.d))}–${Math.max(...c.marks.map(m => m.d))}` : c.marks[0].d} m` : `Created ${day(c.created)} · no marks yet`)),
           h('span', { class: 'disc-go' }, icon('back'))))))),
       list.length ? null : h('div', { class: 'muted', style: 'text-align:center;font-size:14px' }, 'No sight charts yet.'),
       list.length > 1 ? h('button', { onclick: busy(async () => download(await chartsWorkbook(list, me), `sight-marks-all-bows-${new Date().toISOString().slice(0, 10)}.xlsx`)) }, 'Export all charts to Excel') : null),
     h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => { state.sform = { id: null, bow: '', type: (state.profile?.lastBow) || 'recurve', note: '', dists: [10, 20, 30, 40, 50], arrows: 3 }; go('ssetup'); } }, '+ New sight chart')));
+}
+
+// ---------- editing sheets ----------
+function sheet(title, body, actions) {
+  const { h } = C; document.querySelector('.sheet-bg')?.remove();
+  const close = () => bg.remove();
+  const bg = h('div', { class: 'sheet-bg', onclick: e => { if (e.target === bg) close(); } },
+    h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': title }, h('h2', {}, title), ...body, h('div', { class: 'sheet-actions' }, ...actions(close))));
+  document.body.append(bg); setTimeout(() => bg.querySelector('input')?.focus(), 60); return close;
+}
+function editMark(c, d, measured, current) {
+  const { h, save, confirmBox } = C; let val = current;
+  const commit = close => { if (val == null || isNaN(val)) { C.toast('Enter a setting'); return; } c.marks = c.marks.filter(m => m.d !== d); c.marks.push({ d, s: val, calls: [], at: Date.now() }); c.marks.sort((a, b) => a.d - b.d); c.updated = Date.now(); save(); close(); C.render(); C.toast(`${d} m saved`); };
+  sheet(`${d} m`, [
+    h('label', { class: 'fld' }, h('span', {}, 'Sight setting'), h('input', { id: 'smEdit', type: 'number', inputmode: 'decimal', step: 'any', value: current ?? '', oninput: e => { val = e.target.value === '' ? null : parseFloat(e.target.value); } })),
+    h('small', { class: 'muted' }, measured ? 'This is a mark you shot. Change it, or delete it.' : 'This setting comes from the curve. Save it to make it a mark.')],
+    close => [
+      measured ? h('button', { class: 'ghost danger', onclick: () => { if (!confirmBox(`Delete the ${d} m mark?`)) return; c.marks = c.marks.filter(m => m.d !== d); c.updated = Date.now(); save(); close(); C.render(); C.toast(`${d} m deleted`); } }, 'Delete mark') : h('button', { class: 'ghost', onclick: close }, 'Cancel'),
+      h('button', { class: 'primary', onclick: () => commit(close) }, measured ? 'Save' : 'Save as mark')]);
+}
+function editChart(c) {
+  const { h, state, save, go, confirmBox } = C; const f = { bow: c.bow, type: c.type || 'recurve', note: c.note || '' };
+  sheet('Chart details', [
+    h('label', { class: 'fld' }, h('span', {}, 'Bow name'), h('input', { id: 'scBow', value: f.bow, placeholder: 'e.g. 30lb Hoyt', oninput: e => { f.bow = e.target.value; } })),
+    h('label', { class: 'fld' }, h('span', {}, 'Type'), h('select', { onchange: e => { f.type = e.target.value; } }, ...BOWS.map(([k, n]) => h('option', { value: k, selected: f.type === k }, n)))),
+    h('label', { class: 'fld' }, h('span', {}, 'Note (optional)'), h('input', { value: f.note, placeholder: 'e.g. indoor arrows, new string', oninput: e => { f.note = e.target.value; } })),
+    h('button', { class: 'ghost danger', style: 'align-self:flex-start;padding:0', onclick: () => { if (!confirmBox(`Delete the sight chart for ${title(c)}? This can't be undone.`)) return; state.sight = charts().filter(x => x !== c); save(); document.querySelector('.sheet-bg')?.remove(); go('sight'); C.toast('Chart deleted'); } }, 'Delete this chart')],
+    close => [h('button', { class: 'ghost', onclick: close }, 'Cancel'),
+      h('button', { class: 'primary', onclick: () => { if (!f.bow.trim()) { C.toast('Give the bow a name'); return; } Object.assign(c, { bow: f.bow.trim(), type: f.type, note: f.note.trim(), updated: Date.now() }); save(); close(); C.render(); C.toast('Chart updated'); } }, 'Save')]);
 }
 
 function ssetup() {
@@ -144,19 +176,21 @@ function splay() {
   const d = s.dists[s.i]; const e = (s.entries[d] = s.entries[d] || { s: null, calls: [] });
   const fit = sightFit([...c.marks.filter(m => !s.entries[m.d]?.s), ...Object.entries(s.entries).filter(([, v]) => v.s != null).map(([k, v]) => ({ d: +k, s: v.s }))]);
   const prev = c.marks.find(m => m.d === d); const guess = prev ? prev.s : fit ? r1(fit(d)) : null;
-  const last = s.i >= s.dists.length - 1; const n = calls(e.calls);
-  const call = k => () => { if (e.calls.length >= s.arrows) e.calls = []; e.calls.push(k); save(); C.render(); };
+  const last = s.i >= s.dists.length - 1; const n = calls(e.calls); const total = s.arrows + (e.extra || 0);
+  const call = k => () => { if (e.calls.length >= total) { C.toast('All arrows called: tap + Extra arrow to shoot another, or Reset'); return; } e.calls.push(k); save(); C.render(); };
+  const extra = () => { e.extra = (e.extra || 0) + 1; save(); C.render(); };
   const finish = () => { const now = Date.now(); Object.entries(s.entries).forEach(([k, v]) => { if (v.s == null || isNaN(v.s)) return; const dd = +k; c.marks = c.marks.filter(m => m.d !== dd); c.marks.push({ d: dd, s: v.s, calls: v.calls, at: now }); });
     c.marks.sort((a, b) => a.d - b.d); c.updated = now; state.sdraft = null; state.sc = c.id; save(); C.achCheck?.(); go('schart'); };
   const step = dir => { s.i = Math.max(0, Math.min(s.dists.length - 1, s.i + dir)); state._top = true; save(); C.render(); };
   const marked = Object.values(s.entries).filter(v => v.s != null).length;
   return h('div', {}, topbar(`${d} m`, `${s.i + 1} of ${s.dists.length} · ${title(c)}`, () => { if (C.confirmBox(marked ? 'Leave? Marks entered so far are kept if you finish; leaving now discards them.' : 'Stop this session?')) { state.sdraft = null; save(); go(c.marks.length ? 'schart' : 'sight'); } }),
     h('div', { class: 'page' },
-      h('div', { class: 'sdist' }, h('div', { class: 'big' }, `${d}`, h('small', {}, ' m')), h('div', { class: 'muted' }, `Shoot ${s.arrows} arrow${s.arrows > 1 ? 's' : ''}, then call where each one went`)),
-      h('div', { class: 'card' }, h('div', { class: 'row' }, h('h3', { style: 'flex:1' }, 'Arrows'), h('span', { class: 'muted', style: 'flex:0 0 auto;font-size:13px' }, `${Math.min(e.calls.length, s.arrows)} of ${s.arrows}`)),
-        h('div', { class: 'scalls' }, ...Array.from({ length: s.arrows }, (_, i) => h('span', { class: 'sc ' + (e.calls[i] || '') }, e.calls[i] === 'high' ? '↑' : e.calls[i] === 'low' ? '↓' : e.calls[i] === 'on' ? '●' : '·'))),
+      h('div', { class: 'sdist' }, h('div', { class: 'big' }, `${d}`, h('small', {}, ' m')), h('div', { class: 'muted' }, `Shoot ${total} arrow${total > 1 ? 's' : ''}, then call where each one went`)),
+      h('div', { class: 'card' }, h('div', { class: 'row' }, h('h3', { style: 'flex:1' }, 'Arrows'), h('span', { class: 'muted', style: 'flex:0 0 auto;font-size:13px' }, `${Math.min(e.calls.length, total)} of ${total}`)),
+        h('div', { class: 'scalls' }, ...Array.from({ length: total }, (_, i) => h('span', { class: 'sc ' + (e.calls[i] || '') }, e.calls[i] === 'high' ? '↑' : e.calls[i] === 'low' ? '↓' : e.calls[i] === 'on' ? '●' : '·'))),
         h('div', { class: 'grid c3' }, h('button', { onclick: call('high') }, '↑ High'), h('button', { class: 'primary', onclick: call('on') }, '● On'), h('button', { onclick: call('low') }, '↓ Low')),
-        e.calls.length ? h('div', { class: 'row', style: 'font-size:13px' }, h('span', { class: 'muted', style: 'flex:1' }, advice(e.calls)), h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => { e.calls = []; save(); C.render(); } }, 'Reset')) : null),
+        e.calls.length ? h('div', { class: 'muted', style: 'font-size:13px' }, advice(e.calls)) : null,
+        h('div', { class: 'row' }, h('button', { id: 'sExtra', onclick: extra }, '+ Extra arrow'), e.calls.length || e.extra ? h('button', { class: 'ghost', style: 'flex:0 0 auto;padding:0 16px', onclick: () => { e.calls = []; e.extra = 0; save(); C.render(); } }, 'Reset') : null)),
       h('div', { class: 'card' }, h('label', { class: 'fld' }, h('span', {}, `Sight setting at ${d} m`),
         h('input', { id: 'sSet', type: 'number', inputmode: 'decimal', step: 'any', placeholder: guess != null ? `Try ${fmt(guess)}` : 'e.g. 4.5', value: e.s ?? '', oninput: ev => { e.s = ev.target.value === '' ? null : parseFloat(ev.target.value); save(); const nb = C.$('#sNext'); if (nb) nb.textContent = e.s != null ? 'Next distance' : 'Skip distance'; } })),
         h('small', { class: 'muted', style: 'font-size:12px' }, prev ? `Last time: ${fmt(prev.s)}.` : guess != null ? `The curve so far says about ${fmt(guess)}.` : 'Enter the setting your group was on with.'))),
@@ -170,12 +204,12 @@ function schart() {
   const { h, icon, state, save, go, topbar, confirmBox, $ } = C; const c = chartOf(state.sc); if (!c) { go('sight'); return h('div'); }
   const rows = chartRows(c); const me = (state.profile?.name || '').trim();
   const shoot = () => { state.sform = { id: c.id, bow: c.bow, type: c.type, note: c.note || '', dists: c.marks.length ? c.marks.map(m => m.d) : [10, 20, 30, 40, 50], arrows: 3 }; go('ssetup'); };
-  return h('div', {}, topbar(c.bow, [bowName(c.type), c.note].filter(Boolean).join(' · '), () => go('sight')),
+  return h('div', {}, topbar(c.bow, [bowName(c.type), c.note].filter(Boolean).join(' · '), () => go('sight'), h('button', { id: 'scEdit', class: 'tb-text', onclick: () => editChart(c), 'aria-label': 'Edit or delete this chart' }, 'Edit')),
     h('div', { class: 'page' },
       c.marks.length ? h('div', { class: 'card' }, h('div', { class: 'row' }, icon('ruler'), h('h3', {}, 'Sight mark chart')), chartSVG(c),
         h('table', { class: 'stable' }, h('tr', {}, h('th', {}, 'Distance'), h('th', { class: 'num' }, 'Setting'), h('th', {}, '')),
-          ...rows.map(r => h('tr', { class: r.measured ? 'm' : '' }, h('td', {}, `${r.d} m`), h('td', { class: 'num' }, fmt(r.s)), h('td', { class: 'muted' }, r.measured ? 'shot' : 'curve')))),
-        h('small', { class: 'muted', style: 'font-size:12px' }, c.marks.length < 2 ? 'Shoot one more distance and the curve fills in the gaps.' : 'Bold rows were shot. The others come from the curve, so check them on the range.'))
+          ...rows.map(r => h('tr', { class: (r.measured ? 'm ' : '') + 'tap', tabindex: '0', role: 'button', 'aria-label': `${r.d} m, setting ${fmt(r.s)}. Tap to edit`, onclick: () => editMark(c, r.d, r.measured, r.s) }, h('td', {}, `${r.d} m`), h('td', { class: 'num' }, fmt(r.s)), h('td', { class: 'muted' }, r.measured ? 'shot ✎' : 'curve ✎')))),
+        h('small', { class: 'muted', style: 'font-size:12px' }, c.marks.length < 2 ? 'Shoot one more distance and the curve fills in the gaps. Tap a row to edit it.' : 'Bold rows were shot; the others come from the curve. Tap any row to edit or delete it.'))
         : h('div', { class: 'card' }, h('div', { class: 'muted' }, 'No marks yet. Shoot a session, or add marks you already know below.')),
       c.marks.length ? h('div', { class: 'grid c2' },
         h('button', { class: 'primary', onclick: () => drawCard(c).toBlob(b => download(b, fileBase(c) + '.png')) }, 'Save image'),
@@ -183,11 +217,11 @@ function schart() {
         h('button', { onclick: busy(async () => download(await chartsWorkbook([c], me), fileBase(c) + '.xlsx')) }, 'Export to Excel'),
         h('button', { onclick: busy(async () => share(await chartsWorkbook([c], me), fileBase(c) + '.xlsx', `Sight marks · ${c.bow}`)) }, 'Share Excel')) : null,
       h('div', { class: 'card' }, h('h3', {}, 'Marks'),
-        ...[...c.marks].sort((a, b) => a.d - b.d).map(m => h('div', { class: 'row smark' }, h('b', { style: 'flex:0 0 64px' }, `${m.d} m`),
-          h('input', { type: 'number', inputmode: 'decimal', step: 'any', value: m.s, 'aria-label': `Setting at ${m.d} m`, onchange: e => { const v = parseFloat(e.target.value); if (!isNaN(v)) { m.s = v; c.updated = Date.now(); save(); C.render(); } } }),
-          h('button', { class: 'ghost', style: 'flex:0 0 44px', 'aria-label': `Remove ${m.d} m`, onclick: () => { c.marks = c.marks.filter(x => x !== m); c.updated = Date.now(); save(); C.render(); } }, '✕'))),
+        ...[...c.marks].sort((a, b) => a.d - b.d).map(m => h('div', { class: 'row smark' }, h('b', { style: 'flex:0 0 64px' }, `${m.d} m`), h('span', { style: 'flex:1;font-size:17px' }, fmt(m.s)),
+          h('button', { style: 'flex:0 0 auto;padding:0 14px', 'aria-label': `Edit ${m.d} m`, onclick: () => editMark(c, m.d, true, m.s) }, 'Edit'),
+          h('button', { class: 'ghost danger', style: 'flex:0 0 auto;padding:0 10px', 'aria-label': `Delete ${m.d} m`, onclick: () => { if (!confirmBox(`Delete the ${m.d} m mark?`)) return; c.marks = c.marks.filter(x => x !== m); c.updated = Date.now(); save(); C.render(); C.toast(`${m.d} m deleted`); } }, 'Delete'))),
         h('div', { class: 'row smark' }, h('input', { id: 'smD', type: 'number', inputmode: 'decimal', placeholder: 'Dist (m)', style: 'flex:0 0 96px' }), h('input', { id: 'smS', type: 'number', inputmode: 'decimal', step: 'any', placeholder: 'Setting' }),
           h('button', { style: 'flex:0 0 auto;padding:0 14px', onclick: () => { const d = parseFloat($('#smD').value), s = parseFloat($('#smS').value); if (!(d > 0) || isNaN(s)) { C.toast('Enter a distance and a setting'); return; } c.marks = c.marks.filter(x => x.d !== d); c.marks.push({ d, s, calls: [], at: Date.now() }); c.marks.sort((a, b) => a.d - b.d); c.updated = Date.now(); save(); C.render(); } }, 'Add'))),
-      h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox(`Delete the sight chart for ${title(c)}?`)) { state.sight = charts().filter(x => x !== c); save(); go('sight'); } } }, 'Delete this chart')),
+      h('button', { class: 'ghost', style: 'color:var(--danger)', onclick: () => { if (confirmBox(`Delete the sight chart for ${title(c)}?`)) { state.sight = charts().filter(x => x !== c); save(); go('sight'); } } }, 'Delete this chart')),
     h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: shoot }, c.marks.length ? 'Shoot a session' : 'Shoot sight marks')));
 }

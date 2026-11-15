@@ -13,7 +13,7 @@ const { chromium, devices } = require('playwright');
   const info = await p.locator('.pinfo').textContent(); if (!/12345/.test(info) || !/Recurve, Compound/.test(info) || !/Not set/.test(info)) errs.push('read-only info: ' + info);
   await p.screenshot({ path: '/tmp/prof-view.png', fullPage: true }); await over('profile view');
   await p.locator('#pfEdit').click(); await p.waitForTimeout(150);
-  await p.locator('#pf-club').fill('Changed'); await p.getByRole('button', { name: 'Cancel' }).click(); await p.waitForTimeout(150);
+  await p.locator('#pf-clubsel').selectOption('__other'); await p.locator('#pf-club').fill('Changed'); await p.getByRole('button', { name: 'Cancel' }).click(); await p.waitForTimeout(150);
   if (!/Wicklow Archers/.test(await p.locator('.pinfo').textContent())) errs.push('Cancel did not discard');
   await p.locator('#pfEdit').click(); await p.locator('#pf-clubNo').fill('42'); await p.locator('#pfSave').click(); await p.waitForTimeout(200);
   if (await p.locator('#pf-name').count()) errs.push('still editing after save');

@@ -3,7 +3,7 @@ const { chromium, devices } = require('playwright');
 (async () => { const b = await chromium.launch(); const ctx = await b.newContext({ ...devices[process.env.DEV || 'Pixel 7'], acceptDownloads: true }); const p = await ctx.newPage(); p.on('dialog', d => d.accept()); const errs=[]; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); localStorage.setItem('wa.rulesOff', JSON.stringify(['3d_king','3d_skins','3d_guess','t_king','t_sets']));  } catch {} });
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(700);
-  await p.locator('.avatar').click(); await p.locator('#pf-name').fill('Cian Madigan'); await p.locator('#pf-club').fill('Wicklow Archers'); await p.locator('.bowchip', { hasText: 'Recurve' }).click(); await p.locator('#pfSave').click(); await p.locator('.topbar button').first().click();
+  await p.locator('.avatar').click(); await p.locator('#pf-name').fill('Cian Madigan'); await p.locator('#pf-clubsel').selectOption('Wicklow Archers'); await p.locator('.bowchip', { hasText: 'Recurve' }).click(); await p.locator('#pfSave').click(); await p.locator('.topbar button').first().click();
   // indoor: 2 ends, tapped arrows
   await p.locator('button.disc', { hasText: 'Indoor' }).click(); for (let i=0;i<18;i++) await p.locator('.stepper button').first().click();
   await p.getByRole('button',{name:'Start shooting'}).click(); await p.waitForTimeout(250);

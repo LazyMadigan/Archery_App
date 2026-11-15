@@ -5,7 +5,7 @@ const { chromium, devices } = require('playwright');
   await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(700); await p.screenshot({ path: '/tmp/i0.png', fullPage: true }); await over('home');
   // profile
   await p.locator('.avatar').click(); await p.waitForTimeout(200);
-  await p.locator('#pf-name').fill('Cian Madigan'); await p.locator('#pf-ai').fill('12345'); await p.locator('#pf-club').fill('Wicklow Archers'); await p.locator('#pf-clubNo').fill('42');
+  await p.locator('#pf-name').fill('Cian Madigan'); await p.locator('#pf-ai').fill('12345'); await p.locator('#pf-clubsel').selectOption('Wicklow Archers'); await p.locator('#pf-clubNo').fill('42');
   await p.screenshot({ path: '/tmp/i1.png', fullPage: true }); await over('profile');
   await p.locator('#pfSave').click(); await p.waitForTimeout(150); await p.locator('.topbar button').first().click(); await p.waitForTimeout(300);
   // indoor vegas, 2 players, set play

@@ -5,7 +5,7 @@ const { chromium, devices } = require('playwright');
   console.log('title before:', await p.locator('.topbar .title').innerText());
   await p.locator('.tile', { hasText: 'Booking' }).click(); await p.waitForTimeout(300);
   console.log('focused:', await p.evaluate(() => document.activeElement?.id));
-  await p.locator('#pf-club').fill('Wicklow Archers'); await p.locator('#pf-booking').fill('https://docs.google.com/forms/d/e/1FAIpQLSd9iDEkYbY5u7s3Eg0oDgHhk5RTTkPLQpri3-r6eR6_bYCiDw/viewform');
+  await p.locator('#pf-clubsel').selectOption('Wicklow Archers'); await p.locator('#pf-booking').fill('https://docs.google.com/forms/d/e/1FAIpQLSd9iDEkYbY5u7s3Eg0oDgHhk5RTTkPLQpri3-r6eR6_bYCiDw/viewform');
   await p.locator('#pfSave').click(); await p.waitForTimeout(150); await p.locator('.topbar button').first().click(); await p.waitForTimeout(300);
   console.log('title after:', await p.locator('.topbar .title').innerText());
   const a = p.locator('a.tile', { hasText: 'Booking' }); console.log('booking href:', await a.getAttribute('href'), '| target:', await a.getAttribute('target'));

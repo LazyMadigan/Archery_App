@@ -1,6 +1,7 @@
 // Indoor & Field rounds + Profile. Views get UI helpers from app.js via init(ctx).
 import { buildWorkbook } from './export.js';
 import { PRESETS, valid as validColour, tokens as colourTokens } from './colours.js';
+import { CLUBS, PROVINCES, isListed } from './clubs.js';
 import { SCHEMES, BOWS, bowName, schemeFor, FACES, INDOOR_ROUNDS, INDOOR_DISTS, INDOOR_FACES, FIELD_ROUNDS, FIELD_DISTS, FIELD_FACES, scoreAt, valueOf, drawFace, schemeForFace, endTotal, tally, endsComplete, setPlay, kingEnds, roundKey, roundLabel } from './faces.js';
 
 let C; // ctx: { h, icon, state, save, go, render, topbar, toast, confirmBox, uid, $ }
@@ -35,9 +36,9 @@ function profile() {
   const set = k => e => { p[k] = e.target.value; markDirty(); };
   const back = state.pback || 'home';
   const editing = !!state.pedit || !(saved.name || '').trim() || !!state.focusBooking;
-  const leave = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pback = null; state.pedit = false; C.applyColours(saved.colours); go(back); };
-  const cancelEdit = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pedit = false; C.applyColours(saved.colours); C.render(); };
-  const commit = () => { const prevName = (saved.name || '').trim(); state.profile = JSON.parse(JSON.stringify(p)); if ((state.profile.name || '').trim()) state.onboarded = true; state.pdraft = null; state.pedit = false; C.applyColours(state.profile.colours); save(); toast('Profile saved'); C.render(); };
+  const leave = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pback = null; state.pedit = false; state.clubOther = false; C.applyColours(saved.colours); go(back); };
+  const cancelEdit = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pedit = false; state.clubOther = false; C.applyColours(saved.colours); C.render(); };
+  const commit = () => { const prevName = (saved.name || '').trim(); state.profile = JSON.parse(JSON.stringify(p)); if ((state.profile.name || '').trim()) state.onboarded = true; state.pdraft = null; state.pedit = false; state.clubOther = false; C.applyColours(state.profile.colours); save(); toast('Profile saved'); C.render(); };
   const field = (k, label, ph, type = 'text') => h('label', { class: 'fld' }, h('span', {}, label), h('input', { id: 'pf-' + k, type, inputmode: type === 'tel' ? 'numeric' : type === 'url' ? 'url' : undefined, autocapitalize: type === 'url' ? 'off' : undefined, placeholder: ph, value: p[k] || '', oninput: set(k) }));
   const name = (saved.name || '').trim();
   const hist = name ? state.history.filter(r => r.players.some(x => x.name === name)) : [];
@@ -57,13 +58,21 @@ function profile() {
         h('button', { id: 'pfEdit', onclick: () => { state.pedit = true; C.render(); } }, 'Edit details')) : null,
       editing ? h('div', { class: 'card', style: 'align-items:center;text-align:center' },
         h('div', { class: 'avatar xl', onclick: () => photoIn.click() }, p.photo ? h('img', { src: p.photo, alt: '' }) : icon('people', 'xl')), photoIn,
-        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { delete p.photo; C.render(); } }, 'Remove') : null)) : null,
+        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'ghost', style: 'flex:0 0 auto', onclick: () => photoIn.click() }, p.photo ? 'Change photo' : 'Add photo'), p.photo ? h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--danger)', onclick: () => { delete p.photo; C.render(); } }, 'Remove') : null)) : null,
       editing ? h('div', { class: 'card' }, h('h3', {}, 'Archer'),
         field('name', 'Name', 'Your name'),
         h('div', { class: 'fld', role: 'group', 'aria-label': 'Bows I shoot' }, h('span', {}, 'Bows I shoot'),
           h('div', { class: 'bowgrid' }, ...BOWS.map(([k, n]) => { const on = myBows(p).includes(k); return h('button', { class: 'bowchip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => { const cur = myBows(p); p.bows = on ? cur.filter(x => x !== k) : [...cur, k]; delete p.bow; C.render(); } }, h('span', { class: 'chk' }, on ? icon('check') : null), h('span', { class: 'bowlbl' }, n)); })),
           h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, myBows(p).length > 1 ? `Rounds start with the bow you shot last (${BOWS.find(b => b[0] === defaultBow(p))[1]}); change it per round in setup.` : 'Tick every bow you shoot. You can change it per round in setup.')),
-        field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'),
+        field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'),
+        (() => { const club = (p.club || '').trim(); const other = state.clubOther || (club && !isListed(club));
+          const cur = other ? '__other' : (CLUBS.find(c => c[0].toLowerCase() === club.toLowerCase())?.[0] || '');
+          return h('div', { class: 'fld' }, h('span', {}, 'Club'),
+            h('select', { id: 'pf-clubsel', 'aria-label': 'Club', onchange: e => { const v = e.target.value; if (v === '__other') { state.clubOther = true; if (isListed(p.club)) p.club = ''; } else { state.clubOther = false; p.club = v; } markDirty(); C.render(); if (v === '__other') setTimeout(() => document.getElementById('pf-club')?.focus(), 50); } },
+              h('option', { value: '', selected: cur === '' }, 'Choose your club'),
+              ...PROVINCES.map(pr => h('optgroup', { label: pr }, ...CLUBS.filter(c => c[2] === pr).map(([n, co]) => h('option', { value: n, selected: cur === n }, co ? `${n} (${co})` : n)))),
+              h('option', { value: '__other', selected: cur === '__other' }, 'Other (type your club)')),
+            other ? h('input', { id: 'pf-club', placeholder: 'Your club’s name', value: p.club || '', oninput: e => { p.club = e.target.value; markDirty(); } }) : null); })(),
         (() => { const cur = p.colours; const setC = c => { if (c) p.colours = c; else delete p.colours; C.applyColours(p.colours); markDirty(); C.render(); };
           const t = cur ? colourTokens(cur) : null; const adjusted = t && (t.light.brand.toLowerCase() !== t.main.toLowerCase());
           return h('div', { class: 'fld', role: 'group', 'aria-label': 'Club colours' }, h('span', {}, 'Club colours'),
@@ -194,7 +203,7 @@ function tboard() {
     ...Array.from({ length: r.ends }, (_, e) => [h('span', { class: 'muted' }, String(e + 1)), ...r.players.map(p => { const en = r.scores[p.id][e]; return h('span', { onclick: () => { r.end = e; save(); go('tplay'); } }, en?.length ? String(endTotal(r.scheme, en)) : '–'); })]).flat());
   return h('div', {}, topbar(r.mode === 'practice' ? 'Practice' : 'Scoreboard', roundLabel(r), () => go('home')),
     h('div', { class: 'page' }, r.goal ? goalBanner(r) : null, h('div', { class: 'card' }, table), h('div', { class: 'card' }, h('h3', {}, 'Ends'), ends)),
-    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => go('tplay') }, 'Continue'), h('button', { onclick: () => { if (confirmBox('Finish and save this round?')) finishT(); } }, 'Finish & save'), h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.tround = null; save(); go('home'); } } }, 'Delete')));
+    h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => go('tplay') }, 'Continue'), h('button', { onclick: () => { if (confirmBox('Finish and save this round?')) finishT(); } }, 'Finish & save'), h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--danger)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.tround = null; save(); go('home'); } } }, 'Delete')));
 }
 function finishT() {
   const { state, save, go } = C; const r = state.tround; const { tal, sp, kg } = standings(r);
@@ -218,7 +227,7 @@ function tsummary() {
         navigator.share ? h('button', { onclick: () => canvas.toBlob(async b => { try { await navigator.share({ files: [new File([b], 'round.png', { type: 'image/png' })], title: r.name }); } catch {} }) }, 'Share') : null),
       ...groups,
       h('div', { class: 'row' }, h('button', { onclick: () => go('progress') }, 'See my progress'), h('button', { onclick: () => go('home') }, 'Home'),
-        h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this saved round?')) { state.history = state.history.filter(x => x !== r); state.tlast = null; save(); go('home'); } } }, 'Delete'))));
+        h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--danger)', onclick: () => { if (confirmBox('Delete this saved round?')) { state.history = state.history.filter(x => x !== r); state.tlast = null; save(); go('home'); } } }, 'Delete'))));
 }
 
 // ---------- pieces used by app.js ----------
@@ -230,7 +239,7 @@ function liveCard() {
     h('div', { class: 'live-players' }, ...r.players.map(p => h('span', { class: 'pill' }, p.name))),
     h('div', { class: 'live-prog' }, h('div', { class: 'bar' }, h('i', { style: `width:${Math.round(done / r.ends * 100)}%` })), h('span', {}, `${done} of ${r.ends} ${r.kind === 'field' ? 'targets' : 'ends'}`)),
     h('div', { class: 'grid c2' }, h('button', { class: 'primary', onclick: () => go('tplay') }, 'Continue'), h('button', { onclick: () => go('tboard') }, 'Scoreboard'),
-      h('button', { onclick: () => { if (confirmBox('Stop here and save the round?')) finishT(); } }, 'Stop & save'), h('button', { class: 'ghost', style: 'color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.tround = null; save(); C.render(); } } }, 'Delete')));
+      h('button', { onclick: () => { if (confirmBox('Stop here and save the round?')) finishT(); } }, 'Stop & save'), h('button', { class: 'ghost', style: 'color:var(--danger)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.tround = null; save(); C.render(); } } }, 'Delete')));
 }
 function historyItem(r) {
   const { h, icon, state, go } = C; const tal = r.final?.tally || {};
