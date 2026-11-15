@@ -29,5 +29,5 @@ node tests/sight2.js               # sight marks: grouping, tap-to-edit, delete,
 node tests/export.js               # shoots rounds, exports, saves the .xlsx to /tmp
 node tests/contrast.js             # WCAG AA text contrast on main screens, 37 colour choices (QUICK=1 for 5)
 ```
-Set `BASE` to test a different URL, e.g. `BASE=https://lazymadigan.github.io/wicklow-archers-3d-fun-app node tests/smoke.js`.
+Set `BASE` to test a different URL, e.g. `BASE=https://lazymadigan.github.io/Archery_App node tests/smoke.js`.
 Screenshots are written to `/tmp`.

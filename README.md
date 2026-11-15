@@ -3,7 +3,7 @@
 Free, volunteer-built phone app for scoring 3D, indoor and field archery rounds with friends. Club-neutral: any club can use it.
 Runs as a web app (install to home screen, works offline). No accounts, no server: everything is stored on the phone.
 
-**Live app:** https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
+**Live app:** https://lazymadigan.github.io/Archery_App/
 
 ## Documentation
 - [docs/MANUAL.md](docs/MANUAL.md) — how to use the app

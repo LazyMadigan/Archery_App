@@ -2,11 +2,14 @@
 
 Every change to 3D Fun Round, newest first. Each entry lists what changed and, where useful, why. The full reasoning behind design choices is in [docs/DECISIONS.md](docs/DECISIONS.md). Commit hashes refer to this repository's history.
 
-Live app: https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
+Live app: https://lazymadigan.github.io/Archery_App/
 
 ---
 
 ## v0.4.x — 15 Nov 2026 (night): practice, sight marks, achievements, club colours, privacy
+
+### Repository renamed to Archery_App
+- Links updated (Contact us, About, README, privacy). The app now lives at https://lazymadigan.github.io/Archery_App/ ; saved data carries over because it's stored per site (lazymadigan.github.io), but home-screen icons from the old address need re-adding.
 
 ### Credit line
 - "by madigandesigns" in small text at the very bottom of the home screen.

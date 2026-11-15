@@ -101,7 +101,7 @@ function profile() {
         h('b', {}, 'What goes online'),
         h('div', { class: 'muted', style: 'font-size:13px' }, 'Opening the app loads it from GitHub Pages, the lettering comes from Google Fonts, and the news slide reads headlines from archery.ie. Those sites see an ordinary web visit (such as your IP address), as with any website. None of your archery data goes with it.'),
         h('div', { class: 'grid c2' },
-          h('a', { class: 'button tile-link', href: 'https://github.com/LazyMadigan/wicklow-archers-3d-fun-app/issues', target: '_blank', rel: 'noopener' }, 'Contact us'),
+          h('a', { class: 'button tile-link', href: 'https://github.com/LazyMadigan/Archery_App/issues', target: '_blank', rel: 'noopener' }, 'Contact us'),
           h('button', { onclick: () => { state.pdraft = null; state.pedit = false; state.aboutBack = 'profile'; go('about'); } }, 'About')),
         h('button', { class: 'ghost danger', id: 'pfWipe', onclick: () => {
           if (!confirmBox('Delete ALL your data from this phone? Profile, photo, rounds, courses, sight marks and settings. This can’t be undone.')) return;

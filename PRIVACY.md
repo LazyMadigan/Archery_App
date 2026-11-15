@@ -21,6 +21,6 @@ We don't collect, receive or store any personal data, so there is nothing held a
 "Save image" / "Share" on a summary or sight chart, and Excel exports, make files that go only where you send them. "Copy JSON" in the tracing tool puts text on your clipboard; it only reaches us if you paste it somewhere.
 
 ## Contact
-Questions or something not right: open an issue at https://github.com/LazyMadigan/wicklow-archers-3d-fun-app/issues (Profile → Privacy & contact → Contact us). The source code is all public, so anyone can check this is true.
+Questions or something not right: open an issue at https://github.com/LazyMadigan/Archery_App/issues (Profile → Privacy & contact → Contact us). The source code is all public, so anyone can check this is true.
 
 This is a plain description of how the app works, not legal advice.

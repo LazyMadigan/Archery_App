@@ -648,7 +648,7 @@ function settings() {
           h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ profile: state.profile, history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export'),
           h('button', { class: 'ghost', onclick: () => { if (confirmBox('Delete all rounds and courses on this phone?')) { state.history = []; state.courses = []; state.round = null; state.tround = null; save(); toast('Cleared'); } } }, 'Clear all'))),
       h('button', { onclick: () => { state.aboutBack = 'settings'; go('about'); } }, 'About, privacy & fair use'),
-      h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.3 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));
+      h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.4 · github.com/LazyMadigan/Archery_App')));
 }
 function about() {
   const P = (...k) => h('p', { style: 'margin:0' }, ...k);
