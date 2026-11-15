@@ -214,7 +214,8 @@ function home() {
         h('button', { class: 'tile', onclick: () => go('courses') }, icon('course', 'lg'), '3D Courses', h('small', {}, `${state.courses.length} saved`)),
         h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, icon('library', 'lg'), '3D Targets', h('small', {}, `${LIB.targets.length} animals`)),
         h('button', { class: 'tile wide', onclick: () => { state.achBack = 'home'; go('achievements'); } }, icon('trophy', 'lg'), 'Achievements', h('small', {}, me ? `${achList().filter(a => a.done).length} of ${ACH_TOTAL} unlocked` : `${ACH_TOTAL} to earn`))),
-      h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.')));
+      h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.'),
+      h('p', { class: 'muted credit' }, 'by madigandesigns')));
 }
 T = initTarget({ lib: () => LIB, h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, sparkline: (...x) => sparkline(...x), achCheck: () => achCheck(), showRules: k => showRules(k), applyColours: c => applyColours(c), brandImg, achCount: () => { const l = achList(); return [l.filter(a => a.done).length, ACH_TOTAL]; } });
 const S = initSight({ h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, achCheck: () => achCheck(), brandImg });

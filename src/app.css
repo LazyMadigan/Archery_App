@@ -394,3 +394,4 @@ a.tile.button{display:flex;text-decoration:none;color:var(--fg);background:var(-
 .colbody{display:flex;flex-direction:column;gap:12px}
 .pview .pstay{font-size:12px;margin-top:-2px}
 a.button.tile-link{display:flex;align-items:center;justify-content:center;min-height:var(--tap);border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font-weight:700;text-decoration:none}
+.credit{font-size:10px;text-align:center;margin:-6px 0 4px;letter-spacing:.04em}

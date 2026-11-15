@@ -8,6 +8,9 @@ Live app: https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
 
 ## v0.4.x — 15 Nov 2026 (night): practice, sight marks, achievements, club colours, privacy
 
+### Credit line
+- "by madigandesigns" in small text at the very bottom of the home screen.
+
 ### Docs and interface diagrams
 - All documents brought up to date; changelog rebuilt in order. Interface diagrams as PDFs in `docs/diagrams/` (app map, Indoor & Field round, 3D round, Sight marks, Profile & privacy), drawn from screenshots of the live app.
 - Fixed a stray "null" under the custom colour pickers in the club colours pop-up.
