@@ -529,9 +529,9 @@
   },
   {
    "id": "crow-feeding",
-   "name": "Crow, feeding (pair)",
+   "name": "Raven, feeding (pair)",
    "cat": "birds",
-   "maker": "?",
+   "maker": "SRT",
    "faces": [
     {
      "id": "t14",
