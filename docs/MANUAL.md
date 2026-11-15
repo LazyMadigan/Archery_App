@@ -1,4 +1,4 @@
-# 3D Fun Round — how to use it
+# Archery App — how to use it
 
 Open the link on your phone. Add it to your home screen (Share → Add to Home Screen on iPhone; the "Install" prompt or ⋮ → Add to Home screen on Android). After that it opens like an app and works with no signal.
 

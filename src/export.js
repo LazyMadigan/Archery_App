@@ -22,7 +22,7 @@ export async function buildWorkbook(state, LIB) {
 
   // ---- Profile
   const profile = [['Field', 'Value'], ['Name', P.name || ''], ['Bows I shoot', (P.bows || (P.bow ? [P.bow] : [])).map(bowName).join(', ')], ['Last bow used', P.lastBow ? bowName(P.lastBow) : ''],
-    ['Archery Ireland number', P.ai || ''], ['Club', P.club || ''], ['Club number', P.clubNo || ''], ['Exported', new Date().toISOString().slice(0, 16).replace('T', ' ')], ['App', '3D Fun Round']];
+    ['Archery Ireland number', P.ai || ''], ['Club', P.club || ''], ['Club number', P.clubNo || ''], ['Exported', new Date().toISOString().slice(0, 16).replace('T', ' ')], ['App', 'Archery App']];
 
   // ---- Rounds: one row per archer per round
   const rRows = [['Round ID', 'Date', 'Time', 'Discipline', 'Mode', 'Round', 'Scoring', 'Distance (m)', 'Face', 'Peg', 'Targets / ends', 'Arrows per target/end', 'Archer', 'Is me', 'Bow', 'Score', 'Max possible', '% of max', 'Avg per arrow', 'X count', 'Top-ring count', 'Arrows shot', 'Game', 'Game result', 'Handicap', 'Net score', 'Place in group', 'Group size', 'Practice goal', 'Practice notes']];
@@ -72,12 +72,12 @@ export async function buildWorkbook(state, LIB) {
   // ---- Read me (written for an AI as much as a person)
   const sysLines = Object.values(SYSTEMS).map(s => [`3D scoring: ${s.name}`, s.desc]);
   const readme = [
-    ['3D Fun Round — archery data export'],
+    ['Archery App — archery data export'],
     [''],
     ['Archer', me || '(not set)'], ['Club', P.club || ''], ['Exported', new Date().toLocaleString()], ['Rounds', String(rounds.length)],
     [''],
     ['HOW TO USE THIS FILE WITH AN AI'],
-    ['Suggested prompt', `I'm an archer${me ? ` called ${me.split(' ')[0]}` : ''}${(P.bows || []).length ? ` shooting ${(P.bows || []).map(bowName).join(' and ').toLowerCase()}` : ''}. Attached is an export of my scores from the 3D Fun Round app. Please read the "Read me" sheet first, then look at my rounds over time (rows where "Is me" = Yes). Tell me: whether I'm improving, where my arrows tend to go (Arrows sheet: Hit X/Y show left/right and high/low), which distances or targets cost me the most points, how good my distance judging is, and three specific things to practise next.`],
+    ['Suggested prompt', `I'm an archer${me ? ` called ${me.split(' ')[0]}` : ''}${(P.bows || []).length ? ` shooting ${(P.bows || []).map(bowName).join(' and ').toLowerCase()}` : ''}. Attached is an export of my scores from the Archery App. Please read the "Read me" sheet first, then look at my rounds over time (rows where "Is me" = Yes). Tell me: whether I'm improving, where my arrows tend to go (Arrows sheet: Hit X/Y show left/right and high/low), which distances or targets cost me the most points, how good my distance judging is, and three specific things to practise next.`],
     [''],
     ['SHEETS'],
     ['Profile', 'Archer details (no photo). Archery Ireland and club numbers are included only if entered.'],

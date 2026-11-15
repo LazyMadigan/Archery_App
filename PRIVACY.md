@@ -2,7 +2,7 @@
 
 **Short version: your archery data never leaves your phone.**
 
-- 3D Fun Round has no accounts, no sign-in, no server and no analytics. No ads, no tracking, nothing sold. Nobody involved is paid.
+- Archery App has no accounts, no sign-in, no server and no analytics. No ads, no tracking, nothing sold. Nobody involved is paid.
 - Everything you enter (profile, photo, club colours, rounds, arrows, courses, sight marks, traced rings) is stored only in your phone's browser storage (`localStorage`). It is never sent to us or anyone else.
 
 ## What does go online

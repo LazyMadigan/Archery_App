@@ -1,7 +1,7 @@
 {
-  "name": "3D Fun Round",
-  "short_name": "3D Fun",
-  "description": "Fun 3D field archery scoring: total points, King of the Castle, skins, guess the distance, handicaps.",
+  "name": "Archery App",
+  "short_name": "Archery App",
+  "description": "Free offline archery scoring: 3D, indoor and field rounds, club games, sight mark charts, progress and achievements. Your data stays on your phone.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,6 +9,12 @@
   "background_color": "#eef2fa",
   "theme_color": "#1d4fd8",
   "icons": [
-    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./"
 }

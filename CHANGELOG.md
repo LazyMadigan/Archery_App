@@ -1,12 +1,15 @@
 # Changelog
 
-Every change to 3D Fun Round, newest first. Each entry lists what changed and, where useful, why. The full reasoning behind design choices is in [docs/DECISIONS.md](docs/DECISIONS.md). Commit hashes refer to this repository's history.
+Every change to Archery App (called 3D Fun Round until 15 Nov 2026), newest first. Each entry lists what changed and, where useful, why. The full reasoning behind design choices is in [docs/DECISIONS.md](docs/DECISIONS.md). Commit hashes refer to this repository's history.
 
 Live app: https://lazymadigan.github.io/Archery_App/
 
 ---
 
 ## v0.4.x — 15 Nov 2026 (night): practice, sight marks, achievements, club colours, privacy
+
+### Renamed: Archery App
+- The app is now called **Archery App**: the name under the home-screen icon (manifest, page title, iPhone home-screen title), the home title when no club is set, the Excel export and share images. Already-installed icons keep their old label until removed and re-added from the new address.
 
 ### Repository renamed to Archery_App
 - Links updated (Contact us, About, README, privacy). The app now lives at https://lazymadigan.github.io/Archery_App/ ; saved data carries over because it's stored per site (lazymadigan.github.io), but home-screen icons from the old address need re-adding.

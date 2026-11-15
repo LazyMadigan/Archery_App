@@ -10,7 +10,7 @@ This is a free, volunteer-built tool for archers. We want it used.
 
 **Please don't**
 - Charge people for access to this app or a lightly modified copy of it. Charging for your own event or coaching that happens to use it is of course fine.
-- Add tracking, ads or data collection to a copy and still call it 3D Fun Round. Rename it so people know it's different.
+- Add tracking, ads or data collection to a copy and still call it Archery App. Rename it so people know it's different.
 - Present it as an official scoring system of IFAA, World Archery, NFAS, ASA, IBO or any federation. It isn't. The points tables are our best understanding of how those rounds are commonly scored and are editable precisely because clubs differ. For a record score, use the federation's own scorecard.
 
 **Target photos**

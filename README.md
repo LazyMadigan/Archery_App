@@ -1,4 +1,4 @@
-# 3D Fun Round
+# Archery App
 
 Free, volunteer-built phone app for scoring 3D, indoor and field archery rounds with friends. Club-neutral: any club can use it.
 Runs as a web app (install to home screen, works offline). No accounts, no server: everything is stored on the phone.
@@ -11,7 +11,7 @@ Runs as a web app (install to home screen, works offline). No accounts, no serve
 - [docs/DECISIONS.md](docs/DECISIONS.md) — UI and design decisions and why
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — code, data and storage
 - [docs/TARGETS.md](docs/TARGETS.md) — target identification and ring-tracing status
-- [docs/diagrams/](docs/diagrams/3D-Fun-Round-interface-diagrams.pdf) — interface diagrams (PDF): app map, Indoor & Field round, 3D round, Sight marks, Profile & privacy
+- [docs/diagrams/](docs/diagrams/Archery-App-interface-diagrams.pdf) — interface diagrams (PDF): app map, Indoor & Field round, 3D round, Sight marks, Profile & privacy
 - [tests/](tests/README.md) — automated phone tests
 - [PRIVACY.md](PRIVACY.md) · [FAIR-USE.md](FAIR-USE.md) · [LICENSE](LICENSE)
 

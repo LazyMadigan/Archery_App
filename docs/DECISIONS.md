@@ -15,7 +15,7 @@ Why the app looks and behaves the way it does. Each decision records what was as
 
 | Decision | Why |
 |---|---|
-| Name **3D Fun Round** | Neutral, describes the app; the original working name included the club, which conflicted with principle 1. |
+| Name **Archery App** (was 3D Fun Round) | Neutral and club-free (principle 1). Renamed once the app covered indoor, field and sight marks as well as 3D, so "3D Fun Round" no longer described it. |
 | **Blue** brand colour by default; **club colours** chosen per phone | Requested. Blue matches the founding club without using its branding; each archer can switch the whole app to their club's colours (12 presets or custom). Nothing club-specific is hard-coded. |
 | Every colour held to **WCAG AA** whatever the club picks | Requested: "make sure whatever colour they choose, there's enough contrast in light and dark mode with all the text." The brand is split into a fill colour (carries white text) and a text colour (sits on cards), each forced to 4.5:1; faded text was made solid. Checked by `tests/contrast.js`. |
 | Accent colours = the **four peg colours** (red, blue, white, yellow) | A detail only 3D archery has; used as the hero stripe, peg dots, the live-round card's stripe. |
