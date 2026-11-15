@@ -140,7 +140,9 @@ function setup() {
           h('select', { onchange: e => { const c = state.courses.find(c => c.name === e.target.value); d.targets = c ? structuredClone(c.targets) : []; d.courseName = c?.name || ''; render(); } },
             h('option', { value: '' }, d.targets.length ? `${d.targets.length} targets chosen` : 'Pick as we go'), ...state.courses.map(c => h('option', { value: c.name, selected: c.name === d.courseName }, `${c.name} (${c.targets.length})`))),
           h('button', { style: 'flex:0 0 auto', onclick: () => go('course') }, d.targets.length ? 'Edit' : 'Build')),
-        d.targets.some(t => t.distanceActual != null) ? h('label', { class: 'row', style: 'padding-top:4px' },
+        coursePegs(d.targets).length ? h('div', { class: 'row', style: 'padding-top:4px' }, h('span', { style: 'flex:0 0 auto' }, 'Shooting from'),
+          h('div', { class: 'seg' }, ...coursePegs(d.targets).map(k => h('button', { class: (d.peg || coursePegs(d.targets)[0]) === k ? 'on' : '', onclick: () => { d.peg = k; render(); } }, pegDot(k), ' ', PEGS.find(p => p[0] === k)[1])))) : null,
+        coursePegs(d.targets).length ? h('label', { class: 'row', style: 'padding-top:4px' },
           h('input', { type: 'checkbox', style: 'width:24px;min-height:24px;flex:0 0 24px', checked: d.showDist && !d.games.guess, disabled: d.games.guess || d.mode === 'laser', onchange: e => { d.showDist = e.target.checked; } }),
           h('div', {}, h('div', {}, 'Show distances while shooting'), h('small', { class: 'muted' }, d.games.guess ? 'Off while Guess the distance is on' : d.mode === 'laser' ? 'Always shown in Laser practice' : 'This course has lased distances saved'))) : null)),
     h('div', { class: 'bottombar' }, h('button', { id: 'startBtn', class: 'primary', onclick: startRound, disabled: !d.players.some(p => p.name.trim()) }, d.mode === 'laser' ? 'Start practice' : 'Start shooting')));
@@ -149,31 +151,47 @@ function startRound() {
   const d = state.draft;
   d.players = d.players.filter(p => p.name.trim()).map(p => ({ ...p, name: p.name.trim() }));
   d.players.forEach(p => { if (!state.names.includes(p.name)) state.names.unshift(p.name); }); state.names = state.names.slice(0, 24);
-  state.round = { id: uid(), started: Date.now(), mode: d.mode, order: d.order, showDist: !!d.showDist, baseOrder: null, players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => ({ ...t })), scores: {}, courseName: d.courseName };
+  state.round = { id: uid(), started: Date.now(), mode: d.mode, order: d.order, showDist: !!d.showDist, baseOrder: null, players: d.players, systemKey: d.systemKey, arrows: d.arrows, games: d.games, useHandicap: d.useHandicap, targets: d.targets.map(t => { const pk = d.peg || coursePegs(d.targets)[0]; const pv = pk ? pegsOf(t)[pk] : null; const o = { ...t }; delete o.pegs; o.distanceActual = pv?.d ?? null; o.slope = pv?.s ?? null; return o; }), peg: d.peg || coursePegs(d.targets)[0] || null, scores: {}, courseName: d.courseName };
   state.ti = 0; save(); go('play');
 }
+
+// ---------- PEGS ----------
+const PEGS = [['red', 'Red'], ['blue', 'Blue'], ['white', 'White'], ['yellow', 'Yellow']];
+const pegsOf = t => { const p = { ...(t.pegs || {}) }; if (t.distanceActual != null && !Object.keys(p).length) p.red = { d: t.distanceActual, s: t.slope ?? null }; return p; };
+const coursePegs = targets => PEGS.map(([k]) => k).filter(k => targets.some(t => pegsOf(t)[k]?.d != null));
+const pegDot = k => h('span', { class: 'pegdot peg-' + k });
 
 // ---------- COURSE BUILDER ----------
 function course() {
   const d = state.draft || { targets: [] };
   const list = d.targets.map((t, i) => {
-    const T = findTarget(t.targetId), F = findFace(T, t.faceId);
-    return h('div', { class: 'item' },
+    const T = findTarget(t.targetId), F = findFace(T, t.faceId); const pg = pegsOf(t); const has = PEGS.filter(([k]) => pg[k]?.d != null);
+    const open = state.openPeg === i;
+    const summary = has.length ? h('div', { class: 'pegsum' }, ...has.map(([k]) => h('span', {}, pegDot(k), `${pg[k].d} m${pg[k].s ? ` ${pg[k].s > 0 ? '+' : ''}${pg[k].s}%` : ''}`))) : null;
+    const editor = open ? h('div', { class: 'pegedit' },
+      h('div', { class: 'muted', style: 'font-size:12px' }, 'Optional. Fill in the pegs you have; leave the rest blank. Slope in %, + uphill / − downhill.'),
+      ...PEGS.map(([k, n]) => h('div', { class: 'pegrow' }, pegDot(k), h('span', { class: 'pegname' }, n),
+        h('input', { type: 'number', inputmode: 'decimal', placeholder: 'm', value: pg[k]?.d ?? '', onchange: e => { t.pegs = pegsOf(t); const v = e.target.value === '' ? null : parseFloat(e.target.value); t.pegs[k] = { ...(t.pegs[k] || {}), d: v }; if (v == null && t.pegs[k].s == null) delete t.pegs[k]; delete t.distanceActual; delete t.slope; } }),
+        h('input', { type: 'number', inputmode: 'decimal', placeholder: '±%', value: pg[k]?.s ?? '', onchange: e => { t.pegs = pegsOf(t); const v = e.target.value === '' ? null : parseFloat(e.target.value); t.pegs[k] = { ...(t.pegs[k] || {}), s: v }; delete t.distanceActual; delete t.slope; } }))),
+      h('button', { class: 'primary', style: 'min-height:40px', onclick: () => { state.openPeg = null; render(); } }, 'Done')) : null;
+    return h('div', { class: 'item', style: 'flex-wrap:wrap' },
       F?.photo ? h('img', { src: F.photo, style: 'height:40px;width:48px;object-fit:contain;flex:none' }) : h('span', { style: 'width:48px;flex:none' }),
-      h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, [F?.label, state.courseDist && t.distanceActual != null ? `${t.distanceActual} m${t.slope ? ` · ${t.slope > 0 ? '+' : ''}${t.slope}%` : ''}` : null].filter(Boolean).join(' · '))),
+      h('div', { class: 't' }, h('div', { style: 'font-weight:600;line-height:1.2' }, `${i + 1}. ${T?.name || '?'}`), h('small', {}, F?.label || ''), summary),
       h('div', { class: 'rowbtns' },
-        h('button', { class: 'ghost', disabled: i === 0, onclick: () => { [d.targets[i - 1], d.targets[i]] = [d.targets[i], d.targets[i - 1]]; render(); } }, '↑'),
-        h('button', { class: 'ghost', disabled: i === d.targets.length - 1, onclick: () => { [d.targets[i + 1], d.targets[i]] = [d.targets[i], d.targets[i + 1]]; render(); } }, '↓'),
-        h('button', { class: 'ghost', onclick: () => { d.targets.splice(i, 1); render(); } }, '✕')));
+        h('button', { class: 'ghost' + (open ? ' on' : ''), title: 'Distances & slope', style: 'width:auto;padding:0 8px;font-size:13px;font-weight:700', onclick: () => { state.openPeg = open ? null : i; render(); } }, has.length ? 'm ✓' : '+ m'),
+        h('button', { class: 'ghost', disabled: i === 0, onclick: () => { [d.targets[i - 1], d.targets[i]] = [d.targets[i], d.targets[i - 1]]; state.openPeg = null; render(); } }, '↑'),
+        h('button', { class: 'ghost', disabled: i === d.targets.length - 1, onclick: () => { [d.targets[i + 1], d.targets[i]] = [d.targets[i], d.targets[i + 1]]; state.openPeg = null; render(); } }, '↓'),
+        h('button', { class: 'ghost', onclick: () => { d.targets.splice(i, 1); state.openPeg = null; render(); } }, '✕')),
+      editor ? h('div', { style: 'flex-basis:100%' }, editor) : null);
   });
   return h('div', {},
-    topbar(d.standalone ? (d.courseName || 'New course') : 'Course', `${d.targets.length} targets`, () => go(d.standalone ? 'courses' : 'setup'), d.targets.some(t => t.distanceActual != null) ? h('button', { onclick: () => { state.courseDist = !state.courseDist; render(); }, title: 'Show / hide distances', style: 'width:auto;padding:0 10px;font-size:13px' }, state.courseDist ? 'Hide m' : 'Show m') : null),
+    topbar(d.standalone ? (d.courseName || 'New course') : 'Course', `${d.targets.length} targets`, () => go(d.standalone ? 'courses' : 'setup')),
     h('div', { class: 'page' },
       h('div', { class: 'list' }, ...list),
-      h('button', { class: 'tile', onclick: () => { state.pick = { onDone: sel => { d.targets.push(sel); go('course'); }, back: 'course' }; go('pick'); } }, '+ Add target'),
-      h('div', { class: 'card' }, h('h3', {}, 'Save course'),
+      h('button', { class: 'tile', onclick: () => { state.pick = { onDone: sel => { d.targets.push(sel); state.openPeg = d.targets.length - 1; state.pick = null; go('course'); }, back: 'course' }; go('pick'); } }, '+ Add target'),
+      h('div', { class: 'card' }, h('h3', {}, d.standalone ? 'Course name' : 'Save course'),
         h('div', { class: 'row' }, h('input', { placeholder: 'Course name, e.g. Red pegs Nov 2026', value: d.courseName || '', oninput: e => d.courseName = e.target.value }),
-          h('button', { style: 'flex:0 0 auto', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); state.courses = state.courses.filter(c => c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now() }); d.courseName = name; save(); toast('Course saved'); } }, 'Save')))),
+          d.standalone ? null : h('button', { style: 'flex:0 0 auto', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); state.courses = state.courses.filter(c => c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now() }); d.courseName = name; save(); toast('Course saved'); } }, 'Save')))),
     h('div', { class: 'bottombar' }, d.standalone
       ? h('button', { class: 'primary', disabled: !d.targets.length, onclick: () => { const name = (d.courseName || `Course ${new Date().toLocaleDateString()}`).trim(); const prev = state.courses.find(c => c.name === name); if (prev?.builtin) { toast('Pick a new name — that one is built in'); return; } state.courses = state.courses.filter(c => c.name !== name); state.courses.unshift({ name, targets: structuredClone(d.targets), saved: Date.now() }); save(); toast('Course saved'); go('courses'); } }, 'Save course')
       : h('button', { class: 'primary', onclick: () => go('setup') }, 'Done')));
@@ -362,7 +380,7 @@ function board() {
     const t = r.targets[i]; const T = t && findTarget(t.targetId); const sc = r.scores[i] || {};
     return h('div', { class: 'item', onclick: () => { state.ti = i; go('play'); } }, h('div', { class: 'n' }, String(i + 1)), h('div', { class: 't' }, T?.name || 'Not picked yet', h('small', {}, r.players.map(p => `${p.name} ${sc[p.id] ? scoreTarget(sys, sc[p.id]) : '–'}`).join(' · '))), t?.distanceActual != null && (r.mode === 'laser' || r.showDist || t.guessLocked) ? h('span', { class: 'pill' }, `${t.distanceActual} m`) : null);
   }));
-  return h('div', {}, topbar(r.mode === 'laser' ? 'Practice' : 'Scoreboard', `${sys.name}${sk ? ` · ${sk.carry > 1 ? sk.carry + ' skins riding' : ''}` : ''}`, () => go('home')),
+  return h('div', {}, topbar(r.mode === 'laser' ? 'Practice' : 'Scoreboard', `${r.peg ? r.peg[0].toUpperCase() + r.peg.slice(1) + ' pegs · ' : ''}${sys.name}${sk ? ` · ${sk.carry > 1 ? sk.carry + ' skins riding' : ''}` : ''}`, () => go('home')),
     h('div', { class: 'page' }, h('div', { class: 'card' }, table),
       r.players.length > 1 ? h('div', { class: 'row', style: 'font-size:13px' }, h('span', { class: 'muted', style: 'flex:0 0 auto' }, `Next up (${r.order}):`), ...orderFor(r, nextUnscored(), sys).map((id, i) => h('span', { class: 'pill' }, `${i + 1}. ${r.players.find(p => p.id === id)?.name}`))) : null,
       h('h3', {}, 'Targets'), perTarget),
@@ -518,7 +536,7 @@ function about() {
 // ---------- boot ----------
 fetch('targets/targets.json').then(r => r.json()).then(j => {
   LIB = j;
-  fetch('targets/courses.json').then(r => r.json()).then(cj => { (cj.courses || []).forEach(c => { if (!state.courses.some(x => x.name === c.name)) state.courses.push(c); else Object.assign(state.courses.find(x => x.name === c.name), c); }); save(); render(); }).catch(() => {});
+  fetch('targets/courses.json').then(r => r.json()).then(cj => { state.courses = state.courses.filter(c => c.name !== 'Dargle Valley · Red pegs · 15 Nov 2026'); (cj.courses || []).forEach(c => { if (!state.courses.some(x => x.name === c.name)) state.courses.push(c); else Object.assign(state.courses.find(x => x.name === c.name), c); }); save(); render(); }).catch(() => {});
   // zones traced on this phone with tools/trace.html override the shipped ones
   const local = LS.get('wa.zones.local', {});
   LIB.targets.forEach(t => t.faces.forEach(f => { if (local[f.id]?.some(s => s.outer?.length > 2 || s.centre)) f.sets = local[f.id]; }));
