@@ -72,3 +72,6 @@ Targets with rings on two places (e.g. the bedded fox: shoulder and hip) use **+
 
 ## Your data
 Stays on your phone. See PRIVACY.md. Settings → Export backup makes a file you can keep.
+
+## Indoor and Field practice
+In Indoor or Field setup, **What are we doing** offers *Fun round* (score against each other, with a game) or *Practice*. Practice asks for **a goal for the session** and won't start until you write one (e.g. "hold at full draw until the shot breaks"). The goal stays at the top of the screen while you shoot and on the scoreboard. When you finish, the summary shows the goal again with a **How did it go?** box for notes. The goal and notes are saved with the round and show in History. Practice scores still count towards progress and personal bests.

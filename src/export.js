@@ -25,13 +25,13 @@ export async function buildWorkbook(state, LIB) {
     ['Archery Ireland number', P.ai || ''], ['Club', P.club || ''], ['Club number', P.clubNo || ''], ['Exported', new Date().toISOString().slice(0, 16).replace('T', ' ')], ['App', '3D Fun Round']];
 
   // ---- Rounds: one row per archer per round
-  const rRows = [['Round ID', 'Date', 'Time', 'Discipline', 'Mode', 'Round', 'Scoring', 'Distance (m)', 'Face', 'Peg', 'Targets / ends', 'Arrows per target/end', 'Archer', 'Is me', 'Bow', 'Score', 'Max possible', '% of max', 'Avg per arrow', 'X count', 'Top-ring count', 'Arrows shot', 'Game', 'Game result', 'Handicap', 'Net score', 'Place in group', 'Group size']];
+  const rRows = [['Round ID', 'Date', 'Time', 'Discipline', 'Mode', 'Round', 'Scoring', 'Distance (m)', 'Face', 'Peg', 'Targets / ends', 'Arrows per target/end', 'Archer', 'Is me', 'Bow', 'Score', 'Max possible', '% of max', 'Avg per arrow', 'X count', 'Top-ring count', 'Arrows shot', 'Game', 'Game result', 'Handicap', 'Net score', 'Place in group', 'Group size', 'Practice goal', 'Practice notes']];
   rounds.forEach(r => {
     if (r.kind) { // indoor / field
       const tal = r.final?.tally || {}; const max = r.ends * r.arrows * SCHEMES[r.scheme].max; const game = r.games?.sets ? 'Set play' : r.games?.king ? 'King of the Castle' : 'Total points';
       const order = [...r.players].sort((a, b) => (tal[b.id]?.total || 0) - (tal[a.id]?.total || 0));
       r.players.forEach(p => { const x = tal[p.id] || {}; const res = r.games?.sets ? `${r.final?.sets?.pts?.[p.id] ?? 0} set points${r.final?.sets?.winner === p.id ? ' (winner)' : ''}` : r.games?.king ? `${r.final?.king?.won?.[p.id] ?? 0} ends won${r.final?.king?.king === p.id ? ' (King)' : ''}` : '';
-        rRows.push([rid(r), d(r.started), t(r.started), kindOf(r), 'Scored round', r.name, SCHEMES[schemeFor(r.scheme, p.bow)].name, r.dist, FACES[r.face], '', r.ends, r.arrows, p.name, p.name === me ? 'Yes' : '', bowName(p.bow), x.total ?? '', max, max ? Math.round((x.total || 0) / max * 1000) / 10 : '', x.avg ? Math.round(x.avg * 100) / 100 : '', x.xs ?? '', x.tens ?? '', x.arrows ?? '', game, res, '', '', order.indexOf(p) + 1, r.players.length]); });
+        rRows.push([rid(r), d(r.started), t(r.started), kindOf(r), r.mode === 'practice' ? 'Practice' : 'Scored round', r.name, SCHEMES[schemeFor(r.scheme, p.bow)].name, r.dist, FACES[r.face], '', r.ends, r.arrows, p.name, p.name === me ? 'Yes' : '', bowName(p.bow), x.total ?? '', max, max ? Math.round((x.total || 0) / max * 1000) / 10 : '', x.avg ? Math.round(x.avg * 100) / 100 : '', x.xs ?? '', x.tens ?? '', x.arrows ?? '', game, res, '', '', order.indexOf(p) + 1, r.players.length, r.goal || '', r.review || '']); });
     } else { // 3D
       const sys = SYSTEMS[r.systemKey]; const tot = r.final?.totals || {}; const n = r.targets?.length || Object.keys(r.scores || {}).length;
       const max = n * Math.max(...sys.table.map(row => row.centre)); const game = r.games?.skins ? 'Skins' : r.games?.king ? 'King of the Castle' : 'Total points';
@@ -80,7 +80,7 @@ export async function buildWorkbook(state, LIB) {
     [''],
     ['SHEETS'],
     ['Profile', 'Archer details (no photo). Archery Ireland and club numbers are included only if entered.'],
-    ['Rounds', 'One row per archer per round, all disciplines. "Is me" marks the profile owner. % of max lets rounds of different lengths be compared.'],
+    ['Rounds', 'One row per archer per round, all disciplines. "Is me" marks the profile owner. % of max lets rounds of different lengths be compared. Indoor/field practice rounds have Mode "Practice" with the archer\'s goal for the session and their notes afterwards.'],
     ['Arrows', 'Indoor and field only: every arrow. Hit X/Y are the arrow position on the face when it was tapped (centre = 0,0; edge = 1; +X is right, +Y is low). Positive mean X = grouping right; positive mean Y = grouping low. Arrows entered with a score button have no position.'],
     ['3D targets', 'Every 3D target each archer shot: animal, side faced, peg, lased distance, slope (% grade, + uphill), cut (horizontal) distance, zone hit per arrow, points, sight setting (Laser practice) and distance guess.'],
     ['Courses', 'Saved courses with each target and its distance/slope per peg colour.'],

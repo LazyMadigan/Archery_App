@@ -73,17 +73,22 @@ function profile() {
 // ---------- setup ----------
 export function startTarget(kind) {
   const { state, uid, go } = C; const R = KIND[kind].rounds[0]; const me = (state.profile?.name || '').trim();
-  state.tdraft = { kind, roundKey: R.key, name: R.name, face: R.face, scheme: R.scheme, dist: R.dist, ends: R.ends, arrows: R.arrows, games: { total: true }, players: [{ id: uid(), name: me, bow: defaultBow(state.profile) }] };
+  state.tdraft = { kind, roundKey: R.key, name: R.name, face: R.face, scheme: R.scheme, dist: R.dist, ends: R.ends, arrows: R.arrows, games: { total: true }, mode: 'fun', goal: '', players: [{ id: uid(), name: me, bow: defaultBow(state.profile) }] };
   go('tsetup');
 }
 function tsetup() {
   const { h, icon, state, go, topbar, uid, $ } = C; const d = state.tdraft; const K = KIND[d.kind]; const R = K.rounds.find(r => r.key === d.roundKey);
   const applyRound = r => Object.assign(d, { roundKey: r.key, name: r.name, face: r.face, scheme: r.scheme, dist: r.dist, ends: r.ends, arrows: r.arrows });
   const seg = (opts, cur, set, fmt = x => x) => h('div', { class: 'chips' + (opts.length <= 2 ? ' c2' : opts.length === 3 ? ' c3' : opts.length === 4 ? ' c4' : ' c4') }, ...opts.map(o => h('button', { class: o === cur ? 'on' : '', onclick: () => { set(o); C.render(); } }, fmt(o))));
-  const playerRow = (p, i) => h('div', { class: 'row prow' }, h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; const b = $('#tStart'); if (b) b.disabled = !d.players.some(x => x.name.trim()); } }),
+  const practice = d.mode === 'practice';
+  const canStart = () => d.players.some(x => x.name.trim()) && (d.mode !== 'practice' || !!(d.goal || '').trim());
+  const goalHint = () => (d.goal || '').trim() ? 'Shown while you shoot and saved with the round.' : 'Write your goal to start. It stays on screen while you shoot.';
+  const syncStart = () => { const b = $('#tStart'); if (b) b.disabled = !canStart(); const g = $('#tGoalHint'); if (g) g.textContent = goalHint(); };
+  const playerRow = (p, i) => h('div', { class: 'row prow' }, h('input', { placeholder: `Player ${i + 1}`, value: p.name, list: 'names', oninput: e => { p.name = e.target.value; syncStart(); } }),
     h('select', { class: 'bowsel', 'aria-label': 'Bow', onchange: e => { p.bow = e.target.value; C.render(); } }, ...(() => { const mineFirst = p.name.trim() && p.name.trim() === (state.profile?.name || '').trim() ? [...BOWS.filter(b => myBows(state.profile).includes(b[0])), ...BOWS.filter(b => !myBows(state.profile).includes(b[0]))] : BOWS; return mineFirst.map(([k, n]) => h('option', { value: k, selected: (p.bow || 'recurve') === k }, n)); })()),
     h('button', { class: 'ghost', style: 'flex:0 0 44px', onclick: () => { d.players.splice(i, 1); C.render(); } }, '✕'));
   const sch = schemeForFace(d.kind, d.face, d.scheme);
+  if (state._focusGoal) { state._focusGoal = false; setTimeout(() => { const el = $('#tGoal'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 50); }
   return h('div', {}, topbar(K.title, 'Set up', () => go('home')),
     h('datalist', { id: 'names' }, (state.names || []).map(n => h('option', { value: n }))),
     h('div', { class: 'page' },
@@ -99,10 +104,18 @@ function tsetup() {
           h('div', { class: 'optblock' }, h('span', { class: 'optlbl' }, d.kind === 'field' ? 'Targets' : 'Ends'), h('div', { class: 'stepper' }, h('button', { 'aria-label': 'Fewer', onclick: () => { d.ends = Math.max(1, d.ends - 1); C.render(); } }, '−'), h('b', {}, String(d.ends)), h('button', { 'aria-label': 'More', onclick: () => { d.ends = Math.min(60, d.ends + 1); C.render(); } }, '+'))),
           h('div', { class: 'optblock' }, h('span', { class: 'optlbl' }, 'Arrows'), seg(d.kind === 'field' ? [3, 4] : [3, 6], d.arrows, v => d.arrows = v))),
         h('div', { class: 'facepreview' }, drawFace(sch, { size: '120px' }), h('div', { class: 'muted', style: 'font-size:13px' }, `${SCHEMES[sch].name}`, h('br'), `${d.ends * d.arrows} arrows · ${d.ends * d.arrows * SCHEMES[sch].max} max`))),
-      h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Game'),
+      h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'What are we doing'),
+        h('div', { class: 'list' },
+          h('div', { class: 'gamecard' + (!practice ? ' on' : ''), onclick: () => { d.mode = 'fun'; C.render(); } }, icon('trophy', 'lg'), h('div', {}, h('b', {}, 'Fun round'), h('small', {}, 'Score against each other')), h('span', { class: 'chk' }, !practice ? icon('check') : null)),
+          h('div', { class: 'gamecard' + (practice ? ' on' : ''), onclick: () => { if (practice) return; d.mode = 'practice'; d.games = { total: true }; state._focusGoal = true; C.render(); } }, icon('target', 'lg'), h('div', {}, h('b', {}, 'Practice'), h('small', {}, 'Set a goal for the session, then shoot')), h('span', { class: 'chk' }, practice ? icon('check') : null)))),
+      practice ? h('div', { class: 'card', style: 'border-color:var(--brand);border-width:2px' },
+        h('label', { class: 'fld' }, h('span', {}, 'Goal for this practice'),
+          h('textarea', { id: 'tGoal', rows: 3, maxlength: 300, placeholder: 'e.g. Hold at full draw until the shot breaks; keep every arrow in the gold', value: d.goal || '', oninput: e => { d.goal = e.target.value; syncStart(); } })),
+        h('small', { id: 'tGoalHint', class: 'muted', style: 'font-size:12px' }, goalHint())) : null,
+      practice ? null : h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Game'),
         h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Highest total wins'], ['king', 'crown', 'King of the Castle', 'Best end takes the crown; hold it to stay King'], ['sets', 'trophy', 'Set play', 'Olympic match style: 2 points for winning an end, 1 each for a tie. First to 6 (head to head)']].map(([k, ic, n, desc]) =>
           h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { d.games = { [k]: true }; C.render(); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))))),
-    h('div', { class: 'bottombar' }, h('button', { id: 'tStart', class: 'primary', disabled: !d.players.some(p => p.name.trim()), onclick: startT }, 'Start shooting')));
+    h('div', { class: 'bottombar' }, h('button', { id: 'tStart', class: 'primary', disabled: !canStart(), onclick: () => { if (canStart()) startT(); } }, practice ? 'Start practice' : 'Start shooting')));
 }
 function startT() {
   const { state, save, go, uid } = C; const d = state.tdraft;
@@ -110,7 +123,7 @@ function startT() {
   players.forEach(p => { if (!state.names.includes(p.name)) state.names.unshift(p.name); }); state.names = state.names.slice(0, 24);
   const meName = (state.profile?.name || '').trim(); const mine = players.find(p => p.name === meName); if (mine && state.profile) state.profile.lastBow = mine.bow;
   const scheme = schemeForFace(d.kind, d.face, d.scheme);
-  state.tround = { id: uid(), kind: d.kind, started: Date.now(), roundKey: d.roundKey, name: d.name, face: d.face, scheme, dist: d.dist, ends: d.ends, arrows: d.arrows, games: d.games, players, scores: Object.fromEntries(players.map(p => [p.id, []])), end: 0 };
+  state.tround = { id: uid(), kind: d.kind, started: Date.now(), roundKey: d.roundKey, name: d.name, face: d.face, scheme, dist: d.dist, ends: d.ends, arrows: d.arrows, games: d.mode === 'practice' ? { total: true } : d.games, ...(d.mode === 'practice' ? { mode: 'practice', goal: d.goal.trim() } : {}), players, scores: Object.fromEntries(players.map(p => [p.id, []])), end: 0 };
   state.tsel = null; save(); go('tplay');
 }
 
@@ -133,6 +146,7 @@ function tplay() {
   const all = endsComplete(r, e); const last = e >= r.ends - 1;
   return h('div', {}, topbar(`${r.kind === 'field' ? 'Target' : 'End'} ${e + 1} of ${r.ends}`, `${r.name} · ${r.dist} m · ${FACES[r.face]}`, () => go('tboard')),
     h('div', { class: 'page sch-' + psch },
+      r.goal ? goalBanner(r) : null,
       h('div', { class: 'facewrap' }, face, h('div', { class: 'muted', style: 'font-size:12px;text-align:center' }, `${active.name} · arrow ${Math.min(endOf(active).filter(Boolean).length + 1, r.arrows)} of ${r.arrows} — tap where it landed (or use the buttons; only tapped arrows show on your group)`)),
       h('div', { class: 'vbtns n' + SCHEMES[psch].buttons.length }, ...SCHEMES[psch].buttons.map(btn)),
       h('div', { class: 'card' }, ...rows)),
@@ -141,6 +155,8 @@ function tplay() {
       h('button', { style: 'flex:0 0 auto;padding:0 18px', onclick: () => go('tboard') }, 'Board'),
       h('button', { class: 'primary', disabled: !all, onclick: () => { if (last) { finishT(); return; } r.end = e + 1; state.tsel = null; state._top = true; save(); C.render(); } }, last ? 'Finish' : r.kind === 'field' ? 'Next target' : 'Next end')));
 }
+
+const goalBanner = r => { const { h, icon } = C; return h('div', { class: 'goalbar' }, icon('target'), h('div', {}, h('small', {}, 'Goal'), h('span', {}, r.goal))); };
 
 // ---------- board / finish / summary ----------
 function standings(r) {
@@ -155,8 +171,8 @@ function tboard() {
     ...order.map(p => h('tr', {}, h('td', {}, kg?.king === p.id ? h('span', { class: 'crown' }, '♛ ') : '', sp?.winner === p.id ? '🏆 ' : '', p.name, h('small', { class: 'muted', style: 'margin-left:6px;font-size:11px' }, bowName(p.bow))), h('td', { class: 'num' }, h('b', {}, String(tal[p.id].total))), h('td', { class: 'num' }, String(tal[p.id].xs)), h('td', { class: 'num' }, tal[p.id].avg.toFixed(2)), sp ? h('td', { class: 'num' }, String(sp.pts[p.id])) : null, kg ? h('td', { class: 'num' }, String(kg.won[p.id])) : null)));
   const ends = h('div', { class: 'endgrid', style: `grid-template-columns:auto repeat(${r.players.length},1fr)` }, h('b', {}, 'End'), ...r.players.map(p => h('b', {}, p.name.slice(0, 8))),
     ...Array.from({ length: r.ends }, (_, e) => [h('span', { class: 'muted' }, String(e + 1)), ...r.players.map(p => { const en = r.scores[p.id][e]; return h('span', { onclick: () => { r.end = e; save(); go('tplay'); } }, en?.length ? String(endTotal(r.scheme, en)) : '–'); })]).flat());
-  return h('div', {}, topbar('Scoreboard', roundLabel(r), () => go('home')),
-    h('div', { class: 'page' }, h('div', { class: 'card' }, table), h('div', { class: 'card' }, h('h3', {}, 'Ends'), ends)),
+  return h('div', {}, topbar(r.mode === 'practice' ? 'Practice' : 'Scoreboard', roundLabel(r), () => go('home')),
+    h('div', { class: 'page' }, r.goal ? goalBanner(r) : null, h('div', { class: 'card' }, table), h('div', { class: 'card' }, h('h3', {}, 'Ends'), ends)),
     h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => go('tplay') }, 'Continue'), h('button', { onclick: () => { if (confirmBox('Finish and save this round?')) finishT(); } }, 'Finish & save'), h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--peg-red)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.tround = null; save(); go('home'); } } }, 'Delete')));
 }
 function finishT() {
@@ -170,10 +186,13 @@ function tsummary() {
     h('div', { class: 'row', style: 'font-size:13px;width:100%' }, h('span', { class: 'pill' }, `${tal[p.id].xs} X`), h('span', { class: 'pill' }, `${tal[p.id].tens} × ${SCHEMES[r.scheme].max}`), h('span', { class: 'pill' }, `avg ${tal[p.id].avg.toFixed(2)}`), sp ? h('span', { class: 'pill' }, `${sp.pts[p.id]} set pts`) : null, kg ? h('span', { class: 'pill' }, `${kg.won[p.id]} ends${kg.king === p.id ? ' · King' : ''}`) : null),
     drawFace(r.scheme, { faded: (r.scores[p.id] || []).flat().filter(s => s?.x != null), size: '220px', label: 'Arrow group' })));
   const canvas = h('canvas', { width: 1080, height: 260 + order.length * 90, style: 'width:100%;height:auto;border-radius:12px;border:1px solid var(--line)' });
-  setTimeout(() => { const x = canvas.getContext('2d'); const W = 1080; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, canvas.height); x.fillStyle = '#1d4fd8'; x.fillRect(0, 0, W, 130); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText(`${r.kind === 'field' ? 'Field' : 'Indoor'} · ${r.name}`, 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${r.dist} m · ${FACES[r.face]} · ${r.ends * r.arrows} arrows`, 40, 108);
+  setTimeout(() => { const x = canvas.getContext('2d'); const W = 1080; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, canvas.height); x.fillStyle = '#1d4fd8'; x.fillRect(0, 0, W, 130); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText(`${r.kind === 'field' ? 'Field' : 'Indoor'}${r.mode === 'practice' ? ' practice' : ''} · ${r.name}`, 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${r.dist} m · ${FACES[r.face]} · ${r.ends * r.arrows} arrows`, 40, 108);
     let y = 200; order.forEach((p, i) => { x.fillStyle = '#121a2e'; x.font = 'bold 38px system-ui'; x.fillText(`${i + 1}. ${p.name} (${bowName(p.bow)})`, 40, y); x.textAlign = 'right'; x.fillText(`${tal[p.id].total}`, W - 40, y); x.textAlign = 'left'; x.font = '22px system-ui'; x.fillStyle = '#5a6680'; x.fillText(`${tal[p.id].xs} X · avg ${tal[p.id].avg.toFixed(2)}${sp ? ` · ${sp.pts[p.id]} set pts` : ''}${kg ? ` · ${kg.won[p.id]} ends` : ''} · of ${max}`, 40, y + 32); y += 90; }); }, 0);
   return h('div', {}, topbar('Round summary', new Date(r.started).toLocaleDateString(), () => go('home')),
-    h('div', { class: 'page' }, canvas,
+    h('div', { class: 'page' },
+      r.goal ? h('div', { class: 'card', style: 'border-color:var(--brand);border-width:2px' }, goalBanner(r),
+        h('label', { class: 'fld' }, h('span', {}, 'How did it go?'), h('textarea', { rows: 3, maxlength: 500, placeholder: 'Did you hit your goal? What to work on next time', value: r.review || '', oninput: e => { r.review = e.target.value; save(); } }))) : null,
+      canvas,
       h('div', { class: 'row' }, h('button', { class: 'primary', onclick: () => { const a = document.createElement('a'); a.download = `${r.kind}-${new Date(r.started).toISOString().slice(0, 10)}.png`; a.href = canvas.toDataURL('image/png'); a.click(); } }, 'Save image'),
         navigator.share ? h('button', { onclick: () => canvas.toBlob(async b => { try { await navigator.share({ files: [new File([b], 'round.png', { type: 'image/png' })], title: r.name }); } catch {} }) }, 'Share') : null),
       ...groups,
@@ -186,7 +205,7 @@ function liveCard() {
   const { h, icon, state, save, go, confirmBox } = C; const r = state.tround; if (!r) return null;
   const done = r.players.length ? Math.min(...r.players.map(p => (r.scores[p.id] || []).filter(e => e?.length >= r.arrows).length)) : 0;
   return h('div', { class: 'live' },
-    h('div', { class: 'live-head' }, h('span', { class: 'live-badge' }, icon(KIND[r.kind].icon, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('div', { class: 'live-title' }, `${KIND[r.kind].title} in progress`), h('div', { class: 'live-sub' }, roundLabel(r))), h('span', { class: 'live-dot' })),
+    h('div', { class: 'live-head' }, h('span', { class: 'live-badge' }, icon(KIND[r.kind].icon, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('div', { class: 'live-title' }, `${KIND[r.kind].title} ${r.mode === 'practice' ? 'practice' : 'round'} in progress`), h('div', { class: 'live-sub' }, roundLabel(r))), h('span', { class: 'live-dot' })),
     h('div', { class: 'live-players' }, ...r.players.map(p => h('span', { class: 'pill' }, p.name))),
     h('div', { class: 'live-prog' }, h('div', { class: 'bar' }, h('i', { style: `width:${Math.round(done / r.ends * 100)}%` })), h('span', {}, `${done} of ${r.ends} ${r.kind === 'field' ? 'targets' : 'ends'}`)),
     h('div', { class: 'grid c2' }, h('button', { class: 'primary', onclick: () => go('tplay') }, 'Continue'), h('button', { onclick: () => go('tboard') }, 'Scoreboard'),
@@ -194,7 +213,7 @@ function liveCard() {
 }
 function historyItem(r) {
   const { h, icon, state, go } = C; const tal = r.final?.tally || {};
-  return h('div', { class: 'item', onclick: () => { state.tlast = r; go('tsummary'); } }, icon(KIND[r.kind].icon), h('div', { class: 't' }, r.players.map(p => `${p.name} ${tal[p.id]?.total ?? ''}`).join(' · '), h('small', {}, `${new Date(r.started).toLocaleDateString()} · ${roundLabel(r)}`)));
+  return h('div', { class: 'item', onclick: () => { state.tlast = r; go('tsummary'); } }, icon(KIND[r.kind].icon), h('div', { class: 't' }, r.players.map(p => `${p.name} ${tal[p.id]?.total ?? ''}`).join(' · '), h('small', {}, `${new Date(r.started).toLocaleDateString()} · ${r.mode === 'practice' ? 'Practice · ' : ''}${roundLabel(r)}`), r.goal ? h('small', {}, `Goal: ${r.goal}`) : null));
 }
 function progressCards(who) {
   const { h, icon, state } = C; const out = [];

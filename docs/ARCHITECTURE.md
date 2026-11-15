@@ -50,7 +50,7 @@ At round start the chosen peg's values are copied to `distanceActual` / `slope` 
 
 **3D round:** `{ id, started, mode: 'fun'|'laser', order, baseOrder, peg, showDist, players[{id,name,handicap}], systemKey, arrows, games, targets[], scores{ [targetIndex]: { [playerId]: [zone…] } }, final }`.
 
-**Indoor/field round:** `{ id, kind, started, roundKey, name, face, scheme, dist, ends, arrows, games, players[{id,name,bow}], scores{ [playerId]: [ [ {v,x,y}… ] per end ] }, end, final{ tally, sets, king } }`.
+**Indoor/field round:** `{ id, kind, started, roundKey, name, face, scheme, dist, ends, arrows, games, mode?: 'practice', goal?, review?, players[{id,name,bow}], scores{ [playerId]: [ [ {v,x,y}… ] per end ] }, end, final{ tally, sets, king } }`.
 `v` is `'X'`, a number, or `'M'`; `x,y` are face units (−1…1) only when the arrow was tapped.
 
 ## Scoring engine (faces.js)
