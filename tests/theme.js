@@ -1,0 +1,21 @@
+const BASE = process.env.BASE || 'http://localhost:8111';
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch(); const ctx = await b.newContext({ ...devices[process.env.DEV || 'Pixel 7'], colorScheme: 'light' }); const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(e.message));
+  let dlg = null; p.on('dialog', d => { dlg = d.message(); d.dismiss(); });
+  await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); } catch {} });
+  await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(600);
+  const bg = () => p.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  console.log('system(light phone):', await bg());
+  await p.locator('button[aria-label=Settings]').click(); await p.waitForTimeout(200); await p.screenshot({ path: '/tmp/th-set.png', fullPage: true });
+  await p.locator('.chips button', { hasText: 'Dark' }).click(); await p.waitForTimeout(150); console.log('dark:', await bg());
+  await p.reload(); await p.waitForTimeout(500); console.log('dark after reload:', await bg());
+  await p.locator('button[aria-label=Settings]').click(); await p.locator('.chips button', { hasText: 'Light' }).click(); await p.waitForTimeout(150); console.log('light:', await bg());
+  // profile via settings, unsaved changes prompt
+  await p.locator('.setprof').click(); await p.waitForTimeout(200);
+  console.log('save btn initially:', await p.locator('#pfSave').innerText(), await p.locator('#pfSave').isDisabled());
+  await p.locator('#pf-name').fill('Cian'); await p.waitForTimeout(100); console.log('after typing:', await p.locator('#pfSave').innerText(), await p.locator('#pfSave').isDisabled());
+  await p.locator('.topbar button').first().click(); await p.waitForTimeout(200); console.log('back with unsaved -> dialog:', dlg, '| still on:', await p.locator('.topbar .tt').innerText());
+  await p.locator('#pfSave').click(); await p.waitForTimeout(200); console.log('after save:', await p.locator('#pfSave').innerText());
+  await p.locator('.topbar button').first().click(); await p.waitForTimeout(200); console.log('back goes to:', await p.locator('.topbar .tt').innerText(), '| card shows:', await p.locator('.setprof b').innerText());
+  if (await p.evaluate(() => document.documentElement.scrollWidth > screen.width || innerWidth > screen.width)) errs.push('OVERFLOW');
+  console.log(errs.length ? errs : 'no errors'); await b.close(); })();

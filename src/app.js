@@ -53,7 +53,8 @@ function render() {
   const views = { home, setup, course, pick: picker, play, board, summary, settings, courses: coursesView, history: historyView, progress, about, tsetup: T.tsetup, tplay: T.tplay, tboard: T.tboard, tsummary: T.tsummary, profile: T.profile, welcome };
   if (state.view === 'home' && !state.onboarded && !(state.profile?.name || '').trim() && !state.round && !state.tround && !state.history.length) state.view = 'welcome';
   app.append((views[state.view] || home)());
-  if (state._lastView !== state.view) window.scrollTo(0, 0); else window.scrollTo(0, y);
+  if (state._lastView !== state.view || state._top) window.scrollTo(0, 0); else window.scrollTo(0, y);
+  state._top = false;
   state._lastView = state.view;
 }
 function topbar(title, sub, back, right) {
@@ -394,9 +395,9 @@ function play() {
       guessGate ? null : h('div', { class: 'card' }, ...playerRows),
       guessGate ? null : guess),
     h('div', { class: 'bottombar' },
-      h('button', { style: 'flex:0 0 56px', 'aria-label': 'Previous target', onclick: () => { state.ti = Math.max(0, ti - 1); state.selPid = null; render(); }, disabled: ti === 0 }, icon('back')),
+      h('button', { style: 'flex:0 0 56px', 'aria-label': 'Previous target', onclick: () => { state.ti = Math.max(0, ti - 1); state.selPid = null; state._top = true; render(); }, disabled: ti === 0 }, icon('back')),
       h('button', { style: 'flex:0 0 auto;padding:0 18px', onclick: () => go('board') }, 'Board'),
-      h('button', { class: 'primary', style: allDone ? '' : 'opacity:.75', onclick: () => { state.ti = ti + 1; state.selPid = null; save(); render(); } }, allDone ? 'Next' : 'Skip', h('span', { class: 'ic', style: 'transform:scaleX(-1);margin-left:4px;width:18px;height:18px' }, icon('back')))));
+      h('button', { class: 'primary', style: allDone ? '' : 'opacity:.75', onclick: () => { state.ti = ti + 1; state.selPid = null; state._top = true; save(); render(); } }, allDone ? 'Next' : 'Skip', h('span', { class: 'ic', style: 'transform:scaleX(-1);margin-left:4px;width:18px;height:18px' }, icon('back')))));
 }
 
 // ---------- SCOREBOARD ----------

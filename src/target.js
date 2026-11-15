@@ -131,9 +131,9 @@ function tplay() {
       h('div', { class: 'vbtns n' + SCHEMES[psch].buttons.length }, ...SCHEMES[psch].buttons.map(btn)),
       h('div', { class: 'card' }, ...rows)),
     h('div', { class: 'bottombar' },
-      h('button', { style: 'flex:0 0 56px', disabled: e === 0, onclick: () => { r.end = Math.max(0, e - 1); state.tsel = null; save(); C.render(); } }, icon('back')),
+      h('button', { style: 'flex:0 0 56px', disabled: e === 0, onclick: () => { r.end = Math.max(0, e - 1); state.tsel = null; state._top = true; save(); C.render(); } }, icon('back')),
       h('button', { style: 'flex:0 0 auto;padding:0 18px', onclick: () => go('tboard') }, 'Board'),
-      h('button', { class: 'primary', disabled: !all, onclick: () => { if (last) { finishT(); return; } r.end = e + 1; state.tsel = null; save(); C.render(); } }, last ? 'Finish' : r.kind === 'field' ? 'Next target' : 'Next end')));
+      h('button', { class: 'primary', disabled: !all, onclick: () => { if (last) { finishT(); return; } r.end = e + 1; state.tsel = null; state._top = true; save(); C.render(); } }, last ? 'Finish' : r.kind === 'field' ? 'Next target' : 'Next end')));
 }
 
 // ---------- board / finish / summary ----------

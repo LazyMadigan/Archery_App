@@ -1,0 +1,15 @@
+const BASE = process.env.BASE || 'http://localhost:8111';
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch(); const p = await (await b.newContext({ ...devices['Pixel 7'] })).newPage(); await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); } catch {} }); p.on('dialog', d => d.accept()); const errs=[]; p.on('pageerror', e => errs.push(e.message));
+  await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(700);
+  await p.locator('.tile', { hasText: '3D Courses' }).click(); await p.waitForTimeout(300); await p.screenshot({ path: '/tmp/cs1.png' });
+  await p.getByText('Build new course').click(); await p.waitForTimeout(200);
+  await p.getByText('+ Add target').click(); await p.getByRole('button',{name:/Small game/}).click(); await p.getByRole('button',{name:/Fox, bedded/}).click(); await p.waitForTimeout(200);
+  await p.screenshot({ path: '/tmp/cs2.png' });
+  await p.getByRole('button',{name:/Rear/}).click(); await p.waitForTimeout(200);
+  await p.getByText('+ Add target').click(); await p.getByRole('button',{name:/Bears/}).click(); await p.getByRole('button',{name:/Polar bear/}).click(); await p.waitForTimeout(200);
+  await p.locator('input[placeholder^="Course name"]').fill('Test loop'); await p.getByRole('button',{name:'Save course'}).click(); await p.waitForTimeout(300);
+  console.log('saved:', (await p.locator('.item .t div').allInnerTexts()).slice(0,3));
+  await p.getByRole('button',{name:'Shoot',exact:true}).first().click(); await p.locator('input[placeholder="Player 1"]').fill('Cian'); await p.getByText('Start shooting').click(); await p.waitForTimeout(400);
+  await p.locator('.diagram').screenshot({ path: '/tmp/cs3.png' });
+  console.log(errs.length ? errs : 'no errors'); await b.close(); })();

@@ -1,0 +1,14 @@
+const BASE = process.env.BASE || 'http://localhost:8111';
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch(); const p = await (await b.newContext({ ...devices[process.env.DEV || 'Pixel 7'] })).newPage(); await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); } catch {} }); p.on('dialog', d => d.accept()); const errs=[]; p.on('pageerror', e => errs.push(e.message));
+  await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(700);
+  await p.locator('.avatar').click(); await p.locator('#pf-name').fill('Cian'); await p.locator('.bowchip', { hasText: 'Recurve' }).click(); await p.locator('.bowchip', { hasText: 'Compound' }).click(); await p.waitForTimeout(150);
+  if (await p.evaluate(() => document.documentElement.scrollWidth > screen.width || innerWidth > screen.width)) errs.push('OVERFLOW');
+  await p.locator('.fld[role=group]').screenshot({ path: '/tmp/bw1.png' });
+  await p.locator('#pfSave').click(); await p.waitForTimeout(150); await p.locator('.topbar button').first().click(); await p.locator('button.disc', { hasText: 'Indoor' }).click(); await p.waitForTimeout(200);
+  console.log('default bow:', await p.locator('.bowsel').first().inputValue()); await p.selectOption('.bowsel', 'compound');
+  for (let i=0;i<19;i++) await p.locator('.stepper button').first().click();
+  await p.getByRole('button',{name:'Start shooting'}).click(); await p.waitForTimeout(200); await p.locator('.vbtns button').first().click(); await p.locator('.vbtns button').first().click(); await p.locator('.vbtns button').first().click(); await p.locator('.bottombar button.primary').click(); await p.waitForTimeout(300);
+  await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(500); await p.locator('button.disc', { hasText: 'Indoor' }).click(); await p.waitForTimeout(200);
+  console.log('next time default:', await p.locator('.bowsel').first().inputValue());
+  console.log(errs.length ? errs : 'no errors'); await b.close(); })();

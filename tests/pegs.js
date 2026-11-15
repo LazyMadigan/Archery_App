@@ -1,0 +1,20 @@
+const BASE = process.env.BASE || 'http://localhost:8111';
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch(); const p = await (await b.newContext({ ...devices['Pixel 7'] })).newPage(); await p.addInitScript(() => { try { localStorage.setItem('wa.onboarded','true'); } catch {} }); p.on('dialog', d => d.accept()); const errs=[]; p.on('pageerror', e => errs.push(e.message));
+  await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(800);
+  await p.locator('.tile', { hasText: '3D Courses' }).click(); await p.getByText('Build new course').click();
+  await p.getByText('+ Add target').click(); await p.getByRole('button',{name:/Bears/}).click(); await p.getByRole('button',{name:/Polar bear/}).click(); await p.waitForTimeout(300);
+  const ins = p.locator('.pegrow input'); await ins.nth(0).fill('42'); await ins.nth(0).press('Tab'); await ins.nth(1).fill('-8'); await ins.nth(1).press('Tab'); await ins.nth(2).fill('35'); await ins.nth(2).press('Tab'); await ins.nth(3).fill('-5'); await ins.nth(3).press('Tab');
+  await p.screenshot({ path: '/tmp/peg1.png' });
+  await p.getByRole('button',{name:'Done',exact:true}).click(); await p.waitForTimeout(200);
+  await p.locator('input[placeholder^="Course name"]').fill('Peg test'); await p.getByRole('button',{name:'Save course'}).click(); await p.waitForTimeout(300);
+  await p.getByRole('button',{name:'Shoot',exact:true}).first().click(); await p.waitForTimeout(300);
+  await p.locator('input[placeholder="Player 1"]').fill('Cian');
+  await p.getByRole('button',{name:/Blue/}).click(); await p.locator('label:has-text("Show distances") input').check(); await p.waitForTimeout(200);
+  await p.locator('.card:has-text("Course")').last().screenshot({ path: '/tmp/peg2.png' });
+  await p.getByText('Start shooting').click(); await p.waitForTimeout(400);
+  console.log('header:', await p.locator('.topbar .sub').innerText());
+  // dargle still present & red
+  await p.goto((process.env.BASE || 'http://localhost:8111') + '/index.html'); await p.waitForTimeout(500); await p.getByRole('button',{name:'Delete'}).click().catch(()=>{}); await p.waitForTimeout(200);
+  await p.locator('.tile', { hasText: '3D Courses' }).click(); await p.waitForTimeout(200); console.log('courses:', await p.locator('.item .t div').allInnerTexts());
+  console.log(errs.length ? errs : 'no errors'); await b.close(); })();

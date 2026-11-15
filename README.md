@@ -1,9 +1,18 @@
 # 3D Fun Round
 
-Free, volunteer-built phone app for scoring 3D field archery rounds with friends. Club-neutral: any club can use it.
+Free, volunteer-built phone app for scoring 3D, indoor and field archery rounds with friends. Club-neutral: any club can use it.
 Runs as a web app (install to home screen, works offline). No accounts, no server — everything is stored on the phone.
 
 **Live app:** https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
+
+## Documentation
+- [docs/MANUAL.md](docs/MANUAL.md) — how to use the app
+- [CHANGELOG.md](CHANGELOG.md) — every revision
+- [docs/DECISIONS.md](docs/DECISIONS.md) — UI and design decisions and why
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — code, data and storage
+- [docs/TARGETS.md](docs/TARGETS.md) — target identification and ring-tracing status
+- [tests/](tests/README.md) — automated phone tests
+- [PRIVACY.md](PRIVACY.md) · [FAIR-USE.md](FAIR-USE.md) · [LICENSE](LICENSE)
 
 ## Privacy, in one line
 Nothing leaves your phone: no accounts, no server, no analytics. See [PRIVACY.md](PRIVACY.md).
