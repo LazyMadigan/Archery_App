@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Trace zones · Wicklow Archers 3D</title>
+<title>Trace zones · 3D Fun Round</title>
 <style>
-body{margin:0;font:15px system-ui;background:#f4f3ee;color:#17201a}
-.bar{background:#1f3d2b;color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+body{margin:0;font:15px system-ui;background:#eef2fa;color:#121a2e}
+.bar{background:#1d4fd8;color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .bar select,.bar button{min-height:40px;border-radius:8px;border:0;padding:0 10px;font:inherit}
 .wrap{padding:12px;max-width:900px;margin:0 auto}
 .stage{position:relative;background:#fff;border-radius:12px;overflow:hidden;touch-action:none;user-select:none}
@@ -11,12 +11,12 @@ body{margin:0;font:15px system-ui;background:#f4f3ee;color:#17201a}
 .stage svg{position:absolute;inset:0;width:100%;height:100%}
 .stage svg *{vector-effect:non-scaling-stroke}
 .vital{fill:#4a8de0;fill-opacity:.35;stroke:#222;stroke-width:1}.inner{fill:#e0494a;fill-opacity:.4;stroke:#222;stroke-width:1}.centre{fill:#f2c94c;fill-opacity:.6;stroke:#222;stroke-width:1}
-.pt{fill:#fff;stroke:#111;stroke-width:1.5}.pt.active{fill:#c9622c}
+.pt{fill:#fff;stroke:#111;stroke-width:1.5}.pt.active{fill:#1d4fd8}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.tools button{min-height:44px;border-radius:10px;border:2px solid #d8d9d1;background:#fff;padding:0 12px;font:inherit}
-.tools button.on{border-color:#c9622c;background:#fff3ec}
-textarea{width:100%;height:160px;font:12px ui-monospace,monospace;border-radius:10px;border:1px solid #d8d9d1;padding:8px}
-.hint{color:#5f6b63;font-size:13px}
+.tools button{min-height:44px;border-radius:10px;border:2px solid #d3dbec;background:#fff;padding:0 12px;font:inherit}
+.tools button.on{border-color:#1d4fd8;background:#eaf0ff}
+textarea{width:100%;height:160px;font:12px ui-monospace,monospace;border-radius:10px;border:1px solid #d3dbec;padding:8px}
+.hint{color:#5a6680;font-size:13px}
 </style></head><body>
 <div class="bar"><b>Trace zones</b>
   <select id="target"></select><select id="face"></select>
@@ -29,7 +29,7 @@ textarea{width:100%;height:160px;font:12px ui-monospace,monospace;border-radius:
     <button data-layer="outer" class="on">Vital (outer)</button><button data-layer="inner">Inner</button><button data-layer="centre">Centre</button>
     <button id="undo">Undo point</button><button id="clear">Clear layer</button>
   </div>
-  <p class="hint">Saved tracings are kept on this phone and used by the app straight away. To get them into the shared library, copy the JSON below and paste it into the GitHub issue / to Cian.</p>
+  <p class="hint">Saved tracings are kept on this phone and used by the app straight away. To get them into the shared library, copy the JSON below and paste it into a GitHub issue.</p>
   <textarea id="out" readonly></textarea>
   <button id="copy">Copy JSON</button>
 </div>

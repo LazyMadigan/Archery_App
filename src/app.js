@@ -55,7 +55,7 @@ function topbar(title, sub, back, right) {
 function home() {
   const r = state.round;
   return h('div', {},
-    topbar('Wicklow Archers 3D', 'Fun scoring', null, h('button', { onclick: () => go('settings') }, '⚙')),
+    topbar('3D Fun Round', 'Fun scoring', null, h('button', { onclick: () => go('settings') }, '⚙')),
     h('div', { class: 'page' },
       r ? h('div', { class: 'card' },
         h('h3', {}, 'Round in progress'),
@@ -70,7 +70,7 @@ function home() {
         h('button', { class: 'tile', onclick: () => go('history') }, 'History', h('small', {}, `${state.history.length} rounds`)),
         h('button', { class: 'tile', onclick: () => { state.pick = { browse: true }; go('pick'); } }, 'Target library', h('small', {}, `${LIB.targets.length} animals`)),
         h('button', { class: 'tile', onclick: () => location.href = 'tools/trace.html' }, 'Trace zones', h('small', {}, 'mark scoring rings'))),
-      h('p', { class: 'muted', style: 'font-size:13px' }, 'Free app built by volunteers for Wicklow Archers. Works offline once loaded — add it to your home screen.')));
+      h('p', { class: 'muted', style: 'font-size:13px' }, 'Free, volunteer-built, for any club. Works offline once loaded — add it to your home screen.')));
 }
 function confirmBox(msg) { return window.confirm ? window.confirm(msg) : true; }
 function go(v) { state.view = v; render(); }
@@ -294,18 +294,18 @@ function summary() {
   setTimeout(() => drawSummary(canvas, r, sys, rows), 0);
   return h('div', {}, topbar('Round summary', new Date(r.started).toLocaleDateString(), () => go('home')),
     h('div', { class: 'page' }, canvas,
-      h('div', { class: 'row' }, h('button', { class: 'primary', onclick: () => { const a = document.createElement('a'); a.download = `wicklow-archers-${new Date(r.started).toISOString().slice(0, 10)}.png`; a.href = canvas.toDataURL('image/png'); a.click(); } }, 'Save image'),
-        navigator.share ? h('button', { onclick: async () => { canvas.toBlob(async b => { const f = new File([b], 'round.png', { type: 'image/png' }); try { await navigator.share({ files: [f], title: 'Wicklow Archers round' }); } catch {} }); } }, 'Share') : null)));
+      h('div', { class: 'row' }, h('button', { class: 'primary', onclick: () => { const a = document.createElement('a'); a.download = `round-${new Date(r.started).toISOString().slice(0, 10)}.png`; a.href = canvas.toDataURL('image/png'); a.click(); } }, 'Save image'),
+        navigator.share ? h('button', { onclick: async () => { canvas.toBlob(async b => { const f = new File([b], 'round.png', { type: 'image/png' }); try { await navigator.share({ files: [f], title: '3D Fun Round' }); } catch {} }); } }, 'Share') : null)));
 }
 function drawSummary(c, r, sys, rows) {
-  const x = c.getContext('2d'); const W = c.width; x.fillStyle = '#f4f3ee'; x.fillRect(0, 0, W, c.height);
-  x.fillStyle = '#1f3d2b'; x.fillRect(0, 0, W, 120); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText('Wicklow Archers 3D', 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${sys.name} · ${r.targets.length} targets`, 40, 105);
-  let y = 180; x.fillStyle = '#17201a';
+  const x = c.getContext('2d'); const W = c.width; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, c.height);
+  x.fillStyle = '#1d4fd8'; x.fillRect(0, 0, W, 120); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText('3D Fun Round', 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${sys.name} · ${r.targets.length} targets`, 40, 105);
+  let y = 180; x.fillStyle = '#121a2e';
   rows.forEach((p, i) => { const t = r.final.totals[p.id]; x.font = 'bold 36px system-ui'; x.fillText(`${i + 1}. ${p.name}`, 40, y); x.textAlign = 'right'; x.fillText(String(t.gross), W - 40, y); x.textAlign = 'left';
     const bits = []; if (r.useHandicap) bits.push(`net ${t.net}`); if (r.final.king) bits.push(`${r.final.king.holesWon[p.id]} holes${r.final.king.king === p.id ? ' · KING' : ''}`); if (r.final.skins) bits.push(`${r.final.skins.won[p.id]} skins`); if (r.final.guess) bits.push(`distance ${r.final.guess[p.id].pts} pts${r.final.guess[p.id].calls ? `, avg ${(r.final.guess[p.id].absErr / r.final.guess[p.id].calls).toFixed(1)} m off` : ''}`);
-    x.font = '22px system-ui'; x.fillStyle = '#5f6b63'; x.fillText(bits.join(' · '), 40, y + 30); x.fillStyle = '#17201a'; y += 70; });
-  y += 20; x.font = 'bold 22px system-ui'; x.fillStyle = '#5f6b63'; x.fillText('TARGET', 40, y); rows.forEach((p, i) => { x.textAlign = 'right'; x.fillText(p.name.slice(0, 10), W - 40 - i * 130, y); x.textAlign = 'left'; }); y += 14;
-  r.targets.forEach((t, i) => { y += 40; const T = findTarget(t.targetId); x.font = '22px system-ui'; x.fillStyle = '#17201a'; x.fillText(`${i + 1}. ${T?.name || '?'}${t.distanceActual != null ? ` (${t.distanceActual} m)` : ''}`, 40, y);
+    x.font = '22px system-ui'; x.fillStyle = '#5a6680'; x.fillText(bits.join(' · '), 40, y + 30); x.fillStyle = '#121a2e'; y += 70; });
+  y += 20; x.font = 'bold 22px system-ui'; x.fillStyle = '#5a6680'; x.fillText('TARGET', 40, y); rows.forEach((p, i) => { x.textAlign = 'right'; x.fillText(p.name.slice(0, 10), W - 40 - i * 130, y); x.textAlign = 'left'; }); y += 14;
+  r.targets.forEach((t, i) => { y += 40; const T = findTarget(t.targetId); x.font = '22px system-ui'; x.fillStyle = '#121a2e'; x.fillText(`${i + 1}. ${T?.name || '?'}${t.distanceActual != null ? ` (${t.distanceActual} m)` : ''}`, 40, y);
     rows.forEach((p, j) => { const a = r.scores[i]?.[p.id]; x.textAlign = 'right'; x.fillText(a ? String(scoreTarget(sys, a)) : '–', W - 40 - j * 130, y); x.textAlign = 'left'; }); });
 }
 function historyView() {
@@ -326,7 +326,7 @@ function settings() {
         h('button', { class: 'ghost', onclick: () => { delete state.pointsOverride[key]; save(); render(); } }, 'Reset to default')),
       h('div', { class: 'card' }, h('h3', {}, 'Data'),
         h('div', { class: 'row' },
-          h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'wicklow-archers-backup.json'; a.click(); } }, 'Export backup'),
+          h('button', { onclick: () => { const blob = new Blob([JSON.stringify({ history: state.history, courses: state.courses }, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3d-fun-round-backup.json'; a.click(); } }, 'Export backup'),
           h('button', { class: 'ghost', onclick: () => { if (confirmBox('Delete all rounds and courses on this phone?')) { state.history = []; state.courses = []; state.round = null; save(); toast('Cleared'); } } }, 'Clear all'))),
       h('p', { class: 'muted', style: 'font-size:12px' }, 'v0.1 · github.com/LazyMadigan/wicklow-archers-3d-fun-app')));
 }

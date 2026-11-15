@@ -1,13 +1,13 @@
 {
-  "name": "Wicklow Archers 3D",
-  "short_name": "WA 3D",
+  "name": "3D Fun Round",
+  "short_name": "3D Fun",
   "description": "Fun 3D field archery scoring: total points, King of the Castle, skins, guess the distance, handicaps.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f4f3ee",
-  "theme_color": "#1f3d2b",
+  "background_color": "#eef2fa",
+  "theme_color": "#1d4fd8",
   "icons": [
     { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]

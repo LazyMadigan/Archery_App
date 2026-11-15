@@ -1,6 +1,6 @@
-# Wicklow Archers 3D Fun App
+# 3D Fun Round
 
-Free, volunteer-built phone app for scoring 3D field archery rounds with friends.
+Free, volunteer-built phone app for scoring 3D field archery rounds with friends. Club-neutral: any club can use it.
 Runs as a web app (install to home screen, works offline). No accounts, no server — everything is stored on the phone.
 
 **Live app:** https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
@@ -17,7 +17,7 @@ Runs as a web app (install to home screen, works offline). No accounts, no serve
 `targets/targets.json` + `targets/photos/`. Each target has one or more *faces* (sides with rings). Zones are polygons in percent of the photo.
 Not all faces are traced yet — use **Trace zones** in the app (`tools/trace.html`), tap around the rings, then copy the JSON into an issue or PR.
 
-Photos are manufacturer product shots (SRT, Eleven, Rinehart, Delta McKenzie) used for identification in a non-commercial club tool; they will be replaced with the club's own photos of its targets.
+Photos are manufacturer product shots (SRT, Eleven, Rinehart, Delta McKenzie) used for identification in a non-commercial club tool; they will be replaced with our own photos of the targets.
 
 ## Develop
 Static files, no build step. Serve the folder (`python3 -m http.server`) and open `index.html`.
