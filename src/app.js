@@ -3,6 +3,7 @@ import { totals, kingOfTheCastle, skins, guessTotals, suggestHandicap, distanceP
 import { icon } from './icons.js';
 import { init as initTarget, isTarget } from './target.js';
 import { init as initSight, sightFit } from './sight.js';
+import { apply as applyColours, tokens as colourTokens } from './colours.js';
 import { evaluate as evalAch, GROUPS as ACH_GROUPS, TOTAL as ACH_TOTAL } from './achievements.js';
 
 // ---------- state ----------
@@ -32,6 +33,8 @@ let state = {
 };
 function applyTheme() { const r = document.documentElement; if (state.theme === 'light' || state.theme === 'dark') r.dataset.theme = state.theme; else delete r.dataset.theme; }
 applyTheme();
+applyColours(state.profile?.colours);
+const brandImg = () => colourTokens(state.profile?.colours).light.brand; // share images always use the light-mode brand
 const save = () => { LS.set('wa.round', state.round); LS.set('wa.history', state.history); LS.set('wa.courses', state.courses); LS.set('wa.names', state.names); LS.set('wa.points', state.pointsOverride); LS.set('wa.tround', state.tround); LS.set('wa.profile', state.profile); LS.set('wa.onboarded', state.onboarded); LS.set('wa.theme', state.theme); if (state.achSeen) LS.set('wa.ach', state.achSeen); LS.set('wa.sight', state.sight); LS.set('wa.rulesOff', state.rulesOff); LS.set('wa.sdraft', state.sdraft); };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const $ = sel => document.querySelector(sel);
@@ -213,8 +216,8 @@ function home() {
         h('button', { class: 'tile wide', onclick: () => { state.achBack = 'home'; go('achievements'); } }, icon('trophy', 'lg'), 'Achievements', h('small', {}, me ? `${achList().filter(a => a.done).length} of ${ACH_TOTAL} unlocked` : `${ACH_TOTAL} to earn`))),
       h('p', { class: 'muted', style: 'font-size:12px;text-align:center' }, 'Free and volunteer-built, for any club. Works offline — add it to your home screen.')));
 }
-T = initTarget({ lib: () => LIB, h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, sparkline: (...x) => sparkline(...x), achCheck: () => achCheck(), showRules: k => showRules(k), achCount: () => { const l = achList(); return [l.filter(a => a.done).length, ACH_TOTAL]; } });
-const S = initSight({ h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, achCheck: () => achCheck() });
+T = initTarget({ lib: () => LIB, h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, sparkline: (...x) => sparkline(...x), achCheck: () => achCheck(), showRules: k => showRules(k), applyColours: c => applyColours(c), brandImg, achCount: () => { const l = achList(); return [l.filter(a => a.done).length, ACH_TOTAL]; } });
+const S = initSight({ h, icon, state, save, go: v => go(v), render: () => render(), topbar, toast, confirmBox: m => confirmBox(m), uid, $, achCheck: () => achCheck(), brandImg });
 function welcome() {
   const done = v => { state.onboarded = true; save(); go(v); };
   return h('div', { class: 'welcome' },
@@ -539,7 +542,7 @@ function summary() {
 }
 function drawSummary(c, r, sys, rows) {
   const x = c.getContext('2d'); const W = c.width; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, c.height);
-  x.fillStyle = '#1d4fd8'; x.fillRect(0, 0, W, 120); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText('3D Fun Round', 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${sys.name} · ${r.targets.length} targets`, 40, 105);
+  x.fillStyle = brandImg(); x.fillRect(0, 0, W, 120); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText('3D Fun Round', 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${sys.name} · ${r.targets.length} targets`, 40, 105);
   let y = 180; x.fillStyle = '#121a2e';
   rows.forEach((p, i) => { const t = r.final.totals[p.id]; x.font = 'bold 36px system-ui'; x.fillText(`${i + 1}. ${p.name}`, 40, y); x.textAlign = 'right'; x.fillText(String(t.gross), W - 40, y); x.textAlign = 'left';
     const bits = []; if (r.useHandicap) bits.push(`net ${t.net}`); if (r.final.king) bits.push(`${r.final.king.holesWon[p.id]} holes${r.final.king.king === p.id ? ' · KING' : ''}`); if (r.final.skins) bits.push(`${r.final.skins.won[p.id]} skins`); if (r.final.guess) bits.push(`distance ${r.final.guess[p.id].pts} pts${r.final.guess[p.id].calls ? `, avg ${(r.final.guess[p.id].absErr / r.final.guess[p.id].calls).toFixed(1)} m off` : ''}`);

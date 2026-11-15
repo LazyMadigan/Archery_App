@@ -3,7 +3,7 @@
    animal cut-outs as artwork, and a chunky display face. */
 :root{
   --bg:#e9eff8;--bg2:#dfe7f4;--panel:#ffffff;--fg:#0f1b33;--muted:#58658a;--line:#cfd9ec;
-  --brand:#1d4fd8;--brand-deep:#123aa6;--brand-ink:#fff;--sky:#bcd4ff;
+  --brand:#1d4fd8;--brand-deep:#123aa6;--accent:#3f7df5;--brand-ink:#fff;--sky:#bcd4ff;
   --peg-red:#e0494a;--peg-blue:#2f6fe0;--peg-white:#f6f7fb;--peg-yellow:#f2c94c;
   --centre:#f2c94c;--inner:#e0494a;--vital:#4a8de0;--body:#8a93a8;
   --ok:#2f9e62;
@@ -51,7 +51,7 @@ h3{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;le
 .item .n{width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:none;font-family:var(--display)}
 .item .t{flex:1;min-width:0}.item .t small{display:block;color:var(--muted)}
 /* HOME hero */
-.hero{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(160deg,var(--brand-deep) 0%,var(--brand) 55%,#3f7df5 100%);color:#fff;padding:22px 18px 18px;min-height:220px;box-shadow:var(--shadow)}
+.hero{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(160deg,var(--brand-deep) 0%,var(--brand) 55%,var(--accent) 100%);color:#fff;padding:22px 18px 18px;min-height:220px;box-shadow:var(--shadow)}
 .hero::before{content:"";position:absolute;inset:auto -20% -55% -20%;height:70%;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.22),transparent 60%)}
 .hero .rings{position:absolute;right:-40px;top:-40px;width:220px;height:220px;opacity:.18}
 .hero .rings circle{fill:none;stroke:#fff;stroke-width:2}
@@ -371,3 +371,13 @@ a.tile.button{display:flex;text-decoration:none;color:var(--fg);background:var(-
 .newsitem{display:block;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;text-decoration:none}
 .newsitem b{display:block;font-size:14px;line-height:1.3}.newsitem small{opacity:.8;font-size:12px}
 .hero .newsbtn{margin-top:14px;position:relative;background:#fff;color:#0c3a4f;font-weight:700;display:flex;align-items:center;justify-content:center;min-height:var(--tap);border-radius:12px;text-decoration:none}
+
+/* club colours picker */
+.swgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sw{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);text-align:left;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;min-height:44px}
+.sw.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--panel))}
+.swpair{display:inline-flex;flex:none}.swpair i{width:20px;height:20px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line)}.swpair i+i{margin-left:-7px}
+.swpair.sm{vertical-align:middle;margin-right:6px}.swpair.sm i{width:14px;height:14px}
+.swcustom{gap:10px;align-items:center}.swcustom label{display:flex;flex-direction:column;align-items:center;gap:2px;flex:0 0 auto}
+.swcustom input[type=color]{width:52px;height:40px;padding:2px;border-radius:10px;min-height:0}
+.swcustom small{font-size:11px;text-transform:none;letter-spacing:0}

@@ -11,6 +11,7 @@ A static, offline-first web app (PWA). No build step, no framework, no server. O
 | `src/target.js` | Indoor and Field rounds (setup, play, board, summary), profile, personal bests, progress cards. Receives UI helpers from `app.js` via `init(ctx)`. |
 | `src/faces.js` | Target-face engine (pure logic): scoring schemes, `scoreAt(scheme, r)`, compound variants, face drawing (SVG), round presets, totals, Set play, King of the Castle per end. |
 | `src/achievements.js` | Achievements engine (pure): 60 badge definitions evaluated over history and sight marks. Unit-tested in `tests/achievements.test.mjs`. |
+| `src/colours.js` | Club colours: presets, contrast maths, light/dark theme tokens written into a `<style id="clubColours">` after `app.css`. Unit-tested in `tests/colours.test.mjs`. |
 | `src/sight.js` | Sight marks: per-bow charts, session flow, curve fit (`sightFit`), image card and Excel export. |
 | `src/scoring.js` | 3D scoring systems (IFAA, WA 3D, NFAS, ASA, IBO) and per-target scoring. |
 | `src/games.js` | 3D games: totals, King of the Castle, Skins, Guess the distance, handicap suggestion. |
@@ -34,7 +35,7 @@ A tiny `h(tag, attrs, ...children)` helper builds DOM nodes. `render()` rebuilds
 
 | Key | Contents |
 |---|---|
-| `wa.profile` | `{ name, bows[], lastBow, ai, club, clubNo, booking, photo (dataURL 256 px) }` |
+| `wa.profile` | `{ name, bows[], lastBow, ai, club, clubNo, booking, colours?{ c1, c2 }, photo (dataURL 256 px) }` |
 | `wa.round` | Active 3D round. |
 | `wa.tround` | Active indoor/field round. |
 | `wa.history` | Finished rounds (all disciplines). 3D rounds have no `kind`; indoor/field have `kind: 'indoor' | 'field'`. |

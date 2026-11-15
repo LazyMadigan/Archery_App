@@ -1,5 +1,6 @@
 // Indoor & Field rounds + Profile. Views get UI helpers from app.js via init(ctx).
 import { buildWorkbook } from './export.js';
+import { PRESETS, valid as validColour, tokens as colourTokens } from './colours.js';
 import { SCHEMES, BOWS, bowName, schemeFor, FACES, INDOOR_ROUNDS, INDOOR_DISTS, INDOOR_FACES, FIELD_ROUNDS, FIELD_DISTS, FIELD_FACES, scoreAt, valueOf, drawFace, schemeForFace, endTotal, tally, endsComplete, setPlay, kingEnds, roundKey, roundLabel } from './faces.js';
 
 let C; // ctx: { h, icon, state, save, go, render, topbar, toast, confirmBox, uid, $ }
@@ -34,9 +35,9 @@ function profile() {
   const set = k => e => { p[k] = e.target.value; markDirty(); };
   const back = state.pback || 'home';
   const editing = !!state.pedit || !(saved.name || '').trim() || !!state.focusBooking;
-  const leave = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pback = null; state.pedit = false; go(back); };
-  const cancelEdit = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pedit = false; C.render(); };
-  const commit = () => { const prevName = (saved.name || '').trim(); state.profile = JSON.parse(JSON.stringify(p)); if ((state.profile.name || '').trim()) state.onboarded = true; state.pdraft = null; state.pedit = false; save(); toast('Profile saved'); C.render(); };
+  const leave = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pback = null; state.pedit = false; C.applyColours(saved.colours); go(back); };
+  const cancelEdit = () => { if (dirty() && !confirmBox('Discard your unsaved changes?')) return; state.pdraft = null; state.pedit = false; C.applyColours(saved.colours); C.render(); };
+  const commit = () => { const prevName = (saved.name || '').trim(); state.profile = JSON.parse(JSON.stringify(p)); if ((state.profile.name || '').trim()) state.onboarded = true; state.pdraft = null; state.pedit = false; C.applyColours(state.profile.colours); save(); toast('Profile saved'); C.render(); };
   const field = (k, label, ph, type = 'text') => h('label', { class: 'fld' }, h('span', {}, label), h('input', { id: 'pf-' + k, type, inputmode: type === 'tel' ? 'numeric' : type === 'url' ? 'url' : undefined, autocapitalize: type === 'url' ? 'off' : undefined, placeholder: ph, value: p[k] || '', oninput: set(k) }));
   const name = (saved.name || '').trim();
   const hist = name ? state.history.filter(r => r.players.some(x => x.name === name)) : [];
@@ -51,8 +52,8 @@ function profile() {
       !editing ? h('div', { class: 'card pview' },
         h('div', { class: 'avatar xl' }, saved.photo ? h('img', { src: saved.photo, alt: '' }) : icon('people', 'xl')),
         h('h2', {}, name), (saved.club || '').trim() ? h('div', { class: 'muted' }, saved.club) : null,
-        h('dl', { class: 'pinfo' }, ...[['Bows I shoot', myBows(saved).map(b => BOWS.find(x => x[0] === b)?.[1]).filter(Boolean).join(', ')], ['Archery Ireland no.', saved.ai], ['Club', saved.club], ['Club number', saved.clubNo], ['Booking link', saved.booking]]
-          .map(([k, v], i) => h('div', { class: i === 0 || i === 4 ? 'wide' : '' }, h('dt', {}, k), h('dd', { class: (v || '').toString().trim() ? '' : 'empty' }, (v || '').toString().trim() || 'Not set')))),
+        h('dl', { class: 'pinfo' }, ...[['Bows I shoot', myBows(saved).map(b => BOWS.find(x => x[0] === b)?.[1]).filter(Boolean).join(', ')], ['Archery Ireland no.', saved.ai], ['Club', saved.club], ['Club number', saved.clubNo], ['Booking link', saved.booking], ['Club colours', saved.colours ? (PRESETS.find(x => x[1] === saved.colours.c1 && x[2] === saved.colours.c2)?.[0] || 'Custom') : '']]
+          .map(([k, v], i) => h('div', { class: i === 0 || i === 4 ? 'wide' : '' }, h('dt', {}, k), h('dd', { class: (v || '').toString().trim() ? '' : 'empty' }, k === 'Club colours' && saved.colours ? h('span', { class: 'swpair sm' }, h('i', { style: `background:${saved.colours.c1}` }), h('i', { style: `background:${saved.colours.c2}` })) : null, (v || '').toString().trim() || (k === 'Club colours' ? 'App default' : 'Not set'))))),
         h('button', { id: 'pfEdit', onclick: () => { state.pedit = true; C.render(); } }, 'Edit details')) : null,
       editing ? h('div', { class: 'card', style: 'align-items:center;text-align:center' },
         h('div', { class: 'avatar xl', onclick: () => photoIn.click() }, p.photo ? h('img', { src: p.photo, alt: '' }) : icon('people', 'xl')), photoIn,
@@ -62,7 +63,19 @@ function profile() {
         h('div', { class: 'fld', role: 'group', 'aria-label': 'Bows I shoot' }, h('span', {}, 'Bows I shoot'),
           h('div', { class: 'bowgrid' }, ...BOWS.map(([k, n]) => { const on = myBows(p).includes(k); return h('button', { class: 'bowchip' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => { const cur = myBows(p); p.bows = on ? cur.filter(x => x !== k) : [...cur, k]; delete p.bow; C.render(); } }, h('span', { class: 'chk' }, on ? icon('check') : null), h('span', { class: 'bowlbl' }, n)); })),
           h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, myBows(p).length > 1 ? `Rounds start with the bow you shot last (${BOWS.find(b => b[0] === defaultBow(p))[1]}); change it per round in setup.` : 'Tick every bow you shoot. You can change it per round in setup.')),
-        field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'), field('clubNo', 'Club number', 'Membership no.', 'tel'), field('booking', 'Club booking link', 'https://…', 'url'),
+        field('ai', 'Archery Ireland number', 'e.g. 12345', 'tel'), field('club', 'Club', 'Club name'),
+        (() => { const cur = p.colours; const setC = c => { if (c) p.colours = c; else delete p.colours; C.applyColours(p.colours); markDirty(); C.render(); };
+          const t = cur ? colourTokens(cur) : null; const adjusted = t && (t.light.brand.toLowerCase() !== t.main.toLowerCase());
+          return h('div', { class: 'fld', role: 'group', 'aria-label': 'Club colours' }, h('span', {}, 'Club colours'),
+            h('div', { class: 'swgrid' },
+              h('button', { class: 'sw' + (!cur ? ' on' : ''), 'aria-pressed': !cur ? 'true' : 'false', onclick: () => setC(null) }, h('span', { class: 'swpair' }, h('i', { style: 'background:#1d4fd8' }), h('i', { style: 'background:#bcd4ff' })), h('span', {}, 'App default')),
+              ...PRESETS.map(([n, a, b]) => { const on = cur && cur.c1 === a && cur.c2 === b; return h('button', { class: 'sw' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => setC({ c1: a, c2: b }) }, h('span', { class: 'swpair' }, h('i', { style: `background:${a}` }), h('i', { style: `background:${b}` })), h('span', {}, n)); })),
+            h('div', { class: 'row swcustom' },
+              h('label', {}, h('input', { type: 'color', 'aria-label': 'Main colour', value: cur?.c1 || '#1d4fd8', onchange: e => setC({ c1: e.target.value, c2: cur?.c2 || '#ffffff' }) }), h('small', {}, 'Main')),
+              h('label', {}, h('input', { type: 'color', 'aria-label': 'Second colour', value: cur?.c2 || '#ffffff', onchange: e => setC({ c1: cur?.c1 || '#1d4fd8', c2: e.target.value }) }), h('small', {}, 'Second')),
+              h('small', { class: 'muted', style: 'flex:1;font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, 'Or pick your own. The whole app previews it now; Save profile keeps it.')),
+            adjusted ? h('small', { class: 'muted', style: 'font-size:12px;text-transform:none;letter-spacing:0;font-weight:500' }, 'Shade adjusted slightly so text on buttons stays readable.') : null); })(),
+        field('clubNo', 'Club number', 'Membership no.', 'tel'), field('booking', 'Club booking link', 'https://…', 'url'),
         h('div', { class: 'muted', style: 'font-size:12px' }, 'Your name fills Player 1 automatically. Your club shows at the top of the home screen, and the booking link opens from the Booking tile. Nothing here leaves your phone.')) : null,
       name ? h('div', { class: 'card' }, h('h3', {}, 'Track record'),
         h('div', { class: 'stats' }, h('div', { class: 'stat' }, h('div', { class: 'v' }, String(hist.length)), h('div', { class: 'k' }, 'Rounds')), h('div', { class: 'stat' }, h('div', { class: 'v' }, String(arrows)), h('div', { class: 'k' }, 'Arrows')), h('div', { class: 'stat' }, h('div', { class: 'v' }, `${byKind['3d']}/${byKind.indoor}/${byKind.field}`), h('div', { class: 'k' }, '3D/In/Field'))),
@@ -194,7 +207,7 @@ function tsummary() {
     h('div', { class: 'row', style: 'font-size:13px;width:100%' }, h('span', { class: 'pill' }, `${tal[p.id].xs} X`), h('span', { class: 'pill' }, `${tal[p.id].tens} × ${SCHEMES[r.scheme].max}`), h('span', { class: 'pill' }, `avg ${tal[p.id].avg.toFixed(2)}`), sp ? h('span', { class: 'pill' }, `${sp.pts[p.id]} set pts`) : null, kg ? h('span', { class: 'pill' }, `${kg.won[p.id]} ends${kg.king === p.id ? ' · King' : ''}`) : null),
     drawFace(r.scheme, { faded: (r.scores[p.id] || []).flat().filter(s => s?.x != null), size: '220px', label: 'Arrow group' })));
   const canvas = h('canvas', { width: 1080, height: 260 + order.length * 90, style: 'width:100%;height:auto;border-radius:12px;border:1px solid var(--line)' });
-  setTimeout(() => { const x = canvas.getContext('2d'); const W = 1080; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, canvas.height); x.fillStyle = '#1d4fd8'; x.fillRect(0, 0, W, 130); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText(`${r.kind === 'field' ? 'Field' : 'Indoor'}${r.mode === 'practice' ? ' practice' : ''} · ${r.name}`, 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${r.dist} m · ${FACES[r.face]} · ${r.ends * r.arrows} arrows`, 40, 108);
+  setTimeout(() => { const x = canvas.getContext('2d'); const W = 1080; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, canvas.height); x.fillStyle = C.brandImg(); x.fillRect(0, 0, W, 130); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText(`${r.kind === 'field' ? 'Field' : 'Indoor'}${r.mode === 'practice' ? ' practice' : ''} · ${r.name}`, 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${r.dist} m · ${FACES[r.face]} · ${r.ends * r.arrows} arrows`, 40, 108);
     let y = 200; order.forEach((p, i) => { x.fillStyle = '#121a2e'; x.font = 'bold 38px system-ui'; x.fillText(`${i + 1}. ${p.name} (${bowName(p.bow)})`, 40, y); x.textAlign = 'right'; x.fillText(`${tal[p.id].total}`, W - 40, y); x.textAlign = 'left'; x.font = '22px system-ui'; x.fillStyle = '#5a6680'; x.fillText(`${tal[p.id].xs} X · avg ${tal[p.id].avg.toFixed(2)}${sp ? ` · ${sp.pts[p.id]} set pts` : ''}${kg ? ` · ${kg.won[p.id]} ends` : ''} · of ${max}`, 40, y + 32); y += 90; }); }, 0);
   return h('div', {}, topbar('Round summary', new Date(r.started).toLocaleDateString(), () => go('home')),
     h('div', { class: 'page' },

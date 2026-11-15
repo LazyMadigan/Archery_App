@@ -53,7 +53,7 @@ function drawCard(chart) {
   const rows = chartRows(chart); const W = 1080, cols = 2, per = Math.ceil(rows.length / cols), rowH = 64;
   const H = 360 + 420 + 70 + per * rowH + 110; const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d');
   const me = (C.state.profile?.name || '').trim();
-  x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, H); x.fillStyle = '#1d4fd8'; x.fillRect(0, 0, W, 210);
+  const B = C.brandImg ? C.brandImg() : '#1d4fd8'; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, H); x.fillStyle = B; x.fillRect(0, 0, W, 210);
   x.fillStyle = '#fff'; x.font = 'bold 30px system-ui'; x.fillText('SIGHT MARKS', 48, 62); x.font = 'bold 60px system-ui'; x.fillText(chart.bow.slice(0, 26), 48, 132);
   x.font = '28px system-ui'; x.fillText([bowName(chart.type), chart.note, me, new Date(chart.updated || chart.created).toLocaleDateString()].filter(Boolean).join(' · ').slice(0, 64), 48, 182);
   // plot
@@ -66,8 +66,8 @@ function drawCard(chart) {
     x.strokeStyle = '#d8deea'; x.lineWidth = 2; x.fillStyle = '#5a6680'; x.font = '24px system-ui'; x.textAlign = 'center';
     for (let d = dmin; d <= dmax; d += 10) { x.beginPath(); x.moveTo(X(d), py); x.lineTo(X(d), py + ph); x.stroke(); x.fillText(`${d} m`, X(d), py + ph + 38); }
     x.textAlign = 'right'; [smin, r1((smin + smax) / 2), smax].forEach(s => x.fillText(String(s), px - 14, Y(s) + 8)); x.textAlign = 'left';
-    if (f) { const a = Math.min(...pts.map(p => p.d)), b = Math.max(...pts.map(p => p.d)); x.strokeStyle = '#1d4fd8'; x.lineWidth = 5; x.beginPath(); for (let d = a; d <= b; d += 0.5) d === a ? x.moveTo(X(d), Y(f(d))) : x.lineTo(X(d), Y(f(d))); x.stroke(); }
-    pts.forEach(p => { x.fillStyle = '#1d4fd8'; x.beginPath(); x.arc(X(p.d), Y(p.s), 11, 0, 7); x.fill(); x.fillStyle = '#fff'; x.beginPath(); x.arc(X(p.d), Y(p.s), 5, 0, 7); x.fill(); });
+    if (f) { const a = Math.min(...pts.map(p => p.d)), b = Math.max(...pts.map(p => p.d)); x.strokeStyle = B; x.lineWidth = 5; x.beginPath(); for (let d = a; d <= b; d += 0.5) d === a ? x.moveTo(X(d), Y(f(d))) : x.lineTo(X(d), Y(f(d))); x.stroke(); }
+    pts.forEach(p => { x.fillStyle = B; x.beginPath(); x.arc(X(p.d), Y(p.s), 11, 0, 7); x.fill(); x.fillStyle = '#fff'; x.beginPath(); x.arc(X(p.d), Y(p.s), 5, 0, 7); x.fill(); });
   }
   // table
   let ty = 236 + ph + 90 + 60; x.fillStyle = '#121a2e'; x.font = 'bold 30px system-ui'; x.fillText('Distance → setting', 48, ty); ty += 24;

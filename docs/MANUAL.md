@@ -84,3 +84,6 @@ Home → **Achievements** (or Profile). 60 badges earned from rounds where you a
 
 ## Game rules
 Picking a game shows a short how-to-play. Tick **Don't show this again** to stop it for that game.
+
+## Club colours
+Profile → **Edit details** → **Club colours**. Pick a ready-made pair or your own main and second colour; the whole app changes straight away so you can see it. **Save profile** keeps it. If a colour would make button text hard to read, the app uses a slightly deeper shade.
