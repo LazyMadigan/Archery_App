@@ -1,4 +1,5 @@
 // Indoor & Field rounds + Profile. Views get UI helpers from app.js via init(ctx).
+import { buildWorkbook } from './export.js';
 import { SCHEMES, BOWS, bowName, schemeFor, FACES, INDOOR_ROUNDS, INDOOR_DISTS, INDOOR_FACES, FIELD_ROUNDS, FIELD_DISTS, FIELD_FACES, scoreAt, valueOf, drawFace, schemeForFace, endTotal, tally, endsComplete, setPlay, kingEnds, roundKey, roundLabel } from './faces.js';
 
 let C; // ctx: { h, icon, state, save, go, render, topbar, toast, confirmBox, uid, $ }
@@ -60,7 +61,12 @@ function profile() {
         my.length || best3d ? h('h3', { style: 'margin-top:6px' }, 'Personal bests') : h('div', { class: 'muted', style: 'font-size:13px' }, 'Finish a round and your personal bests show here.'),
         ...my.map(b => h('div', { class: 'pb' }, h('span', { class: 'pbk' }, icon(KIND[b.kind].icon)), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, b.label), h('small', {}, new Date(b.date).toLocaleDateString())), h('div', { class: 'pbv' }, String(b.total), h('small', {}, `/${b.max}${b.xs ? ` · ${b.xs}X` : ''}`)))),
         best3d ? h('div', { class: 'pb' }, h('span', { class: 'pbk' }, icon('bow')), h('div', { style: 'flex:1' }, h('b', {}, '3D best round'), h('small', {}, `${best3d.r.targets.length} targets · ${new Date(best3d.r.started).toLocaleDateString()}`)), h('div', { class: 'pbv' }, String(best3d.gross))) : null,
-        h('button', { onclick: () => { state.progName = name; state.pdraft = null; go('progress'); } }, 'See progress')) : null),
+        h('button', { onclick: () => { state.progName = name; state.pdraft = null; go('progress'); } }, 'See progress')) : null,
+      h('div', { class: 'card' }, h('div', { class: 'row' }, icon('share'), h('h3', {}, 'Export my data')),
+        h('div', { class: 'muted', style: 'font-size:13px' }, 'One Excel file with your profile, every round, every arrow, your 3D targets, courses and sight marks. It includes a “Read me” sheet that explains the data, so you can give it to an AI and ask for coaching advice. Built on this phone; your photo isn’t included.'),
+        h('div', { class: 'row' },
+          h('button', { class: 'primary', id: 'xlBtn', onclick: async e => { const b = e.currentTarget; b.disabled = true; b.textContent = 'Building…'; try { const x = await buildWorkbook(state, C.lib()); const a = document.createElement('a'); a.href = URL.createObjectURL(x.blob); a.download = x.name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); toast(`Exported ${x.counts.rounds} rounds`); } catch (err) { toast('Export failed: ' + err.message); } b.disabled = false; b.textContent = 'Export to Excel'; } }, 'Export to Excel'),
+          navigator.canShare ? h('button', { onclick: async e => { const b = e.currentTarget; b.disabled = true; try { const x = await buildWorkbook(state, C.lib()); const f = new File([x.blob], x.name, { type: x.blob.type }); if (navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: 'My archery data' }); else toast('Sharing files isn’t supported here — use Export'); } catch (err) { if (err.name !== 'AbortError') toast('Share failed'); } b.disabled = false; } }, 'Share…') : null))),
     h('div', { class: 'bottombar' }, h('button', { id: 'pfSave', class: 'primary', disabled: !dirty(), onclick: commit }, dirty() ? 'Save profile' : 'Saved')));
 }
 

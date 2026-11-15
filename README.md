@@ -26,6 +26,7 @@ Most targets don't have their scoring rings traced yet. Open the app → **Trace
 ## What it does
 - **Three disciplines:** 3D Course, Indoor (WA 18, Vegas 300, Portsmouth; 18 / 15 / 10 m) and Field (WA 6–1 or IFAA 5-4-3; 10–70 m).
 - **Profile** with name, bow, Archery Ireland number, club; personal bests and track record. Compound inner-10 rule applied automatically indoors.
+- **Export to Excel** from the profile, with a Read me sheet so you can ask an AI for coaching advice.
 - **Tap-the-face scoring** for indoor and field with arrow group plots; games: Total, King of the Castle, Set play.
 - Set up a round: players (up to 6), scoring system, arrows per target (max 3), games to play.
 - Scoring systems: IFAA 3D Hunting, IFAA 3D Standard, World Archery 3D, NFAS Big Game (walk-down), ASA, IBO. Points per zone are editable in Settings if your club scores differently.

@@ -9,6 +9,11 @@ Tap the round picture top-right on the home screen, or open **Settings → your 
 
 Your profile also shows your **track record**: rounds and arrows shot, and **personal bests** for every round you've shot (kept separately per round, distance, face and bow).
 
+## Export my data (Excel)
+At the bottom of your profile, **Export to Excel** downloads one file with everything on this phone: your profile (no photo), every round, every indoor/field arrow (with where it hit, if you tapped the face), every 3D target you shot (animal, side, peg, distance, slope, zone, points, sight setting, distance guess), your courses and your sight marks. **Share…** sends it straight to another app.
+
+The first sheet, **Read me**, explains every column and the scoring rules, and includes a suggested prompt. That way you can give the file to an AI (ChatGPT, Claude, Gemini…) and ask whether you're improving, where your arrows go, which distances cost you points, and what to practise. The file is built on your phone; nothing is uploaded unless you share it.
+
 ## Appearance
 Settings → **Appearance**: System (follows your phone), Light or Dark.
 

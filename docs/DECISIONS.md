@@ -79,6 +79,15 @@ Why the app looks and behaves the way it does. Each decision records what was as
 | **First-run welcome** with a privacy note | Requested: prompt new users to fill in details and tell them plainly it stays on the phone. Shown once; skippable. |
 | **Booking** tile opens the club link from the profile | Requested; kept generic so each club sets its own. |
 
+## Data export
+
+| Decision | Why |
+|---|---|
+| **Excel export** from the profile, one row per fact (round, arrow, 3D target) | Requested so the archer can hand their history to an AI for coaching advice. Tidy, filterable tables are what spreadsheets and AIs read best. |
+| A **Read me** sheet explaining columns, scoring rules and coordinate conventions, plus a suggested prompt | An AI can't infer "Vital" or what Hit X/Y mean; spelling it out gets far better advice. |
+| **Photo excluded**; built on the phone | Keeps the privacy promise; the file only goes where the archer sends it. |
+| Library **bundled** (`vendor/xlsx.mini.min.js`, SheetJS, Apache-2.0), loaded only when exporting | Works offline and doesn't slow down app start. |
+
 ## Things deliberately not done (yet)
 
 - **Club updates page**: waiting on what the club wants in it.

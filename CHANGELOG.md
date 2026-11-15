@@ -8,6 +8,9 @@ Live app: https://lazymadigan.github.io/wicklow-archers-3d-fun-app/
 
 ## v0.3.x — 15 Nov 2026 (evening): disciplines, profile, polish
 
+### Export to Excel
+- Profile → **Export my data**: one .xlsx with sheets *Read me* (explains every column and the scoring rules, with a suggested AI prompt), *Profile*, *Rounds*, *Arrows*, *3D targets*, *Courses*, *Sight marks*. **Share…** on phones that support it. Built on the device with SheetJS (bundled in `vendor/`, works offline). Photo excluded.
+
 ### Next end / next target returns to the target face
 - On small phones, moving to the next end, target or 3D target now scrolls back to the top so the face is in view. (Setup screens still keep your place when you tap an option.)
 

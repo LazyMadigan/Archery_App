@@ -10,6 +10,7 @@ node tests/smoke.js                # a full 3D round
 node tests/indoor.js               # profile, indoor Vegas set play, field, progress, history
 DEV='iPhone SE' node tests/indoor.js
 node tests/bow.js                  # compound vs recurve on the same tap
+node tests/export.js              # shoots rounds, exports, saves the .xlsx to /tmp
 node tests/bows2.js  tests/book.js  tests/welcome.js  tests/pegs.js  tests/theme.js
 ```
 Set `BASE` to test a different URL, e.g. `BASE=https://lazymadigan.github.io/wicklow-archers-3d-fun-app node tests/smoke.js`.

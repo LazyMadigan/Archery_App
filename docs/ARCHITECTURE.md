@@ -13,6 +13,8 @@ A static, offline-first web app (PWA). No build step, no framework, no server. O
 | `src/scoring.js` | 3D scoring systems (IFAA, WA 3D, NFAS, ASA, IBO) and per-target scoring. |
 | `src/games.js` | 3D games: totals, King of the Castle, Skins, Guess the distance, handicap suggestion. |
 | `src/icons.js` | Hand-drawn SVG icon set. |
+| `src/export.js` | Builds the Excel export (Read me, Profile, Rounds, Arrows, 3D targets, Courses, Sight marks). Loads `vendor/xlsx.mini.min.js` on demand. |
+| `vendor/` | SheetJS (xlsx) 0.18.5 mini build, Apache-2.0 (`xlsx-LICENSE.txt`). |
 | `src/app.css` | All styles; colour tokens with System / Light / Dark themes. |
 | `sw.js` | Service worker: caches the shell and target library for offline use. **Bump `CACHE` on every release** so phones update. |
 | `manifest.webmanifest`, `icon.png` | Install-to-home-screen metadata. |
