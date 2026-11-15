@@ -184,7 +184,7 @@ function home() {
             h('button', { class: 'ghost', style: 'color:var(--danger)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.round = null; save(); render(); } } }, 'Delete'))); })() : null;
   const disc = (ic, title, sub, onclick) => h('button', { class: 'disc', onclick }, h('span', { class: 'disc-ic' }, icon(ic, 'lg')), h('div', { style: 'flex:1;min-width:0' }, h('b', {}, title), h('small', {}, sub)), h('span', { class: 'disc-go' }, icon('back')));
   return h('div', {},
-    topbar((state.profile?.club || '').trim() || 'Archery App', null, null, T.profileBadge(() => { state.pback = 'home'; go('profile'); })),
+    topbar('Archery App', (state.profile?.club || '').trim() || null, null, T.profileBadge(() => { state.pback = 'home'; go('profile'); })),
     h('div', { class: 'page' },
       heroCarousel([
         h('div', { class: 'hero' }, rings(),

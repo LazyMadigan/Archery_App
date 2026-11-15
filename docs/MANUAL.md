@@ -3,7 +3,7 @@
 Open the link on your phone. Add it to your home screen (Share → Add to Home Screen on iPhone; the "Install" prompt or ⋮ → Add to Home screen on Android). After that it opens like an app and works with no signal.
 
 ## The home screen
-- **Top bar:** your club's name, and your profile picture on the right. Tap the picture for your profile and Settings.
+- **Top bar:** Archery App with your club's name underneath, and your profile picture on the right. Tap the picture for your profile and Settings.
 - **Top card** (swipe, or tap the three dots): **Shoot well** · **Your best** (your top personal bests, best 3D round and latest achievement; tap it for Progress) · **Archery Ireland news** (latest headlines from archery.ie when the site allows it, otherwise a button that opens archery.ie).
 - **Shoot now:** **3D Course**, **Indoor**, **Field**. A round in progress shows as a card here with Continue, Scoreboard, Stop & save and Delete.
 - **Off the line:** Progress · History · Booking · Sight marks · 3D Courses · 3D Targets · Achievements.

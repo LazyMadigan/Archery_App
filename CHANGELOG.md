@@ -9,6 +9,7 @@ Live app: https://lazymadigan.github.io/Archery_App/
 ## v0.4.x — 15 Nov 2026 (night): practice, sight marks, achievements, club colours, privacy
 
 ### Renamed: Archery App
+- Home title is always **Archery App**, with your club's name in small text underneath.
 - The app is now called **Archery App**: the name under the home-screen icon (manifest, page title, iPhone home-screen title), the home title when no club is set, the Excel export and share images. Already-installed icons keep their old label until removed and re-added from the new address.
 
 ### Repository renamed to Archery_App
