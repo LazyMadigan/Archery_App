@@ -110,6 +110,17 @@ Why the app looks and behaves the way it does. Each decision records what was as
 | **Photo excluded**; built on the phone | Keeps the privacy promise; the file only goes where the archer sends it. |
 | Library **bundled** (`vendor/xlsx.mini.min.js`, SheetJS, Apache-2.0), loaded only when exporting | Works offline and doesn't slow down app start. |
 
+## Games, round 3 (15 Nov 2026, late)
+
+| Decision | Why |
+|---|---|
+| King of the Castle fought in **crown battles of N ends/targets** (1, 2, 4 quick picks plus a stepper) | Requested: one end deciding the crown is swingy; over 2 or 4 ends the King has to keep winning to hold it. 1 keeps the old rule. |
+| A **short last battle counts** at the end of the round | Otherwise 10 ends in battles of 4 would waste the last two ends. |
+| New games: **Last archer standing, Climb the ladder, Bingo** | Picked for fun with mixed abilities and kids: lives are easy to follow, the ladder rewards improving on yourself (so it works solo and for beginners), and bingo rewards variety rather than only golds. All work for indoor, field and 3D with the same engine. |
+| Eliminated archers **keep shooting** | Their score still counts for totals, PBs and achievements, and nobody stands around. |
+| Booking moved to the **second hero slide**; Shoot now stays as 3 wide cards | The user meant the swipeable slides at the top. A 2×2 Shoot now grid was tried and dropped. |
+| Archery Ireland slide **links out** to archery.ie/news and /calendar | Their feed blocks automated reading, so the slide can't reliably show headlines; links always work. Logo slot falls back to a badge until the image is supplied. |
+
 ## Things deliberately not done (yet)
 
 - **Club updates page**: waiting on what the club wants in it.

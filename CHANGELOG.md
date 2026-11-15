@@ -6,6 +6,25 @@ Live app: https://lazymadigan.github.io/Archery_App/
 
 ---
 
+## v0.5.0 — 15 Nov 2026 (late): crown battles, three new games, booking slide
+
+### King of the Castle: crown battles
+- Pick how many ends (indoor/field) or targets (3D) make a **crown battle**: 1, 2, 4, or any number up to 12 with the + / − buttons.
+- Highest total over the battle takes the crown; the King keeps it on a tie; tied challengers win nothing. A short last battle still counts when the round ends.
+- The board shows **Crowns** (battles won) with a 🔥 count of battles defended in a row, and a bar on the scoring screen says who holds the crown and how far into the battle you are. Summaries show the longest reign.
+
+### Three new games (indoor, field and 3D)
+- **Last archer standing**: three lives each; the lowest score each end/target loses a life; last one with a life wins.
+- **Climb the ladder**: beat your last end/target to go up a rung, match it to stay, score lower to slip down. Works solo.
+- **Bingo**: fill a card by hitting every ring at least once (indoor/field: the top five rings, X counts as 10; 3D: centre, inner, vital, body). Fewest arrows wins.
+- Each has a how-to-play pop-up, shows on the board, summary, share image and Excel export, and a win counts towards game achievements.
+- Engine in `src/fungames.js`; test `tests/games.js`.
+
+### Home: Booking slide
+- **Booking** is the second swipeable slide at the top (Welcome, Booking, High scores, Archery Ireland). Big **Book a session** button opens your club's form; without a link it takes you to the profile field.
+- **Archery Ireland** slide redesigned: logo slot, **Latest news** and **Events calendar** links to archery.ie, and a note that the app isn't run by Archery Ireland. The logo shows once `assets/archery-ireland-logo.png` is added; until then a neat "AI" badge stands in.
+- Shoot now stays as the three wide cards; Booking left the lower grid, so it's an even six tiles.
+
 ## v0.4.x — 15 Nov 2026 (night): practice, sight marks, achievements, club colours, privacy
 
 ### Renamed: Archery App

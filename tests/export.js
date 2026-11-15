@@ -21,7 +21,7 @@ const { chromium, devices } = require('playwright');
   // export
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(500); await p.locator('.avatar').click(); await p.waitForTimeout(200);
   if (await p.evaluate(() => document.documentElement.scrollWidth > screen.width || innerWidth > screen.width)) errs.push('OVERFLOW');
-  await p.locator('.card', { hasText: 'Export my data' }).screenshot({ path: '/tmp/exp-card.png' });
+  await p.locator('.card', { hasText: 'Export my data' }).first().screenshot({ path: '/tmp/exp-card.png' });
   const [dl] = await Promise.all([p.waitForEvent('download'), p.locator('#xlBtn').click()]);
   const out = '/tmp/' + dl.suggestedFilename(); await dl.saveAs(out); console.log('downloaded:', out);
   console.log(errs.length ? errs : 'no errors'); await b.close(); })();

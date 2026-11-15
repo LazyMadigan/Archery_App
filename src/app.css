@@ -395,3 +395,29 @@ a.tile.button{display:flex;text-decoration:none;color:var(--fg);background:var(-
 .pview .pstay{font-size:12px;margin-top:-2px}
 a.button.tile-link{display:flex;align-items:center;justify-content:center;min-height:var(--tap);border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font-weight:700;text-decoration:none}
 .credit{font-size:10px;text-align:center;margin:-6px 0 4px;letter-spacing:.04em}
+
+/* ---- Shoot now: 2x2 quick tiles ---- */
+/* ---- Archery Ireland news slide ---- */
+.hero.news{display:flex;flex-direction:column;gap:12px}
+.ai-head{display:flex;align-items:center;gap:12px;position:relative}
+.ai-head h1{font-size:26px;margin:0}
+.ai-badge{width:56px;height:56px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.ai-badge img{width:100%;height:100%;object-fit:contain;padding:5px}
+.ai-fallback{font-family:var(--display);font-weight:800;font-size:20px;color:var(--brand-deep)}
+.ai-links{display:flex;flex-direction:column;gap:8px;position:relative}
+.ai-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;text-decoration:none;min-width:0}
+.ai-link:active{background:rgba(255,255,255,.22)}
+.ai-link-ic{width:34px;height:34px;border-radius:10px;background:#fff;color:var(--brand-deep);display:flex;align-items:center;justify-content:center;flex:none}.ai-link-ic .ic{color:var(--brand-deep)}
+.ai-link-t{flex:1;min-width:0}.ai-link-t b{display:block;font-size:15px}.ai-link-t small{display:block;font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-link-go{transform:scaleX(-1);opacity:.8;flex:none}
+.ai-note{position:relative;font-size:11px;opacity:.75}
+
+.hero.book .book-ic{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:0 0 48px}.hero.book .book-ic .ic{color:#fff}
+.book-btn{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;margin-top:12px;border-radius:14px;border:0;background:#fff;color:#1d4fd8;font:inherit;font-weight:800;font-size:17px;text-decoration:none}
+.book-btn .ic{color:#1d4fd8}
+.gamebar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:var(--brand-soft,#eaf0ff);color:var(--fg);font-weight:600;font-size:14px;border:1px solid var(--line)}
+.gamebar .ic{color:var(--brand);flex:0 0 auto}
+.boutpick{display:grid;gap:10px;margin:-2px 0 4px;padding:12px 14px;border:2px solid var(--brand);border-top:0;border-radius:0 0 16px 16px;background:var(--panel)}
+.boutpick small{display:block;color:var(--muted);font-size:13px}
+.boutpick .stepper{justify-content:space-between}
+.gamecard.on:has(+ .boutpick){border-bottom-left-radius:0;border-bottom-right-radius:0}

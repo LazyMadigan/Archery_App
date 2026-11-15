@@ -46,7 +46,10 @@ Pick **WA Field** (6–1: yellow 6–5, black 4–1) or **IFAA Field** (5-4-3), 
 
 ### Games (indoor and field competition)
 - **Total points:** highest total wins.
-- **King of the Castle:** the best end takes the crown; if the King ties for best they keep it. Most ends won ranks first.
+- **King of the Castle:** choose how many ends make a crown battle (1, 2, 4 or any number). The best total over the battle takes the crown; if the King ties for best they keep it. Most battles won ranks first; 🔥 shows battles defended in a row.
+- **Last archer standing:** three lives each. The lowest end total loses a life (all tied-lowest lose one; if everyone ties, nobody does). Last archer with a life wins.
+- **Climb the ladder:** beat your last end to climb a rung, match it to stay, drop below it to slip down one. Highest rung wins. Good on your own.
+- **Bingo:** hit each of the top five rings at least once (an X counts as 10; three rings on an IFAA field face). Fewest arrows to fill the card wins.
 - **Set play:** the Olympic match format: 2 set points for winning an end, 1 each for a tie. Head to head, first to 6 wins.
 
 Picking King of the Castle or Set play shows a short how-to-play pop-up: **Skip**, **Got it**, or tick **Don't show this again**.
@@ -60,7 +63,10 @@ Picking King of the Castle or Set play shows a short how-to-play pop-up: **Skip*
 3. **What are we doing:** *Fun round* (score against each other) or *Laser practice* (see below).
    **Game** (fun round), one at a time:
    - **Total points:** the usual.
-   - **King of the Castle:** best single arrow on the target wins it. Win and you're King; the King keeps the crown on a tie. Scoreboard shows holes won and the current streak.
+   - **King of the Castle:** choose how many targets make a crown battle (1, 2, 4 or any number). Your best arrow on each target counts; the highest battle total takes the crown, and the King keeps it on a tie. Scoreboard shows crowns won and the 🔥 streak.
+   - **Last archer standing:** three lives each; the lowest score on a target loses a life; last one standing wins.
+   - **Climb the ladder:** beat your last target score to climb a rung; highest rung wins.
+   - **3D Bingo:** hit the centre, inner, vital and body at least once each; fewest arrows wins.
    - **Skins:** each target is worth one skin; if nobody wins outright, it carries to the next (two skins riding, three…).
    **Add-on: Guess the distance** layers over any game. At each target everyone calls the distance *first*; scoring stays locked until the calls are locked in. Lase it after shooting. 5 pts within 1 m, 3 within 2 m, 1 within 3 m, on its own leaderboard.
    Each game shows its rules the first time you pick it (skippable).

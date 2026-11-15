@@ -137,6 +137,7 @@ export function evaluate(history, me, sysOf, chartMarks = []) {
       if (complete) { const key = roundKey(r) + '|' + (p.bow || 'recurve'); if (best[key] != null && t.total > best[key]) { a.pbBeats++; if (t.total - best[key] >= 20) a.pbBig = true; } best[key] = Math.max(best[key] ?? -1, t.total); }
       if (multi && r.final.sets?.winner === pid) { a.setWins++; a.gameWins++; }
       if (multi && r.final.king?.king === pid) { a.kingWins++; a.gameWins++; }
+      if (multi && r.final.fun && r.final.fun.key !== 'king' && r.final.fun.winner === pid) a.gameWins++;
     } else {
       const sys = sysOf(r.systemKey); const mine = Object.values(r.scores || {}).map(by => by[pid]).filter(x => x && x.some(Boolean));
       a.arrows += mine.reduce((n, arr) => n + arr.filter(Boolean).length, 0);
@@ -150,6 +151,7 @@ export function evaluate(history, me, sysOf, chartMarks = []) {
       }
       (r.targets || []).forEach(t => { if (t.distanceActual != null && t.sight?.[pid] != null) a.sightMarks++; });
       if (multi && r.final.king?.king === pid) { a.kingWins++; a.gameWins++; }
+      if (multi && r.final.fun && r.final.fun.key !== 'king' && r.final.fun.winner === pid) a.gameWins++;
       const won = r.final.skins?.won; if (multi && won) { const mx = Math.max(...Object.values(won)); if (mx > 0 && won[pid] === mx && Object.values(won).filter(v => v === mx).length === 1) { a.skinWins++; a.gameWins++; } }
       const g = r.final.guess?.[pid]; if (g?.calls) { gCalls += g.calls; gErr += g.absErr; if (gCalls >= 10 && gErr / gCalls <= 2) a.eyes = true; }
     }

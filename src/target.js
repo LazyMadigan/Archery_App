@@ -2,7 +2,8 @@
 import { buildWorkbook } from './export.js';
 import { PRESETS, valid as validColour, tokens as colourTokens } from './colours.js';
 import { CLUBS, PROVINCES, isListed } from './clubs.js';
-import { SCHEMES, BOWS, bowName, schemeFor, FACES, INDOOR_ROUNDS, INDOOR_DISTS, INDOOR_FACES, FIELD_ROUNDS, FIELD_DISTS, FIELD_FACES, scoreAt, valueOf, drawFace, schemeForFace, endTotal, tally, endsComplete, setPlay, kingEnds, roundKey, roundLabel } from './faces.js';
+import { funResult, funSave } from './fungames.js';
+import { SCHEMES, BOWS, bowName, schemeFor, FACES, INDOOR_ROUNDS, INDOOR_DISTS, INDOOR_FACES, FIELD_ROUNDS, FIELD_DISTS, FIELD_FACES, scoreAt, valueOf, drawFace, schemeForFace, endTotal, tally, endsComplete, setPlay, roundKey, roundLabel } from './faces.js';
 
 let C; // ctx: { h, icon, state, save, go, render, topbar, toast, confirmBox, uid, $ }
 export function init(ctx) { C = ctx; return { tsetup, tplay, tboard, tsummary, profile, liveCard, historyItem, progressCards, startTarget, profileBadge, pbs, isTarget }; }
@@ -176,8 +177,9 @@ function tsetup() {
           h('textarea', { id: 'tGoal', rows: 3, maxlength: 300, placeholder: 'e.g. Hold at full draw until the shot breaks; keep every arrow in the gold', value: d.goal || '', oninput: e => { d.goal = e.target.value; syncStart(); } })),
         h('small', { id: 'tGoalHint', class: 'muted', style: 'font-size:12px' }, goalHint())) : null,
       practice ? null : h('div', {}, h('h3', { style: 'margin:4px 0 8px' }, 'Game'),
-        h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Highest total wins'], ['king', 'crown', 'King of the Castle', 'Best end takes the crown; hold it to stay King'], ['sets', 'trophy', 'Set play', 'Olympic match style: 2 points for winning an end, 1 each for a tie. First to 6 (head to head)']].map(([k, ic, n, desc]) =>
-          h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { const was = d.games[k]; d.games = { [k]: true }; C.render(); if (!was) C.showRules?.('t_' + k); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)))))),
+        h('div', { class: 'list' }, ...[['total', 'rings', 'Total points', 'Highest total wins'], ['king', 'crown', 'King of the Castle', 'Win the crown battle to take the crown; keep winning to stay King'], ['sets', 'trophy', 'Set play', 'Olympic match style: 2 points for winning an end, 1 each for a tie. First to 6 (head to head)'], ['last', 'people', 'Last archer standing', 'Three lives each. Lowest end loses a life. Last one in wins'], ['ladder', 'trend', 'Climb the ladder', 'Beat your last end to climb a rung. Great on your own too'], ['bingo', 'target', 'Bingo', `Hit every ring on the card: ${tCard(sch).join(' · ')}. Fewest arrows wins`]].map(([k, ic, n, desc]) =>
+          h('div', {}, h('div', { class: 'gamecard' + (d.games[k] ? ' on' : ''), onclick: () => { const was = d.games[k]; d.games = { [k]: true }; C.render(); if (!was) C.showRules?.('t_' + k); } }, icon(ic, 'lg'), h('div', {}, h('b', {}, n), h('small', {}, desc)), h('span', { class: 'chk' }, d.games[k] ? icon('check') : null)),
+            k === 'king' && d.games.king ? boutPicker(C, d, d.kind === 'field' ? 'target' : 'end') : null))))),
     h('div', { class: 'bottombar' }, h('button', { id: 'tStart', class: 'primary', disabled: !canStart(), onclick: () => { if (canStart()) startT(); } }, practice ? 'Start practice' : 'Start shooting')));
 }
 function startT() {
@@ -186,7 +188,7 @@ function startT() {
   players.forEach(p => { if (!state.names.includes(p.name)) state.names.unshift(p.name); }); state.names = state.names.slice(0, 24);
   const meName = (state.profile?.name || '').trim(); const mine = players.find(p => p.name === meName); if (mine && state.profile) state.profile.lastBow = mine.bow;
   const scheme = schemeForFace(d.kind, d.face, d.scheme);
-  state.tround = { id: uid(), kind: d.kind, started: Date.now(), roundKey: d.roundKey, name: d.name, face: d.face, scheme, dist: d.dist, ends: d.ends, arrows: d.arrows, games: d.mode === 'practice' ? { total: true } : d.games, ...(d.mode === 'practice' ? { mode: 'practice', goal: d.goal.trim() } : {}), players, scores: Object.fromEntries(players.map(p => [p.id, []])), end: 0 };
+  state.tround = { id: uid(), kind: d.kind, started: Date.now(), roundKey: d.roundKey, name: d.name, face: d.face, scheme, dist: d.dist, ends: d.ends, arrows: d.arrows, games: d.mode === 'practice' ? { total: true } : d.games, bout: d.bout || 1, ...(d.mode === 'practice' ? { mode: 'practice', goal: d.goal.trim() } : {}), players, scores: Object.fromEntries(players.map(p => [p.id, []])), end: 0 };
   state.tsel = null; save(); go('tplay');
 }
 
@@ -210,6 +212,7 @@ function tplay() {
   return h('div', {}, topbar(`${r.kind === 'field' ? 'Target' : 'End'} ${e + 1} of ${r.ends}`, `${r.name} · ${r.dist} m · ${FACES[r.face]}`, () => go('tboard')),
     h('div', { class: 'page sch-' + psch },
       r.goal ? goalBanner(r) : null,
+      gameBar(r),
       h('div', { class: 'facewrap' }, face, h('div', { class: 'muted', style: 'font-size:12px;text-align:center' }, `${active.name} · arrow ${Math.min(endOf(active).filter(Boolean).length + 1, r.arrows)} of ${r.arrows} — tap where it landed (or use the buttons; only tapped arrows show on your group)`)),
       h('div', { class: 'vbtns n' + SCHEMES[psch].buttons.length }, ...SCHEMES[psch].buttons.map(btn)),
       h('div', { class: 'card' }, ...rows)),
@@ -222,35 +225,49 @@ function tplay() {
 const goalBanner = r => { const { h, icon } = C; return h('div', { class: 'goalbar' }, icon('target'), h('div', {}, h('small', {}, 'Goal'), h('span', {}, r.goal))); };
 
 // ---------- board / finish / summary ----------
-function standings(r) {
-  const tal = tally(r); const sp = r.games.sets ? setPlay(r) : null; const kg = r.games.king ? kingEnds(r) : null;
-  const order = [...r.players].sort((a, b) => sp ? (sp.pts[b.id] - sp.pts[a.id] || tal[b.id].total - tal[a.id].total) : kg ? (kg.won[b.id] - kg.won[a.id] || tal[b.id].total - tal[a.id].total) : (tal[b.id].total - tal[a.id].total || tal[b.id].xs - tal[a.id].xs));
+// ---------- games (King battles, Last standing, Ladder, Bingo) ----------
+const tCard = sch => [...new Set(SCHEMES[sch].buttons.filter(b => b !== 'M' && b !== 'X').map(Number))].sort((a, b) => b - a).slice(0, 5);
+function funOf(r, fin = false) {
+  const ids = r.players.map(p => p.id); const steps = [];
+  for (let e = 0; e < r.ends; e++) { if (!endsComplete(r, e)) break; steps.push(Object.fromEntries(ids.map(id => [id, endTotal(r.scheme, r.scores[id][e])]))); }
+  const seqs = Object.fromEntries(ids.map(id => [id, (r.scores[id] || []).flat().filter(Boolean).map(s => valueOf(r.scheme, s.v))]));
+  return funResult(r.games, { ids, name: Object.fromEntries(r.players.map(p => [p.id, p.name])), steps, seqs, card: tCard(r.scheme), bout: r.bout || 1, finished: fin || !!r.final || steps.length >= r.ends, unit: r.kind === 'field' ? 'target' : 'end' });
+}
+function gameBar(r) { const f = funOf(r); if (!f) return null; const { h, icon } = C;
+  return h('div', { class: 'gamebar' }, icon({ king: 'crown', last: 'people', ladder: 'trend', bingo: 'target' }[f.key]), h('span', {}, f.status)); }
+export function boutPicker(C2, d, unit) { const { h, render } = C2; const n = d.bout || 1; const set = v => { d.bout = Math.max(1, Math.min(12, v)); render(); };
+  return h('div', { class: 'boutpick' }, h('div', {}, h('b', {}, 'Crown battle every'), h('small', {}, n === 1 ? `Every ${unit} decides the crown` : `Best total over ${n} ${unit}s takes the crown`)),
+    h('div', { class: 'chips c3' }, ...[1, 2, 4].map(v => h('button', { class: v === n ? 'on' : '', onclick: () => set(v) }, String(v)))),
+    h('div', { class: 'stepper' }, h('button', { 'aria-label': `Fewer ${unit}s per battle`, onclick: () => set(n - 1) }, '−'), h('b', {}, `${n} ${unit}${n === 1 ? '' : 's'}`), h('button', { 'aria-label': `More ${unit}s per battle`, onclick: () => set(n + 1) }, '+'))); }
+function standings(r, fin = false) {
+  const tal = tally(r); const sp = r.games.sets ? setPlay(r) : null; const kg = funOf(r, fin);
+  const order = [...r.players].sort((a, b) => sp ? (sp.pts[b.id] - sp.pts[a.id] || tal[b.id].total - tal[a.id].total) : kg ? (kg.rank[b.id] - kg.rank[a.id] || tal[b.id].total - tal[a.id].total) : (tal[b.id].total - tal[a.id].total || tal[b.id].xs - tal[a.id].xs));
   return { tal, sp, kg, order };
 }
 function tboard() {
   const { h, icon, state, save, go, topbar, confirmBox } = C; const r = state.tround; if (!r) { go('home'); return h('div'); }
   const { tal, sp, kg, order } = standings(r);
-  const table = h('table', {}, h('tr', {}, h('th', {}, 'Archer'), h('th', { class: 'num' }, 'Total'), h('th', { class: 'num' }, 'X'), h('th', { class: 'num' }, 'Avg'), sp ? h('th', { class: 'num' }, 'Sets') : null, kg ? h('th', { class: 'num' }, 'Ends') : null),
-    ...order.map(p => h('tr', {}, h('td', {}, kg?.king === p.id ? h('span', { class: 'crown' }, '♛ ') : '', sp?.winner === p.id ? '🏆 ' : '', p.name, h('small', { class: 'muted', style: 'margin-left:6px;font-size:11px' }, bowName(p.bow))), h('td', { class: 'num' }, h('b', {}, String(tal[p.id].total))), h('td', { class: 'num' }, String(tal[p.id].xs)), h('td', { class: 'num' }, tal[p.id].avg.toFixed(2)), sp ? h('td', { class: 'num' }, String(sp.pts[p.id])) : null, kg ? h('td', { class: 'num' }, String(kg.won[p.id])) : null)));
+  const table = h('table', {}, h('tr', {}, h('th', {}, 'Archer'), h('th', { class: 'num' }, 'Total'), h('th', { class: 'num' }, 'X'), h('th', { class: 'num' }, 'Avg'), sp ? h('th', { class: 'num' }, 'Sets') : null, kg ? h('th', { class: 'num' }, kg.col) : null),
+    ...order.map(p => h('tr', {}, h('td', {}, kg?.winner === p.id ? (kg.key === 'king' ? h('span', { class: 'crown' }, '♛ ') : '🏆 ') : '', sp?.winner === p.id ? '🏆 ' : '', p.name, h('small', { class: 'muted', style: 'margin-left:6px;font-size:11px' }, bowName(p.bow))), h('td', { class: 'num' }, h('b', {}, String(tal[p.id].total))), h('td', { class: 'num' }, String(tal[p.id].xs)), h('td', { class: 'num' }, tal[p.id].avg.toFixed(2)), sp ? h('td', { class: 'num' }, String(sp.pts[p.id])) : null, kg ? h('td', { class: 'num' }, kg.val[p.id]) : null)));
   const ends = h('div', { class: 'endgrid', style: `grid-template-columns:auto repeat(${r.players.length},1fr)` }, h('b', {}, 'End'), ...r.players.map(p => h('b', {}, p.name.slice(0, 8))),
     ...Array.from({ length: r.ends }, (_, e) => [h('span', { class: 'muted' }, String(e + 1)), ...r.players.map(p => { const en = r.scores[p.id][e]; return h('span', { onclick: () => { r.end = e; save(); go('tplay'); } }, en?.length ? String(endTotal(r.scheme, en)) : '–'); })]).flat());
   return h('div', {}, topbar(r.mode === 'practice' ? 'Practice' : 'Scoreboard', roundLabel(r), () => go('home')),
-    h('div', { class: 'page' }, r.goal ? goalBanner(r) : null, h('div', { class: 'card' }, table), h('div', { class: 'card' }, h('h3', {}, 'Ends'), ends)),
+    h('div', { class: 'page' }, r.goal ? goalBanner(r) : null, gameBar(r), h('div', { class: 'card' }, table), h('div', { class: 'card' }, h('h3', {}, 'Ends'), ends)),
     h('div', { class: 'bottombar' }, h('button', { class: 'primary', onclick: () => go('tplay') }, 'Continue'), h('button', { onclick: () => { if (confirmBox('Finish and save this round?')) finishT(); } }, 'Finish & save'), h('button', { class: 'ghost', style: 'flex:0 0 auto;color:var(--danger)', onclick: () => { if (confirmBox('Delete this round? It will not be saved.')) { state.tround = null; save(); go('home'); } } }, 'Delete')));
 }
 function finishT() {
-  const { state, save, go } = C; const r = state.tround; const { tal, sp, kg } = standings(r);
-  r.final = { tally: tal, sets: sp, king: kg, ended: Date.now() }; state.history.unshift(r); state.tround = null; state.tlast = r; save(); go('tsummary'); C.achCheck?.();
+  const { state, save, go } = C; const r = state.tround; const { tal, sp, kg } = standings(r, true);
+  r.final = { tally: tal, sets: sp, king: kg?.key === 'king' ? { king: kg.winner, won: kg.raw.won, reign: kg.raw.reign, bout: kg.raw.bout } : null, fun: funSave(kg), ended: Date.now() }; state.history.unshift(r); state.tround = null; state.tlast = r; save(); go('tsummary'); C.achCheck?.();
 }
 function tsummary() {
   const { h, icon, state, save, go, topbar, confirmBox } = C; const r = state.tlast; if (!r) { go('home'); return h('div'); }
   const { tal, sp, kg, order } = standings(r); const max = r.ends * r.arrows * SCHEMES[r.scheme].max;
   const groups = order.map(p => h('div', { class: 'card', style: 'align-items:center' }, h('div', { class: 'row', style: 'width:100%' }, h('b', { style: 'font-family:var(--display);font-size:19px' }, p.name, h('small', { class: 'bowtag', style: 'margin-left:8px' }, bowName(p.bow))), h('span', { class: 'big', style: 'flex:0 0 auto;font-size:28px' }, String(tal[p.id].total), h('small', { class: 'muted', style: 'font-size:13px' }, ` / ${max}`))),
-    h('div', { class: 'row', style: 'font-size:13px;width:100%' }, h('span', { class: 'pill' }, `${tal[p.id].xs} X`), h('span', { class: 'pill' }, `${tal[p.id].tens} × ${SCHEMES[r.scheme].max}`), h('span', { class: 'pill' }, `avg ${tal[p.id].avg.toFixed(2)}`), sp ? h('span', { class: 'pill' }, `${sp.pts[p.id]} set pts`) : null, kg ? h('span', { class: 'pill' }, `${kg.won[p.id]} ends${kg.king === p.id ? ' · King' : ''}`) : null),
+    h('div', { class: 'row', style: 'font-size:13px;width:100%' }, h('span', { class: 'pill' }, `${tal[p.id].xs} X`), h('span', { class: 'pill' }, `${tal[p.id].tens} × ${SCHEMES[r.scheme].max}`), h('span', { class: 'pill' }, `avg ${tal[p.id].avg.toFixed(2)}`), sp ? h('span', { class: 'pill' }, `${sp.pts[p.id]} set pts`) : null, kg ? h('span', { class: 'pill' }, kg.bit(p.id)) : null),
     drawFace(r.scheme, { faded: (r.scores[p.id] || []).flat().filter(s => s?.x != null), size: '220px', label: 'Arrow group' })));
   const canvas = h('canvas', { width: 1080, height: 260 + order.length * 90, style: 'width:100%;height:auto;border-radius:12px;border:1px solid var(--line)' });
   setTimeout(() => { const x = canvas.getContext('2d'); const W = 1080; x.fillStyle = '#eef2fa'; x.fillRect(0, 0, W, canvas.height); x.fillStyle = C.brandImg(); x.fillRect(0, 0, W, 130); x.fillStyle = '#fff'; x.font = 'bold 44px system-ui'; x.fillText(`${r.kind === 'field' ? 'Field' : 'Indoor'}${r.mode === 'practice' ? ' practice' : ''} · ${r.name}`, 40, 70); x.font = '24px system-ui'; x.fillText(`${new Date(r.started).toLocaleDateString()} · ${r.dist} m · ${FACES[r.face]} · ${r.ends * r.arrows} arrows`, 40, 108);
-    let y = 200; order.forEach((p, i) => { x.fillStyle = '#121a2e'; x.font = 'bold 38px system-ui'; x.fillText(`${i + 1}. ${p.name} (${bowName(p.bow)})`, 40, y); x.textAlign = 'right'; x.fillText(`${tal[p.id].total}`, W - 40, y); x.textAlign = 'left'; x.font = '22px system-ui'; x.fillStyle = '#5a6680'; x.fillText(`${tal[p.id].xs} X · avg ${tal[p.id].avg.toFixed(2)}${sp ? ` · ${sp.pts[p.id]} set pts` : ''}${kg ? ` · ${kg.won[p.id]} ends` : ''} · of ${max}`, 40, y + 32); y += 90; }); }, 0);
+    let y = 200; order.forEach((p, i) => { x.fillStyle = '#121a2e'; x.font = 'bold 38px system-ui'; x.fillText(`${i + 1}. ${p.name} (${bowName(p.bow)})`, 40, y); x.textAlign = 'right'; x.fillText(`${tal[p.id].total}`, W - 40, y); x.textAlign = 'left'; x.font = '22px system-ui'; x.fillStyle = '#5a6680'; x.fillText(`${tal[p.id].xs} X · avg ${tal[p.id].avg.toFixed(2)}${sp ? ` · ${sp.pts[p.id]} set pts` : ''}${kg ? ` · ${kg.bit(p.id)}` : ''} · of ${max}`, 40, y + 32); y += 90; }); }, 0);
   return h('div', {}, topbar('Round summary', new Date(r.started).toLocaleDateString(), () => go('home')),
     h('div', { class: 'page' },
       r.goal ? h('div', { class: 'card', style: 'border-color:var(--brand);border-width:2px' }, goalBanner(r),
