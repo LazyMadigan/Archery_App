@@ -335,9 +335,9 @@ function play() {
       guessGate ? null : h('div', { class: 'card' }, ...playerRows),
       guessGate ? null : guess),
     h('div', { class: 'bottombar' },
-      h('button', { onclick: () => { state.ti = Math.max(0, ti - 1); state.selPid = null; render(); }, disabled: ti === 0 }, '‹ Prev'),
-      h('button', { class: 'primary', onclick: () => { state.ti = ti + 1; state.selPid = null; save(); render(); } }, allDone ? 'Next target ›' : 'Skip ›'),
-      h('button', { onclick: () => go('board') }, 'Board')));
+      h('button', { style: 'flex:0 0 56px', 'aria-label': 'Previous target', onclick: () => { state.ti = Math.max(0, ti - 1); state.selPid = null; render(); }, disabled: ti === 0 }, icon('back')),
+      h('button', { style: 'flex:0 0 auto;padding:0 18px', onclick: () => go('board') }, 'Board'),
+      h('button', { class: 'primary', style: allDone ? '' : 'opacity:.75', onclick: () => { state.ti = ti + 1; state.selPid = null; save(); render(); } }, allDone ? 'Next' : 'Skip', h('span', { class: 'ic', style: 'transform:scaleX(-1);margin-left:4px;width:18px;height:18px' }, icon('back')))));
 }
 
 // ---------- SCOREBOARD ----------
